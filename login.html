@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login | Swiss NHL League</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#07101d;color:white;font-family:Arial,sans-serif}
+header{padding:24px;text-align:center;background:#11243e;border-bottom:2px solid #087cff}
+h1{margin:0;font-size:27px}
+h1 span{color:#1683ff}
+header p{font-size:12px;letter-spacing:3px;color:#b6c8dd}
+main{max-width:430px;margin:45px auto;padding:20px}
+.panel{background:#101d30;border:1px solid #294c72;border-radius:14px;padding:25px}
+h2{text-align:center;margin-top:0}
+.tabs{display:flex;gap:10px;margin-bottom:25px}
+button{cursor:pointer;font:inherit}
+.tab{flex:1;padding:12px;background:#192b43;color:white;border:1px solid #34516e;border-radius:7px}
+.tab.active,.submit{background:#087cff;color:white;border:0}
+label{display:block;margin:16px 0 7px}
+input{width:100%;padding:13px;border-radius:7px;border:1px solid #46617d;background:#071321;color:white;font-size:16px}
+.submit{width:100%;padding:14px;border-radius:7px;margin-top:22px;font-weight:bold}
+#message{margin-top:20px;line-height:1.5;text-align:center}
+a{color:#65adff}
+footer{text-align:center;padding:20px;font-size:12px;color:#8ba3bc}
+</style>
+</head>
+<body>
+<header>
+<h1>SWISS <span>NHL</span> LEAGUE</h1>
+<p>NHL 27 | PLAYSTATION 5</p>
+</header>
+<main>
+<div class="panel">
+<h2 id="heading">Login</h2>
+<div class="tabs">
+<button class="tab active" id="loginTab">Login</button>
+<button class="tab" id="registerTab">Registrieren</button>
+</div>
+<form id="authForm">
+<label for="email">E-Mail-Adresse</label>
+<input id="email" type="email" autocomplete="email" required>
+<label for="password">Passwort</label>
+<input id="password" type="password" minlength="12" required>
+<button class="submit" id="submitBtn" type="submit">Einloggen</button>
+</form>
+<div id="message" role="status" aria-live="polite"></div>
+<p style="text-align:center;margin-top:25px">
+<a href="./">Zurück zur Startseite</a>
+</p>
+</div>
+</main>
+<footer>© Swiss NHL League | EST. 2022</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://avvsnfgdmamhabcyngds.supabase.co";
+const SUPABASE_KEY="DEIN_PUBLISHABLE_KEY";
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let mode="login";
+const message=document.getElementById("message");
+const submitBtn=document.getElementById("submitBtn");
+function setMode(next){
+ mode=next;
+ document.getElementById("heading").textContent=next==="login"?"Login":"Registrieren";
+ submitBtn.textContent=next==="login"?"Einloggen":"Konto erstellen";
+ document.getElementById("loginTab").classList.toggle("active",next==="login");
+ document.getElementById("registerTab").classList.toggle("active",next==="register");
+ message.textContent="";
+}
+document.getElementById("loginTab").onclick=()=>setMode("login");
+document.getElementById("registerTab").onclick=()=>setMode("register");
+document.getElementById("authForm").onsubmit=async(e)=>{
+ e.preventDefault();
+ message.textContent="Bitte warten...";
+ submitBtn.disabled=true;
+ const email=document.getElementById("email").value.trim();
+ const password=document.getElementById("password").value;
+ try{
+  if(SUPABASE_KEY==="DEIN_PUBLISHABLE_KEY")throw Error("Supabase-Schlüssel fehlt.");
+  let result;
+  if(mode==="register"){
+   result=await client.auth.signUp({
+    email,password,
+    options:{emailRedirectTo:window.location.href.split("?")[0].split("#")[0]}
+   });
+  }else{
+   result=await client.auth.signInWithPassword({email,password});
+  }
+  if(result.error)throw result.error;
+  message.textContent=mode==="register"
+   ?"Registrierung eingereicht. Prüfe deine E-Mails zur Bestätigung."
+   :"Erfolgreich eingeloggt!";
+ }catch(error){
+  message.textContent=error.message;
+ }finally{
+  submitBtn.disabled=false;
+ }
+};
+</script>
+</body>
+</html>
