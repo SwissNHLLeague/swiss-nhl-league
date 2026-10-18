@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mein Club | Swiss NHL League</title>
+<style>
+:root{color-scheme:dark;--bg:#07101d;--panel:#142139;--card:#203351;--blue:#397cf4;--line:#365477}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:white;font-family:Arial,sans-serif}
+header{text-align:center;background:#192640;padding:30px 12px;border-bottom:4px solid var(--blue)}
+h1{font-size:clamp(24px,5vw,36px);margin:0}
+h1 span{color:var(--blue)}
+header p{letter-spacing:3px;color:#b6c5da;font-size:12px}
+main{max-width:1000px;margin:30px auto;padding:15px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px}
+h2{margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:var(--card);border-radius:12px;padding:18px}
+.number{font-size:30px;font-weight:bold}
+nav{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px 0}
+button{background:var(--blue);color:white;border:0;border-radius:9px;padding:13px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+nav button{background:var(--card);text-align:left}
+nav button.active{background:var(--blue)}
+.hidden{display:none}
+.muted{color:#aebed4}
+.logo{width:100px;height:100px;object-fit:contain}
+.item{border-top:1px solid var(--line);padding:15px 0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.danger{background:#a53648}
+.notice{padding:12px;background:#263b58;border-radius:8px;margin-top:12px}
+footer{text-align:center;color:#95a7c1;padding:25px}
+</style>
+</head>
+<body>
+<header>
+<h1>SWISS <span>NHL</span> LEAGUE</h1>
+<p>CLUBVERWALTUNG · PLAYSTATION 5</p>
+</header>
+
+<main>
+<div id="loading" class="panel">Prüfe Anmeldung...</div>
+
+<div id="denied" class="panel hidden">
+<h2>Zugriff nicht erlaubt</h2>
+<p id="deniedMessage">Bitte melde dich als Clubinhaber an.</p>
+<a href="login.html">Zur Anmeldung</a>
+</div>
+
+<div id="dashboard" class="hidden">
+<section class="panel">
+<h2>Clubinhaber-Dashboard</h2>
+<p id="account" class="muted"></p>
+<button id="logout">Abmelden</button>
+</section>
+
+<div class="grid">
+<div class="card"><div id="playerCount" class="number">0</div>Aktive Spieler</div>
+<div class="card"><div class="number">15</div>Maximaler Kader</div>
+</div>
+
+<nav id="navigation">
+<button data-tab="overview" class="active">Übersicht</button>
+<button data-tab="roster">Kader</button>
+<button data-tab="requests">Spieleranfragen</button>
+<button data-tab="transfers">Transfers</button>
+<button data-tab="logo">Clublogo</button>
+</nav>
+
+<p id="status" role="status" class="muted"></p>
+
+<section class="panel" data-section="overview">
+<h2>Mein Club</h2>
+<img id="clubLogo" class="logo hidden" alt="Clublogo">
+<h3 id="clubName"></h3>
+<p id="rosterStatus"></p>
+<p class="muted">Mindestens 7 und maximal 15 aktive Spieler.</p>
+</section>
+
+<section class="panel hidden" data-section="roster">
+<h2>Mein Kader</h2>
+<div id="rosterList">Lade Spieler...</div>
+<div class="notice">Spielerentlassungen werden später mit einer sicheren Datenbankfunktion aktiviert.</div>
+</section>
+
+<section class="panel hidden" data-section="requests">
+<h2>Spieleranfragen</h2>
+<div id="requestList">Lade Anfragen...</div>
+</section>
+
+<section class="panel hidden" data-section="transfers">
+<h2>Transferverwaltung</h2>
+<p>Transferfenster 2027/28</p>
+<p>01.09.2027 bis 12.12.2027</p>
+<div class="notice">Transferanträge werden später eingerichtet.</div>
+</section>
+
+<section class="panel hidden" data-section="logo">
+<h2>Clublogo</h2>
+<p>Maximal 2 eigene Logo-Uploads pro Saison.</p>
+<p>Danach kann nur die Ligaleitung das Logo ändern.</p>
+<div class="notice">Der sichere Logo-Upload wird später aktiviert.</div>
+</section>
+</div>
+</main>
+
+<footer>© Swiss NHL League | EST. 2022</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL =
+  "https://avvsnfgdmamhabcyngds.supabase.co";
+
+const SUPABASE_KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,SUPABASE_KEY
+);
+
+const $ = id => document.getElementById(id);
+let currentClub = null;
+
+function deny(message){
+  $("loading").classList.add("hidden");
+  $("dashboard").classList.add("hidden");
+  $("denied").classList.remove("hidden");
+  $("deniedMessage").textContent = message;
+}
+
+function showTab(tab){
+  document.querySelectorAll("[data-tab]").forEach(b=>{
+    b.classList.toggle("active",b.dataset.tab===tab);
+  });
+  document.querySelectorAll("[data-section]").forEach(s=>{
+    s.classList.toggle("hidden",s.dataset.section!==tab);
+  });
+}
+
+document.querySelectorAll("[data-tab]").forEach(b=>{
+  b.onclick=()=>showTab(b.dataset.tab);
+});
+
+function showError(error){
+  $("status").textContent="Fehler: "+error.message;
+}
+
+async function loadRoster(){
+  const {data,error}=await client
+    .from("club_players")
+    .select("user_id,is_active,joined_at")
+    .eq("club_id",currentClub.id)
+    .eq("is_active",true);
+
+  if(error){
+    showError(error);
+    $("rosterList").textContent="Kader konnte nicht geladen werden.";
+    return;
+  }
+
+  const players=data||[];
+  $("playerCount").textContent=players.length;
+
+  $("rosterStatus").textContent=
+    players.length<7
+      ? "Es fehlen "+(7-players.length)+" Spieler zum Mindestkader."
+      : players.length>=15
+        ? "Kader vollständig belegt."
+        : "Mindestkader erreicht.";
+
+  const list=$("rosterList");
+  list.replaceChildren();
+
+  if(!players.length){
+    list.textContent="Noch keine aktiven Spieler.";
+    return;
+  }
+
+  players.forEach((player,index)=>{
+    const div=document.createElement("div");
+    div.className="item";
+    div.textContent="Spieler "+(index+1)+" · ID: "+player.user_id;
+    list.appendChild(div);
+  });
+}
+
+async function loadRequests(){
+  const list=$("requestList");
+  list.textContent="Lade Spieleranfragen...";
+
+  const {data,error}=await client
+    .from("player_requests")
+    .select("id,user_id,status,created_at")
+    .eq("club_id",currentClub.id)
+    .eq("status","pending")
+    .order("created_at",{ascending:true});
+
+  if(error){
+    list.textContent="Fehler: "+error.message;
+    return;
+  }
+
+  list.replaceChildren();
+
+  if(!data||!data.length){
+    list.textContent="Keine offenen Spieleranfragen.";
+    return;
+  }
+
+  data.forEach(request=>{
+    const div=document.createElement("div");
+    div.className="item";
+
+    const label=document.createElement("p");
+    label.textContent="Spieler-ID: "+request.user_id;
+
+    const actions=document.createElement("div");
+    actions.className="actions";
+
+    const accept=document.createElement("button");
+    accept.textContent="Annehmen";
+
+    const reject=document.createElement("button");
+    reject.textContent="Ablehnen";
+    reject.className="danger";
+
+    accept.onclick=()=>reviewRequest(request.id,true);
+    reject.onclick=()=>reviewRequest(request.id,false);
+
+    actions.append(accept,reject);
+    div.append(label,actions);
+    list.appendChild(div);
+  });
+}
+
+async function reviewRequest(id,approve){
+  const message=approve
+    ? "Spieler wirklich aufnehmen?"
+    : "Spieleranfrage wirklich ablehnen?";
+
+  if(!confirm(message))return;
+
+  $("status").textContent="Anfrage wird bearbeitet...";
+
+  const {data,error}=await client.rpc(
+    "review_player_request",
+    {
+      p_request_id:id,
+      p_approve:approve
+    }
+  );
+
+  if(error){
+    showError(error);
+    return;
+  }
+
+  $("status").textContent=data||"Anfrage bearbeitet.";
+  await loadRequests();
+  await loadRoster();
+}
+
+async function init(){
+  if(SUPABASE_KEY==="DEIN_PUBLISHABLE_KEY"){
+    deny("Bitte zuerst den Supabase Publishable Key eintragen.");
+    return;
+  }
+
+  const {data:{user},error:authError}=
+    await client.auth.getUser();
+
+  if(authError||!user){
+    deny("Bitte zuerst einloggen.");
+    return;
+  }
+
+  const {data:clubs,error}=await client
+    .from("clubs")
+    .select("id,name,logo_url,owner_id")
+    .eq("owner_id",user.id)
+    .limit(1);
+
+  if(error){
+    deny("Club konnte nicht geladen werden: "+error.message);
+    return;
+  }
+
+  if(!clubs||!clubs.length){
+    deny("Deinem Konto ist noch kein Club zugeordnet.");
+    return;
+  }
+
+  currentClub=clubs[0];
+  $("account").textContent=user.email||"";
+  $("clubName").textContent=currentClub.name;
+
+  if(currentClub.logo_url){
+    $("clubLogo").src=currentClub.logo_url;
+    $("clubLogo").classList.remove("hidden");
+  }
+
+  $("loading").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+
+  await Promise.all([loadRoster(),loadRequests()]);
+}
+
+$("logout").onclick=async()=>{
+  await client.auth.signOut();
+  location.href="login.html";
+};
+
+init().catch(error=>deny(error.message));
+</script>
+</body>
+</html>
