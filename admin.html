@@ -31,4 +31,32 @@ $('logout').onclick=async()=>{await client.auth.signOut();location.href='login.h
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-section]').forEach(s=>s.classList.toggle('hidden',s.dataset.section!==b.dataset.tab))});
 await Promise.all([loadTable('clubs','clubsTable','clubsCount'),loadTable('players','playersTable','playersCount'),loadTable('games','gamesTable','gamesCount')]);$('usersCount').textContent='–';$('usersTable').textContent='Mitgliederverwaltung wird im nächsten Schritt mit einer gesicherten Admin-Funktion ergänzt.'}
 init().catch(e=>deny('Fehler beim Laden: '+e.message));
+
+async function addClub() {
+  const name = prompt("Name des neuen Clubs:");
+  if (!name || !name.trim()) return;
+
+  const { error } = await client
+    .from("clubs")
+    .insert({ name: name.trim() });
+
+  if (error) {
+    alert("Fehler: " + error.message);
+    return;
+  }
+
+  alert("Club erfolgreich erstellt!");
+  location.reload();
+}
+
+const clubSection = document.querySelector(
+  '[data-section="clubs"]'
+);
+
+if (clubSection) {
+  const button = document.createElement("button");
+  button.textContent = "+ Club hinzufügen";
+  button.onclick = addClub;
+  clubSection.prepend(button);
+}
 </script></body></html>
