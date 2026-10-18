@@ -160,6 +160,7 @@ async function uploadClubLogo(clubId) {
   input.accept = "image/png,image/jpeg,image/webp";
 
   input.onchange = async () => {
+    alert("Bildauswahl erkannt - Upload startet!");
     const file = input.files?.[0];
     if (!file) return;
 
