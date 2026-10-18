@@ -105,10 +105,53 @@ const {data:admin,error:adminError}=await client.from('admin_users').select('use
 $('loading').classList.add('hidden');$('dashboard').classList.remove('hidden');$('who').textContent=user.email||'Angemeldeter Administrator';
 $('logout').onclick=async()=>{await client.auth.signOut();location.href='login.html'};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-section]').forEach(s=>s.classList.toggle('hidden',s.dataset.section!==b.dataset.tab))});
-await Promise.all([loadTable('clubs','clubsTable','clubsCount'),loadTable('players','playersTable','playersCount'),loadTable('games','gamesTable','gamesCount')]);$('usersCount').textContent='–';$('usersTable').textContent='Mitgliederverwaltung wird im nächsten Schritt mit einer gesicherten Admin-Funktion ergänzt.'}
+await Promise.all([loadTable('clubs','clubsTable','clubsCount'),loadTable('players','playersTable','playersCount'),loadTable('games','gamesTable','gamesCount'),loadClubRequests()]);$('usersCount').textContent='–';$('usersTable').textContent='Mitgliederverwaltung wird im nächsten Schritt mit einer gesicherten Admin-Funktion ergänzt.'}
 init().catch(e=>deny('Fehler beim Laden: '+e.message));
 
-async function addClub() {
+async function loadClubRequests() {
+  const el = document.getElementById("requestsTable");
+
+  const { data, error } = await client
+    .from("club_requests")
+    .select("id, user_id, club_name, status, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    el.textContent = "Fehler: " + error.message;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    el.textContent = "Noch keine Clubanträge vorhanden.";
+    return;
+  }
+
+  const table = document.createElement("table");
+  const header = table.insertRow();
+
+  ["Clubname", "Status", "Erstellt am"].forEach(name => {
+    const th = document.createElement("th");
+    th.textContent = name;
+    header.appendChild(th);
+  });
+
+  data.forEach(request => {
+    const row = table.insertRow();
+
+    [
+      request.club_name,
+      request.status,
+      new Date(request.created_at).toLocaleDateString("de-CH")
+    ].forEach(value => {
+      const cell = row.insertCell();
+      cell.textContent = value;
+    });
+  });
+
+  el.replaceChildren(table);
+}
+  
+  async function addClub() {
   const name = prompt("Name des neuen Clubs:");
   if (!name || !name.trim()) return;
 
