@@ -17,8 +17,8 @@
 </div></main><footer>© Swiss NHL League | EST. 2022</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 // Diese zwei Werte aus deiner bestehenden login.html übernehmen (NUR Publishable Key).
-const SUPABASE_URL = "DEINE_SUPABASE_URL";
-const SUPABASE_KEY = "DEIN_VOLLSTAENDIGER_PUBLISHABLE_KEY";
+const SUPABASE_URL="https://avvsnfgdmamhabcyngds.supabase.co";
+const SUPABASE_KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
 const $=id=>document.getElementById(id);let client;
 function deny(reason){$('loading').classList.add('hidden');$('dashboard').classList.add('hidden');$('denied').classList.remove('hidden');$('denyReason').textContent=reason}
 function safe(value){return String(value??'–').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
