@@ -14,7 +14,10 @@
 <section class="panel hidden" data-section="games"><h2>Spielplan und Resultate</h2><div id="gamesTable"></div></section>
 <section class="panel hidden" data-section="leagues"><h2>Liga-Formate</h2><div class="grid"><div class="metric"><strong>1vs1</strong>Einzel</div><div class="metric"><strong>3vs3</strong>Dreier</div><div class="metric"><strong>6vs6</strong>Sechser</div></div><p class="muted">Liga- und Tabellenbearbeitung folgt nach Einrichtung der Datenbanktabellen.</p></section>
 <section class="panel hidden" data-section="users"><h2>Mitglieder</h2><p>Benutzerrollen werden sicher in Supabase verwaltet, nicht über frei veränderbare Browserdaten.</p><div id="usersTable"></div></section>
-</div></main><footer>© Swiss NHL League | EST. 2022</footer>
+<section class="panel hidden" data-section="requests">
+  <h2>Clubanträge</h2>
+  <div id="requestsTable">Lade Clubanträge...</div>
+</section></div></main><footer>© Swiss NHL League | EST. 2022</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 // Diese zwei Werte aus deiner bestehenden login.html übernehmen (NUR Publishable Key).
 const SUPABASE_URL="https://avvsnfgdmamhabcyngds.supabase.co";
