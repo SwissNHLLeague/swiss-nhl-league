@@ -78,7 +78,7 @@ document.getElementById("authForm").onsubmit=async(e)=>{
  const email=document.getElementById("email").value.trim();
  const password=document.getElementById("password").value;
  try{
-  if(SUPABASE_KEY==="DEIN_PUBLISHABLE_KEY")throw Error("Supabase-Schlüssel fehlt.");
+  if(SUPABASE_KEY==="DEIN_PUBLISHABLE_KEY")")throw Error("Supabase-Schlüssel fehlt.");
   let result;
   if(mode==="register"){
    result=await client.auth.signUp({
