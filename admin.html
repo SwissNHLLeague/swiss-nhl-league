@@ -73,7 +73,11 @@ async function loadTable(name, target, count) {
         del.textContent = "Löschen";
         del.onclick = () => deleteClub(item.id);
 
-        td.append(edit, " ", del);
+const logoButton = document.createElement("button");
+logoButton.textContent = "Logo hochladen";
+logoButton.onclick = () => uploadClubLogo(item.id);
+
+td.append(edit, " ", del, " ", logoButton);
  } else if (col === "logo_url" && item[col]) {
   const img = document.createElement("img");
   img.src = item[col];
@@ -148,5 +152,52 @@ async function deleteClub(id) {
   if (error) return alert("Fehler: " + error.message);
   alert("Club gelöscht!");
   location.reload();
+}
+
+async function uploadClubLogo(clubId) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/png,image/jpeg,image/webp";
+
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Das Logo darf maximal 5 MB gross sein.");
+      return;
+    }
+
+    const extension = file.name.split(".").pop().toLowerCase();
+    const path = `${clubId}/${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await client.storage
+      .from("club-logos")
+      .upload(path, file, { upsert: false });
+
+    if (uploadError) {
+      alert("Upload fehlgeschlagen: " + uploadError.message);
+      return;
+    }
+
+    const { data } = client.storage
+      .from("club-logos")
+      .getPublicUrl(path);
+
+    const { error: saveError } = await client
+      .from("clubs")
+      .update({ logo_url: data.publicUrl })
+      .eq("id", clubId);
+
+    if (saveError) {
+      alert("Logo-Zuweisung fehlgeschlagen: " + saveError.message);
+      return;
+    }
+
+    alert("Clublogo erfolgreich hochgeladen!");
+    location.reload();
+  };
+
+  input.click();
 }
 </script></body></html>
