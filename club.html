@@ -177,12 +177,52 @@ async function loadRoster(){
     return;
   }
 
-  players.forEach((player,index)=>{
-    const div=document.createElement("div");
-    div.className="item";
-    div.textContent="Spieler "+(index+1)+" · ID: "+player.user_id;
-    list.appendChild(div);
-  });
+ 
+const userIds = players.map(player => player.user_id);
+
+const { data: profiles, error: profileError } =
+  await client
+    .from("player_profiles")
+    .select("user_id,first_name,last_name,psn_id,jersey_number,position")
+    .in("user_id", userIds);
+
+if (profileError) {
+  showError(profileError);
+  list.textContent = "Spielerprofile konnten nicht geladen werden.";
+  return;
+}
+
+const profileMap = new Map(
+  (profiles || []).map(profile => [profile.user_id, profile])
+);
+
+players.forEach((player, index) => {
+  const profile = profileMap.get(player.user_id);
+  const div = document.createElement("div");
+  div.className = "item";
+
+  if (profile) {
+    const name = document.createElement("strong");
+    name.textContent =
+      (profile.jersey_number == null
+        ? ""
+        : "#" + profile.jersey_number + " · ") +
+      profile.first_name + " " + profile.last_name;
+
+    const details = document.createElement("p");
+    details.textContent =
+      "PSN: " + profile.psn_id +
+      " | Position: " + (profile.position || "Nicht angegeben");
+
+    div.append(name, details);
+  } else {
+    div.textContent = "Spieler " + (index + 1) +
+      " · Profil noch nicht vorhanden";
+  }
+
+  list.appendChild(div);
+});
+
 }
 
 async function loadRequests(){
