@@ -74,9 +74,17 @@ async function loadTable(name, target, count) {
         del.onclick = () => deleteClub(item.id);
 
         td.append(edit, " ", del);
-      } else {
-        td.textContent = String(item[col] ?? "–");
-      }
+ } else if (col === "logo_url" && item[col]) {
+  const img = document.createElement("img");
+  img.src = item[col];
+  img.alt = "Clublogo";
+  img.style.width = "60px";
+  img.style.height = "60px";
+  img.style.objectFit = "contain";
+  td.appendChild(img);
+} else {
+  td.textContent = String(item[col] ?? "—");
+}
     });
   });
 
