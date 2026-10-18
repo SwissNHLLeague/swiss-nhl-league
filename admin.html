@@ -59,4 +59,26 @@ if (clubSection) {
   button.onclick = addClub;
   clubSection.prepend(button);
 }
+async function editClub(id, currentName) {
+  const name = prompt("Neuer Clubname:", currentName);
+  if (!name || !name.trim()) return;
+
+  const { error } = await client.from("clubs")
+    .update({ name: name.trim() }).eq("id", id);
+
+  if (error) return alert("Fehler: " + error.message);
+  alert("Club aktualisiert!");
+  location.reload();
+}
+
+async function deleteClub(id) {
+  if (!confirm("Club wirklich löschen?")) return;
+
+  const { error } = await client.from("clubs")
+    .delete().eq("id", id);
+
+  if (error) return alert("Fehler: " + error.message);
+  alert("Club gelöscht!");
+  location.reload();
+}
 </script></body></html>
