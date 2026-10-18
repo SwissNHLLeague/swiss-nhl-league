@@ -34,10 +34,10 @@ main{max-width:700px;margin:35px auto;padding:15px}
 }
 h2{margin-top:0}
 label{display:block;margin:18px 0 8px}
-select,button{
+  input,select,button{
   font:inherit;padding:14px;border-radius:9px;
 }
-select{
+input,select{
   width:100%;background:#071827;
   color:white;border:1px solid var(--line);
 }
@@ -79,6 +79,58 @@ Prüfe deine Anmeldung...
 <h2>Mein Spielerportal</h2>
 <p id="email" class="muted"></p>
 <button id="logout">Abmelden</button>
+</section>
+
+<section class="panel">
+  <h2>Mein Spielerprofil</h2>
+
+  <label for="firstName">Vorname</label>
+  <input
+    id="firstName"
+    type="text"
+    maxlength="60"
+    required
+  >
+
+  <label for="lastName">Nachname</label>
+  <input
+    id="lastName"
+    type="text"
+    maxlength="60"
+    required
+  >
+
+  <label for="psnId">PSN-ID</label>
+  <input
+    id="psnId"
+    type="text"
+    maxlength="40"
+    required
+  >
+
+  <label for="jerseyNumber">Trikotnummer</label>
+  <input
+    id="jerseyNumber"
+    type="number"
+    min="1"
+    max="99"
+  >
+
+  <label for="position">Position</label>
+  <select id="position">
+    <option value="">Bitte auswählen</option>
+    <option value="Torhüter">Torhüter</option>
+    <option value="Verteidiger">Verteidiger</option>
+    <option value="Stürmer">Stürmer</option>
+  </select>
+
+  <button
+    id="saveProfile"
+    class="primary"
+    type="button"
+  >
+    Spielerprofil speichern
+  </button>
 </section>
 
 <section class="panel">
@@ -130,6 +182,77 @@ const $ = id => document.getElementById(id);
 let currentUser = null;
 let hasClub = false;
 let hasPending = false;
+
+async function loadProfile() {
+  const { data, error } = await client
+    .from("player_profiles")
+    .select("first_name,last_name,psn_id,jersey_number,position")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+
+  if (error) {
+    fail(error);
+    return;
+  }
+
+  if (!data) return;
+
+  $("firstName").value = data.first_name || "";
+  $("lastName").value = data.last_name || "";
+  $("psnId").value = data.psn_id || "";
+  $("jerseyNumber").value = data.jersey_number ?? "";
+  $("position").value = data.position || "";
+}
+
+async function saveProfile() {
+  const firstName = $("firstName").value.trim();
+  const lastName = $("lastName").value.trim();
+  const psnId = $("psnId").value.trim();
+  const numberText = $("jerseyNumber").value.trim();
+  const position = $("position").value;
+
+  if (!firstName || !lastName || !psnId) {
+    message("Bitte Vorname, Nachname und PSN-ID ausfüllen.");
+    return;
+  }
+
+  const jerseyNumber = numberText === ""
+    ? null
+    : Number(numberText);
+
+  if (jerseyNumber !== null &&
+      (!Number.isInteger(jerseyNumber) ||
+       jerseyNumber < 1 || jerseyNumber > 99)) {
+    message("Die Trikotnummer muss zwischen 1 und 99 liegen.");
+    return;
+  }
+
+  const button = $("saveProfile");
+  button.disabled = true;
+  message("Spielerprofil wird gespeichert...");
+
+  try {
+    const { error } = await client
+      .from("player_profiles")
+      .upsert({
+        user_id: currentUser.id,
+        first_name: firstName,
+        last_name: lastName,
+        psn_id: psnId,
+        jersey_number: jerseyNumber,
+        position: position || null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "user_id" });
+
+    if (error) throw error;
+
+    message("Spielerprofil erfolgreich gespeichert!");
+  } catch (error) {
+    fail(error);
+  } finally {
+    button.disabled = false;
+  }
+}
 
 function message(text){
   $("message").textContent=text;
@@ -290,6 +413,9 @@ async function init(){
   currentUser=user;
   $("email").textContent=user.email||"";
   $("portal").classList.remove("hidden");
+
+$("saveProfile").onclick = saveProfile;
+await loadProfile();
 
   await loadClubs();
   await loadRequests();
