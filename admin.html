@@ -22,7 +22,67 @@ const SUPABASE_KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
 const $=id=>document.getElementById(id);let client;
 function deny(reason){$('loading').classList.add('hidden');$('dashboard').classList.add('hidden');$('denied').classList.remove('hidden');$('denyReason').textContent=reason}
 function safe(value){return String(value??'–').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function loadTable(name,target,count){const el=$(target);el.textContent='Lade Daten …';const {data,error}=await client.from(name).select('*',{count:'exact'}).limit(50);if(error){el.textContent='Tabelle noch nicht eingerichtet oder Zugriff verweigert: '+error.message;return}$(count).textContent=String(data.length);if(!data.length){el.textContent='Noch keine Einträge.';return}const cols=Object.keys(data[0]).slice(0,5);el.innerHTML='<div style="overflow-x:auto"><table><thead><tr>'+cols.map(c=>'<th>'+safe(c)+'</th>').join('')+'</tr></thead><tbody>'+data.map(r=>'<tr>'+cols.map(c=>'<td>'+safe(typeof r[c]==='object'?JSON.stringify(r[c]):r[c])+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+
+async function loadTable(name, target, count) {
+  const el = $(target);
+  const { data, error } = await client
+    .from(name)
+    .select("*");
+
+  if (error) {
+    el.textContent = error.message;
+    return;
+  }
+
+  if (count) {
+    $(count).textContent = data.length;
+  }
+
+  if (!data.length) {
+    el.textContent = "Noch keine Einträge.";
+    return;
+  }
+
+  const cols = Object.keys(data[0]);
+  if (name === "clubs") cols.push("Aktionen");
+
+  const table = document.createElement("table");
+  const thead = table.createTHead();
+  const header = thead.insertRow();
+
+  cols.forEach(col => {
+    const th = document.createElement("th");
+    th.textContent = col;
+    header.appendChild(th);
+  });
+
+  const tbody = table.createTBody();
+
+  data.forEach(item => {
+    const tr = tbody.insertRow();
+
+    cols.forEach(col => {
+      const td = tr.insertCell();
+
+      if (col === "Aktionen") {
+        const edit = document.createElement("button");
+        edit.textContent = "Bearbeiten";
+        edit.onclick = () => editClub(item.id, item.name);
+
+        const del = document.createElement("button");
+        del.textContent = "Löschen";
+        del.onclick = () => deleteClub(item.id);
+
+        td.append(edit, " ", del);
+      } else {
+        td.textContent = String(item[col] ?? "–");
+      }
+    });
+  });
+
+  el.replaceChildren(table);
+}
+
 async function init(){if(SUPABASE_URL==='DEINE_SUPABASE_URL'||SUPABASE_KEY==='DEIN_PUBLISHABLE_KEY'){deny('Bitte zuerst Supabase-URL und Publishable Key in admin.html eintragen.');return}if(!window.supabase){deny('Supabase-Bibliothek konnte nicht geladen werden.');return}client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const {data:{user},error}=await client.auth.getUser();if(error||!user){deny('Bitte zuerst einloggen.');return}
 // Admin-Recht wird serverseitig über die geschützte admin_users-Tabelle geprüft.
 const {data:admin,error:adminError}=await client.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(adminError||!admin){deny('Dein Konto hat keine Admin-Berechtigung. Richte zuerst die admin_users-Tabelle und ihre RLS-Regeln ein.');return}
