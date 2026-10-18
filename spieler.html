@@ -1,0 +1,304 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spielerportal | Swiss NHL League</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#07101d;
+  --panel:#142139;
+  --blue:#397cf4;
+  --line:#365477;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);
+  color:white;font-family:Arial,sans-serif;
+}
+header{
+  background:#192640;text-align:center;
+  padding:30px 12px;
+  border-bottom:4px solid var(--blue);
+}
+h1{margin:0;font-size:clamp(24px,5vw,36px)}
+h1 span{color:var(--blue)}
+header p{color:#b6c5da;letter-spacing:3px;font-size:12px}
+main{max-width:700px;margin:35px auto;padding:15px}
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;padding:24px;margin-bottom:20px;
+}
+h2{margin-top:0}
+label{display:block;margin:18px 0 8px}
+select,button{
+  font:inherit;padding:14px;border-radius:9px;
+}
+select{
+  width:100%;background:#071827;
+  color:white;border:1px solid var(--line);
+}
+button{
+  background:var(--blue);color:white;
+  border:0;cursor:pointer;font-weight:bold;
+}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{width:100%;margin-top:20px}
+.hidden{display:none}
+.muted{color:#b6c5da}
+.item{
+  border-top:1px solid var(--line);
+  padding:14px 0;
+}
+a{color:#83b5ff}
+footer{text-align:center;color:#95a7c1;padding:25px}
+</style>
+</head>
+<body>
+<header>
+<h1>SWISS <span>NHL</span> LEAGUE</h1>
+<p>SPIELERPORTAL · PLAYSTATION 5</p>
+</header>
+
+<main>
+<section id="loading" class="panel">
+Prüfe deine Anmeldung...
+</section>
+
+<section id="loginRequired" class="panel hidden">
+<h2>Anmeldung erforderlich</h2>
+<p>Bitte melde dich zuerst an.</p>
+<a href="login.html">Zum Login</a>
+</section>
+
+<div id="portal" class="hidden">
+<section class="panel">
+<h2>Mein Spielerportal</h2>
+<p id="email" class="muted"></p>
+<button id="logout">Abmelden</button>
+</section>
+
+<section class="panel">
+<h2>Mein Clubstatus</h2>
+<p id="membership">Lade Mitgliedschaft...</p>
+</section>
+
+<section class="panel">
+<h2>Club beitreten</h2>
+<p class="muted">
+Wähle einen Club aus. Der Clubinhaber muss
+deine Anfrage bestätigen.
+</p>
+
+<label for="clubSelect">Club auswählen</label>
+<select id="clubSelect">
+<option value="">Clubs werden geladen...</option>
+</select>
+
+<button id="apply" class="primary">
+Beitrittsanfrage senden
+</button>
+</section>
+
+<section class="panel">
+<h2>Meine Spieleranfragen</h2>
+<div id="requests">Lade Anfragen...</div>
+</section>
+
+<p id="message" role="status"></p>
+</div>
+</main>
+
+<footer>© Swiss NHL League | EST. 2022</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL =
+  "https://avvsnfgdmamhabcyngds.supabase.co";
+
+
+  const SUPABASE_KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+const client = window.supabase.createClient(
+  SUPABASE_URL,SUPABASE_KEY
+);
+
+const $ = id => document.getElementById(id);
+let currentUser = null;
+let hasClub = false;
+let hasPending = false;
+
+function message(text){
+  $("message").textContent=text;
+}
+
+function fail(error){
+  message("Fehler: "+error.message);
+}
+
+async function loadMembership(){
+  const {data,error}=await client
+    .from("club_players")
+    .select("club_id,is_active")
+    .eq("user_id",currentUser.id)
+    .maybeSingle();
+
+  if(error){
+    fail(error);
+    $("apply").disabled=true;
+    return;
+  }
+
+  hasClub=!!data;
+
+  $("membership").textContent=data
+    ? "Du bist bereits einem Club zugeordnet."
+    : "Du gehörst noch keinem Club an.";
+
+  $("apply").disabled=hasClub||hasPending;
+}
+
+async function loadClubs(){
+  const select=$("clubSelect");
+
+  const {data,error}=await client
+    .from("clubs")
+    .select("id,name")
+    .order("name");
+
+  if(error){
+    fail(error);
+    $("apply").disabled=true;
+    return;
+  }
+
+  select.replaceChildren();
+
+  const placeholder=document.createElement("option");
+  placeholder.value="";
+  placeholder.textContent="Bitte Club auswählen";
+  select.appendChild(placeholder);
+
+  (data||[]).forEach(club=>{
+    const option=document.createElement("option");
+    option.value=club.id;
+    option.textContent=club.name;
+    select.appendChild(option);
+  });
+}
+
+async function loadRequests(){
+  const {data,error}=await client
+    .from("player_requests")
+    .select("club_id,status,created_at")
+    .eq("user_id",currentUser.id)
+    .order("created_at",{ascending:false});
+
+  if(error){
+    fail(error);
+    $("apply").disabled=true;
+    return;
+  }
+
+  hasPending=(data||[]).some(r=>r.status==="pending");
+  $("apply").disabled=hasClub||hasPending;
+
+  const list=$("requests");
+  list.replaceChildren();
+
+  if(!data||!data.length){
+    list.textContent="Noch keine Anfragen vorhanden.";
+    return;
+  }
+
+  data.forEach(request=>{
+    const div=document.createElement("div");
+    div.className="item";
+
+    const status={
+      pending:"Wartet auf Bestätigung",
+      approved:"Angenommen",
+      rejected:"Abgelehnt"
+    }[request.status]||request.status;
+
+    div.textContent=
+      "Club-ID: "+request.club_id+
+      " | Status: "+status;
+
+    list.appendChild(div);
+  });
+}
+
+$("apply").onclick=async()=>{
+  const clubId=$("clubSelect").value;
+
+  if(!clubId){
+    message("Bitte zuerst einen Club auswählen.");
+    return;
+  }
+
+  if(hasClub||hasPending){
+    message("Du kannst aktuell keine neue Anfrage stellen.");
+    return;
+  }
+
+  if(!confirm("Beitrittsanfrage wirklich senden?"))return;
+
+  $("apply").disabled=true;
+  message("Anfrage wird gesendet...");
+
+  const {error}=await client
+    .from("player_requests")
+    .insert({
+      user_id:currentUser.id,
+      club_id:clubId,
+      status:"pending"
+    });
+
+  if(error){
+    fail(error);
+    await loadRequests();
+    return;
+  }
+
+  message("Anfrage erfolgreich gesendet!");
+  await loadRequests();
+};
+
+$("logout").onclick=async()=>{
+  await client.auth.signOut();
+  location.href="login.html";
+};
+
+async function init(){
+  if(SUPABASE_KEY==="DEIN_PUBLISHABLE_KEY"){
+    throw new Error("Supabase Key fehlt.");
+  }
+
+  const {data:{user},error}=await client.auth.getUser();
+
+  $("loading").classList.add("hidden");
+
+  if(error||!user){
+    $("loginRequired").classList.remove("hidden");
+    return;
+  }
+
+  currentUser=user;
+  $("email").textContent=user.email||"";
+  $("portal").classList.remove("hidden");
+
+  await loadClubs();
+  await loadRequests();
+  await loadMembership();
+}
+
+init().catch(error=>{
+  $("loading").textContent="Fehler: "+error.message;
+});
+</script>
+</body>
+</html>
