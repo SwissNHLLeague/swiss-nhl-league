@@ -220,6 +220,42 @@ players.forEach((player, index) => {
       " · Profil noch nicht vorhanden";
   }
 
+
+const removeButton = document.createElement("button");
+
+removeButton.textContent = "Spieler entfernen";
+removeButton.type = "button";
+removeButton.style.background = "#a33545";
+removeButton.style.marginTop = "12px";
+
+removeButton.onclick = async () => {
+  const playerName = profile
+    ? profile.first_name + " " + profile.last_name
+    : "diesen Spieler";
+
+  if (!confirm(
+    "Möchtest du " + playerName +
+    " wirklich aus deinem Club entfernen?"
+  )) return;
+
+  removeButton.disabled = true;
+
+  const { error } = await client.rpc(
+    "release_club_player",
+    { p_user_id: player.user_id }
+  );
+
+  if (error) {
+    showError(error);
+    removeButton.disabled = false;
+    return;
+  }
+
+  alert("Spieler erfolgreich entfernt.");
+  await loadRoster();
+};
+
+div.appendChild(removeButton);
   list.appendChild(div);
 });
 
