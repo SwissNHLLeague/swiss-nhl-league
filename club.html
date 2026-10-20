@@ -183,7 +183,9 @@ const userIds = players.map(player => player.user_id);
 const { data: profiles, error: profileError } =
   await client
     .from("player_profiles")
-    .select("user_id,first_name,last_name,psn_id,jersey_number,position")
+   
+.select("user_id,first_name,last_name,psn_id,position,jersey_number,platform,xbox_gamertag")
+
     .in("user_id", userIds);
 
 if (profileError) {
@@ -209,10 +211,24 @@ players.forEach((player, index) => {
         : "#" + profile.jersey_number + " · ") +
       profile.first_name + " " + profile.last_name;
 
-    const details = document.createElement("p");
-    details.textContent =
-      "PSN: " + profile.psn_id +
-      " | Position: " + (profile.position || "Nicht angegeben");
+  
+      
+const details = document.createElement("p");
+
+const platform = profile.platform || "PS5";
+
+const gamerName = platform === "Xbox"
+  ? (profile.xbox_gamertag || "Nicht angegeben")
+  : (profile.psn_id || "Nicht angegeben");
+
+details.textContent =
+  "Plattform: " + platform +
+  " | " +
+  (platform === "Xbox" ? "Gamertag: " : "PSN: ") +
+  gamerName +
+  " | Position: " +
+  (profile.position || "Nicht angegeben");
+
 
     div.append(name, details);
   } else {
