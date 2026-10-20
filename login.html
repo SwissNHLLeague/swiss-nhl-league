@@ -40,6 +40,14 @@ footer{text-align:center;padding:20px;font-size:12px;color:#8ba3bc}
 <button class="tab" id="registerTab">Registrieren</button>
 </div>
 <form id="authForm">
+<div id="nameFields" style="display:none">
+  <label for="firstName">Vorname</label>
+  <input id="firstName" type="text" autocomplete="given-name">
+
+  <label for="lastName">Nachname</label>
+  <input id="lastName" type="text" autocomplete="family-name">
+</div>
+
 <label for="email">E-Mail-Adresse</label>
 <input id="email" type="email" autocomplete="email" required>
 <label for="password">Passwort</label>
@@ -79,6 +87,16 @@ const message=document.getElementById("message");
 const submitBtn=document.getElementById("submitBtn");
 function setMode(next){
  mode=next;
+
+const nameFields = document.getElementById("nameFields");
+nameFields.style.display = next === "register" ? "block" : "none";
+
+document.getElementById("firstName").required =
+  next === "register";
+
+document.getElementById("lastName").required =
+  next === "register";
+  
 const fields = document.getElementById("platformFields");
 fields.style.display = next === "register" ? "block" : "none";
 document.getElementById("gamerId").required =
@@ -119,15 +137,23 @@ document.getElementById("authForm").onsubmit=async(e)=>{
 const platform = document.getElementById("platform").value;
 const gamerId = document.getElementById("gamerId").value.trim();
 
+const firstName = document.getElementById("firstName").value.trim();
+const lastName = document.getElementById("lastName").value.trim();
+   
+
    result=await client.auth.signUp({
     email,password,
     
 options: {
   emailRedirectTo: window.location.href,
-  data: {
-    platform: platform,
-    gamer_id: gamerId
-  }
+  
+data: {
+  first_name: firstName,
+  last_name: lastName,
+  platform: platform,
+  gamer_id: gamerId
+}
+
 }
 
    });
