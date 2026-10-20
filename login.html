@@ -45,6 +45,21 @@ footer{text-align:center;padding:20px;font-size:12px;color:#8ba3bc}
 <label for="password">Passwort</label>
 <input id="password" type="password" minlength="12" required>
 <button class="submit" id="submitBtn" type="submit">Einloggen</button>
+
+<div id="platformFields" style="display:none">
+  <label for="platform">Gaming-Plattform</label>
+  <select id="platform">
+    <option value="PS5">PlayStation 5</option>
+    <option value="Xbox">Xbox Series X/S</option>
+  </select>
+
+  <label for="gamerId" id="gamerLabel">
+    PSN-Online-ID
+  </label>
+  <input id="gamerId" type="text"
+         placeholder="Dein Spielername">
+
+</div>
 </form>
 <div id="message" role="status" aria-live="polite"></div>
 <p style="text-align:center;margin-top:25px">
@@ -63,12 +78,31 @@ const message=document.getElementById("message");
 const submitBtn=document.getElementById("submitBtn");
 function setMode(next){
  mode=next;
+const fields = document.getElementById("platformFields");
+fields.style.display = next === "register" ? "block" : "none";
+document.getElementById("gamerId").required =
+  next === "register";
+
  document.getElementById("heading").textContent=next==="login"?"Login":"Registrieren";
  submitBtn.textContent=next==="login"?"Einloggen":"Konto erstellen";
  document.getElementById("loginTab").classList.toggle("active",next==="login");
  document.getElementById("registerTab").classList.toggle("active",next==="register");
  message.textContent="";
 }
+const platformSelect = document.getElementById("platform");
+const gamerLabel = document.getElementById("gamerLabel");
+
+platformSelect.addEventListener("change", () => {
+  const isXbox = platformSelect.value === "Xbox";
+
+  gamerLabel.textContent = isXbox
+    ? "Xbox-Gamertag"
+    : "PSN-Online-ID";
+
+  document.getElementById("gamerId").placeholder =
+    isXbox ? "Dein Xbox-Gamertag" : "Deine PSN-ID";
+});
+
 document.getElementById("loginTab").onclick=()=>setMode("login");
 document.getElementById("registerTab").onclick=()=>setMode("register");
 document.getElementById("authForm").onsubmit=async(e)=>{
@@ -81,9 +115,20 @@ document.getElementById("authForm").onsubmit=async(e)=>{
   if (SUPABASE_KEY === "DEIN_PUBLISHABLE_KEY") throw new Error("Supabase-Schlüssel fehlt.");
   let result;
   if(mode==="register"){
+const platform = document.getElementById("platform").value;
+const gamerId = document.getElementById("gamerId").value.trim();
+
    result=await client.auth.signUp({
     email,password,
-    options:{emailRedirectTo:window.location.href.split("?")[0].split("#")[0]}
+    
+options: {
+  emailRedirectTo: window.location.href,
+  data: {
+    platform: platform,
+    gamer_id: gamerId
+  }
+}
+
    });
   }else{
    result=await client.auth.signInWithPassword({email,password});
