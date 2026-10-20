@@ -70,6 +70,7 @@ footer{text-align:center;padding:20px;font-size:12px;color:#8ba3bc}
 </div>
 <button class="submit" id="submitBtn" type="submit">Einloggen</button>
 </form>
+<p id="forgotArea" style="text-align:center;margin-top:18px"><a href="#" id="forgotLink">Passwort vergessen?</a></p>
 <div id="message" role="status" aria-live="polite"></div>
 <p style="text-align:center;margin-top:25px">
 <a href="./">Zurück zur Startseite</a>
@@ -106,6 +107,7 @@ document.getElementById("gamerId").required =
  submitBtn.textContent=next==="login"?"Einloggen":"Konto erstellen";
  document.getElementById("loginTab").classList.toggle("active",next==="login");
  document.getElementById("registerTab").classList.toggle("active",next==="register");
+ document.getElementById("forgotArea").style.display = next === "login" ? "block" : "none";
  message.textContent="";
 }
 const platformSelect = document.getElementById("platform");
@@ -122,6 +124,22 @@ platformSelect.addEventListener("change", () => {
     isXbox ? "Dein Xbox-Gamertag" : "Deine PSN-ID";
 });
 
+document.getElementById("forgotLink").addEventListener("click", async (event) => {
+ event.preventDefault();
+ const email = document.getElementById("email").value.trim();
+ if (!email) {
+   message.textContent = "Bitte zuerst deine E-Mail-Adresse eingeben.";
+   document.getElementById("email").focus();
+   return;
+ }
+ message.textContent = "Wiederherstellungs-E-Mail wird angefordert ...";
+ const { error } = await client.auth.resetPasswordForEmail(email, {
+   redirectTo: new URL("reset-password.html", window.location.href).href
+ });
+ message.textContent = error
+   ? "Fehler: " + error.message
+   : "Falls ein Konto existiert, erhältst du eine E-Mail zum Zurücksetzen. Bitte auch den Spam-Ordner prüfen.";
+});
 document.getElementById("loginTab").onclick=()=>setMode("login");
 document.getElementById("registerTab").onclick=()=>setMode("register");
 document.getElementById("authForm").onsubmit=async(e)=>{
