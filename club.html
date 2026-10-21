@@ -454,18 +454,17 @@ async function uploadOwnerLogo() {
 
     if (!response.ok) {
       
+
 if (result.error === "FINALIZE_FAILED") {
   alert(
-    "Der Logo-Upload konnte nicht abgeschlossen werden. " +
-    "Möglicherweise hast du deine 2 Uploads bereits verwendet. " +
+    "Der Logo-Upload wurde abgelehnt. " +
+    "Dein Upload-Limit von 2 Logos pro Saison " +
+    "ist möglicherweise erreicht. " +
     "Bitte kontaktiere die Ligaleitung."
   );
-
 } else {
   alert("Logo-Upload fehlgeschlagen: " + result.error);
 }
-
-
       return;
     }
 
