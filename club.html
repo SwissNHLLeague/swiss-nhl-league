@@ -99,6 +99,9 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 
 <section class="panel hidden" data-section="logo">
 <h2>Clublogo</h2>
+<input type="file" id="clubLogoFile" accept="image/png,image/jpeg">
+<button type="button" onclick="uploadOwnerLogo()">Logo hochladen</button>
+
 <p>Maximal 2 eigene Logo-Uploads pro Saison.</p>
 <p>Danach kann nur die Ligaleitung das Logo ändern.</p>
 <div class="notice">Der sichere Logo-Upload wird später aktiviert.</div>
@@ -404,6 +407,64 @@ $("logout").onclick=async()=>{
 };
 
 init().catch(error=>deny(error.message));
+
+async function uploadOwnerLogo() {
+  const file = document.getElementById("clubLogoFile").files[0];
+
+  if (!file) {
+    alert("Bitte zuerst ein Logo auswählen.");
+    return;
+  }
+
+  if (!["image/png", "image/jpeg"].includes(file.type) ||
+      file.size > 2 * 1024 * 1024) {
+    alert("Nur PNG/JPEG bis 2 MB erlaubt.");
+    return;
+  }
+
+  if (!currentClub?.id) {
+    alert("Kein eigener Club gefunden.");
+    return;
+  }
+
+  const { data, error } = await client.auth.getSession();
+  const token = data?.session?.access_token;
+
+  if (error || !token) {
+    alert("Bitte erneut anmelden.");
+    return;
+  }
+
+  const form = new FormData();
+  form.append("club_id", currentClub.id);
+  form.append("file", file);
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/upload-club-logo`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: form
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert("Logo-Upload fehlgeschlagen: " + result.error);
+      return;
+    }
+
+    alert("Clublogo erfolgreich hochgeladen!");
+    location.reload();
+  } catch (err) {
+    alert("Verbindungsfehler beim Logo-Upload.");
+    console.error(err);
+  }
+}
 </script>
 </body>
 </html>
