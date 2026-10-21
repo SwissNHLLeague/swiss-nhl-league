@@ -454,7 +454,19 @@ async function uploadOwnerLogo() {
     const result = await response.json();
 
     if (!response.ok) {
-      alert("Logo-Upload fehlgeschlagen: " + result.error);
+      
+if (result.error === "FINALIZE_FAILED") {
+  alert(
+    "Der Logo-Upload konnte nicht abgeschlossen werden. " +
+    "Möglicherweise hast du deine 2 Uploads bereits verwendet. " +
+    "Bitte kontaktiere die Ligaleitung."
+  );
+
+} else {
+  alert("Logo-Upload fehlgeschlagen: " + result.error);
+}
+
+
       return;
     }
 
