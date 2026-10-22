@@ -456,18 +456,31 @@ async function uploadOwnerLogo() {
       
 
 
+
 if (result.error === "FINALIZE_FAILED") {
-  alert(
-    "Logo-Upload fehlgeschlagen.\n" +
-    "Fehlergrund: " +
-    (result.reason || "Unbekannter Fehler")
-  );
+  if (result.reason === "LIMIT_REACHED") {
+    alert(
+      "Upload-Limit erreicht!\n\n" +
+      "Du hast deine 2 erlaubten Clublogo-Uploads " +
+      "für diese Saison bereits verwendet.\n\n" +
+      "Für weitere Änderungen kontaktiere " +
+      "bitte die Ligaleitung."
+    );
+  } else {
+    alert(
+      "Logo-Upload fehlgeschlagen.\n" +
+      "Fehlergrund: " +
+      (result.reason || "Unbekannter Fehler")
+    );
+  }
 } else {
   alert(
     "Logo-Upload fehlgeschlagen: " +
     (result.error || "Unbekannter Fehler")
   );
 }
+
+
 
       return;
     }
