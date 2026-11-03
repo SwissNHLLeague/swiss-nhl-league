@@ -115,7 +115,7 @@ const {data:admin,error:adminError}=await client.from('admin_users').select('use
 $('loading').classList.add('hidden');$('dashboard').classList.remove('hidden');$('who').textContent=user.email||'Angemeldeter Administrator';
 $('logout').onclick=async()=>{await client.auth.signOut();location.href='login.html'};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-section]').forEach(s=>s.classList.toggle('hidden',s.dataset.section!==b.dataset.tab))});
-await Promise.all([loadTable('clubs','clubsTable','clubsCount'),loadTable('players','playersTable','playersCount'),loadTable('games','gamesTable','gamesCount'),loadClubRequests()]);$('usersCount').textContent='–';$('usersTable').textContent='Mitgliederverwaltung wird im nächsten Schritt mit einer gesicherten Admin-Funktion ergänzt.'}
+await Promise.all([loadTable('clubs','clubsTable','clubsCount'),loadTable('player_profiles','playersTable','playersCount'),loadTable('games','gamesTable','gamesCount'),loadClubRequests()]);$('usersCount').textContent='–';$('usersTable').textContent='Mitgliederverwaltung wird im nächsten Schritt mit einer gesicherten Admin-Funktion ergänzt.'}
 init().catch(e=>deny('Fehler beim Laden: '+e.message));
 
 async function loadClubRequests() {
