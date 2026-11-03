@@ -24,6 +24,7 @@ button{background:var(--blue);color:white;border:0;border-radius:9px;padding:13p
 button:disabled{opacity:.5;cursor:not-allowed}
 nav button{background:var(--card);text-align:left}
 nav button.active{background:var(--blue)}
+.game-meta{color:#b6c5da;line-height:1.6}.game-state{font-weight:bold}.game-state.ok{color:#77dba7}.game-state.wait{color:#ffcd70}.game-item{overflow-wrap:anywhere}.game-item button{margin-top:8px}
 .hidden{display:none}
 .muted{color:#aebed4}
 .logo{width:100px;height:100px;object-fit:contain}
@@ -64,6 +65,7 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 <nav id="navigation">
 <button data-tab="overview" class="active">Übersicht</button>
 <button data-tab="roster">Kader</button>
+<button data-tab="games">Meine Spiele</button>
 <button data-tab="requests">Spieleranfragen</button>
 <button data-tab="transfers">Transfers</button>
 <button data-tab="logo">Clublogo</button>
@@ -77,6 +79,13 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 <h3 id="clubName"></h3>
 <p id="rosterStatus"></p>
 <p class="muted">Mindestens 7 und maximal 15 aktive Spieler.</p>
+</section>
+
+<section class="panel hidden" data-section="games">
+<h2>Meine Spiele</h2>
+<p class="muted">Beide Clubs müssen spätestens 2 Stunden vor Anspiel bestätigen.</p>
+<button type="button" id="refreshGames">Spiele aktualisieren</button>
+<div id="gamesList" aria-live="polite">Lade Spiele...</div>
 </section>
 
 <section class="panel hidden" data-section="roster">
@@ -355,6 +364,66 @@ async function reviewRequest(id,approve){
   await loadRoster();
 }
 
+// Spielbestätigungen: Nur eigene Spiele anzeigen; die Datenbank prüft die Rechte.
+let gamesBusy = false;
+const formatGameTime = value => new Intl.DateTimeFormat('de-CH', {
+  timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric',
+  hour: '2-digit', minute: '2-digit'
+}).format(new Date(value));
+
+async function loadGames(){
+  if (!currentClub || gamesBusy) return;
+  const list = $('gamesList');
+  list.textContent = 'Lade Spiele...';
+  const {data, error} = await client.from('games').select(
+    'id,home_club_id,away_club_id,scheduled_at,status,game_mode,home_confirmed_at,away_confirmed_at'
+  ).or(`home_club_id.eq.${currentClub.id},away_club_id.eq.${currentClub.id}`)
+   .order('scheduled_at', {ascending:true}).limit(100);
+  if (error){ list.textContent = 'Spiele konnten nicht geladen werden: ' + error.message; return; }
+  list.replaceChildren();
+  if (!data?.length){ list.textContent = 'Noch keine Spiele für deinen Club vorhanden.'; return; }
+
+  const clubIds = [...new Set(data.flatMap(g=>[g.home_club_id,g.away_club_id]))];
+  const {data:clubs, error:clubError} = await client.from('clubs').select('id,name').in('id',clubIds);
+  const names = new Map((clubs||[]).map(c=>[c.id,c.name]));
+  if (clubError) $('status').textContent = 'Clubnamen konnten nicht vollständig geladen werden.';
+
+  for (const game of data){
+    const isHome = game.home_club_id === currentClub.id;
+    const mine = isHome ? game.home_confirmed_at : game.away_confirmed_at;
+    const other = isHome ? game.away_confirmed_at : game.home_confirmed_at;
+    const allowedStatus = ['scheduled','confirmed'].includes(game.status);
+    const validTime = game.scheduled_at && !Number.isNaN(new Date(game.scheduled_at).getTime());
+    const inTime = validTime && new Date(game.scheduled_at).getTime() - Date.now() >= 2*60*60*1000;
+    const item = document.createElement('div'); item.className = 'item game-item';
+    const title = document.createElement('h3');
+    title.textContent = `${names.get(game.home_club_id)||'Heimclub'} – ${names.get(game.away_club_id)||'Auswärtsclub'}`;
+    const meta = document.createElement('p'); meta.className='game-meta';
+    meta.textContent = `Spielbeginn: ${validTime ? formatGameTime(game.scheduled_at) : 'Nicht festgelegt'} (Schweiz) · Modus: ${game.game_mode||'–'} · Status: ${game.status||'–'}`;
+    const state = document.createElement('p'); state.className = 'game-state ' + (mine?'ok':'wait');
+    state.textContent = `Dein Club: ${mine?'Bestätigt':'Offen'} · Gegner: ${other?'Bestätigt':'Offen'}`;
+    item.append(title,meta,state);
+    if (!mine && allowedStatus){
+      const button = document.createElement('button'); button.type='button';
+      button.textContent = inTime ? 'Spieltermin bestätigen' : 'Bestätigungsfrist abgelaufen';
+      button.disabled = !inTime;
+      button.onclick = async()=>{
+        if (gamesBusy || !confirm('Diesen Spieltermin verbindlich bestätigen?')) return;
+        gamesBusy=true; button.disabled=true; $('status').textContent='Bestätigung wird geprüft...';
+        try {
+          const {error:rpcError} = await client.rpc('club_confirm_game',{p_game_id:game.id});
+          if (rpcError) throw rpcError;
+          $('status').textContent='Spielbestätigung gespeichert.';
+        } catch(e){ $('status').textContent='Bestätigung fehlgeschlagen: '+e.message; }
+        finally {gamesBusy=false; await loadGames();}
+      };
+      item.appendChild(button);
+    }
+    list.appendChild(item);
+  }
+}
+$('refreshGames').onclick = loadGames;
+
 async function init(){
   if(SUPABASE_KEY==="DEIN_PUBLISHABLE_KEY"){
     deny("Bitte zuerst den Supabase Publishable Key eintragen.");
@@ -397,7 +466,7 @@ async function init(){
   $("loading").classList.add("hidden");
   $("dashboard").classList.remove("hidden");
 
-  await Promise.all([loadRoster(),loadRequests()]);
+  await Promise.all([loadRoster(),loadRequests(),loadGames()]);
 }
 
 $("logout").onclick=async()=>{
