@@ -5,6 +5,34 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mein Club | Swiss NHL League</title>
+
+<style>.matchup {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 40px minmax(0,1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 22px 0;
+  text-align: center;
+}
+.match-club {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.match-logo {
+  width: 100%;
+  max-width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+.match-vs {
+  font-size: 22px;
+  color: #397cf4;
+}
+</style>
 <style>
 :root{color-scheme:dark;--bg:#07101d;--panel:#142139;--card:#203351;--blue:#397cf4;--line:#365477}
 *{box-sizing:border-box}
@@ -384,8 +412,8 @@ async function loadGames(){
   if (!data?.length){ list.textContent = 'Noch keine Spiele für deinen Club vorhanden.'; return; }
 
   const clubIds = [...new Set(data.flatMap(g=>[g.home_club_id,g.away_club_id]))];
-  const {data:clubs, error:clubError} = await client.from('clubs').select('id,name').in('id',clubIds);
-  const names = new Map((clubs||[]).map(c=>[c.id,c.name]));
+  const {data:clubs, error:clubError} = await client.from('clubs').select('id,name,logo_url').in('id',clubIds);
+  const clubMap = new Map((clubs||[]).map(c=>[c.id,c]));
   if (clubError) $('status').textContent = 'Clubnamen konnten nicht vollständig geladen werden.';
 
   for (const game of data){
@@ -396,13 +424,60 @@ async function loadGames(){
     const validTime = game.scheduled_at && !Number.isNaN(new Date(game.scheduled_at).getTime());
     const inTime = validTime && new Date(game.scheduled_at).getTime() - Date.now() >= 2*60*60*1000;
     const item = document.createElement('div'); item.className = 'item game-item';
-    const title = document.createElement('h3');
-    title.textContent = `${names.get(game.home_club_id)||'Heimclub'} – ${names.get(game.away_club_id)||'Auswärtsclub'}`;
-    const meta = document.createElement('p'); meta.className='game-meta';
-    meta.textContent = `Spielbeginn: ${validTime ? formatGameTime(game.scheduled_at) : 'Nicht festgelegt'} (Schweiz) · Modus: ${game.game_mode||'–'} · Status: ${game.status||'–'}`;
-    const state = document.createElement('p'); state.className = 'game-state ' + (mine?'ok':'wait');
-    state.textContent = `Dein Club: ${mine?'Bestätigt':'Offen'} · Gegner: ${other?'Bestätigt':'Offen'}`;
-    item.append(title,meta,state);
+    
+const home = clubMap.get(game.home_club_id);
+const away = clubMap.get(game.away_club_id);
+
+const matchup = document.createElement('div');
+matchup.className = 'matchup';
+
+function createClubDisplay(club, fallback) {
+  const box = document.createElement('div');
+  box.className = 'match-club';
+
+  if (club?.logo_url) {
+    const img = document.createElement('img');
+    img.src = club.logo_url;
+    img.alt = 'Clublogo';
+    img.className = 'match-logo';
+    img.loading = 'lazy';
+    box.appendChild(img);
+  }
+
+  const name = document.createElement('strong');
+  name.textContent = club?.name || fallback;
+  box.appendChild(name);
+
+  return box;
+}
+
+const vs = document.createElement('strong');
+vs.className = 'match-vs';
+vs.textContent = 'VS';
+
+matchup.append(
+  createClubDisplay(home, 'Heimclub'),
+  vs,
+  createClubDisplay(away, 'Auswärtsclub')
+);
+
+const meta = document.createElement('p');
+meta.textContent =
+  `Spielbeginn: ${
+    validTime
+      ? formatGameTime(game.scheduled_at)
+      : 'Nicht festgelegt'
+  } (Schweiz) · Modus: ${
+    game.game_mode || '–'
+  } · Status: ${game.status || '–'}`;
+
+const state = document.createElement('p');
+state.textContent =
+  `Dein Club: ${mine ? 'Bestätigt' : 'Offen'}` +
+  ` · Gegner: ${other ? 'Bestätigt' : 'Offen'}`;
+
+item.append(matchup, meta, state);
+
     if (!mine && allowedStatus){
       const button = document.createElement('button'); button.type='button';
       button.textContent = inTime ? 'Spieltermin bestätigen' : 'Bestätigungsfrist abgelaufen';
