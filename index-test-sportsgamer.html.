@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swiss NHL League | Test</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#08111f;color:#fff;font-family:Arial,sans-serif}
+header{background:#101e34;padding:22px;border-bottom:3px solid #2586ff}
+h1{margin:0;font-size:26px}
+h1 span{color:#2586ff}
+nav{display:flex;gap:16px;overflow-x:auto;padding:16px;background:#14243b}
+a{color:#fff;text-decoration:none;white-space:nowrap}
+.hero{padding:45px 20px;background:linear-gradient(135deg,#123c70,#08111f)}
+.hero h2{font-size:32px;margin:0 0 12px}
+main{max-width:1100px;margin:auto;padding:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.card{background:#16263d;padding:22px;border-radius:12px;border:1px solid #294b73}
+.card h3{color:#69b4ff}
+footer{text-align:center;padding:25px;color:#9bb0c9}
+</style>
+</head>
+<body>
+<header>
+<h1>SWISS <span>NHL</span> LEAGUE</h1>
+<p>NHL 27 | PlayStation 5 | Xbox Series X/S</p>
+</header>
+<nav>
+<a href="./">Startseite</a>
+<a href="#ligen">Ligen</a>
+<a href="#spielplan">Spielplan</a>
+<a href="#tabellen">Tabellen</a>
+<a href="#clubs">Clubs</a>
+<a href="#spieler">Spieler</a>
+<a href="login.html">Login</a>
+</nav>
+<section class="hero">
+<h2>SWISS NHL LEAGUE</h2>
+<p>Deine Eishockey-E-Sport-Liga seit 2022.</p>
+<p>1vs1 · 3vs3 · 6vs6</p>
+</section>
+<main>
+<div class="grid">
+<div class="card" id="ligen">
+<h3>Ligen</h3>
+<p>1vs1, 3vs3 und 6vs6</p>
+</div>
+<div class="card" id="spielplan">
+<h3>Spielplan</h3>
+<p>Alle Begegnungen und Ergebnisse.</p>
+</div>
+<div class="card" id="tabellen">
+<h3>Tabellen</h3>
+<p>Gruppen und Ranglisten.</p>
+</div>
+<div class="card" id="clubs">
+<h3>Clubs</h3>
+<p>Clubprofile und Kader.</p>
+<a href="club.html">Mein Club</a>
+</div>
+<div class="card" id="spieler">
+<h3>Spieler</h3>
+<p>Spielerprofile und Statistiken.</p>
+</div>
+<div class="card">
+<h3>Ligaleitung</h3>
+<p>Verwaltung der NHL-Version und Crossplay-Einstellungen.</p>
+</div>
+</div>
+</main>
+<footer>© Swiss NHL League | EST. 2022</footer>
+</body>
+</html>
