@@ -275,4 +275,74 @@ async function uploadClubLogo(clubId) {alert("Club-ID: " + clubId);
   input.click();
 }
 
+
+/* Swiss NHL League – Admin-Einladungen */
+(function () {
+  const nav = document.querySelector("#nav");
+  const dashboard = document.querySelector("#dashboard");
+
+  if (!nav || !dashboard) return;
+
+  const inviteButton = document.createElement("button");
+  inviteButton.textContent = "Liga-Leitung einladen";
+  inviteButton.type = "button";
+  inviteButton.style.display = "none";
+
+  const invitePanel = document.createElement("section");
+  invitePanel.className = "panel hidden";
+  invitePanel.id = "snhl-admin-invitations";
+
+  invitePanel.innerHTML = `
+    <h2>Liga-Leitung einladen</h2>
+    <p>Einladungen werden erst nach dem
+    abschliessenden Sicherheitstest freigeschaltet.</p>
+    <label for="snhl-invite-email">E-Mail-Adresse</label>
+    <input id="snhl-invite-email"
+           type="email"
+           placeholder="E-Mail-Adresse"
+           disabled>
+    <label for="snhl-invite-role">Rolle</label>
+    <select id="snhl-invite-role" disabled>
+      <option value="league_admin">Liga-Leitung</option>
+      <option value="moderator">Moderator</option>
+      <option value="stats_manager">Statistikverwaltung</option>
+    </select>
+    <button type="button" disabled>
+      Einladung erstellen
+    </button>
+  `;
+
+  nav.appendChild(inviteButton);
+  dashboard.appendChild(invitePanel);
+
+  async function initializeInvitations() {
+    const { data: sessionData } =
+      await client.auth.getUser();
+
+    const user = sessionData?.user;
+    if (!user) return;
+
+    const { data, error } = await client
+      .from("admin_users")
+      .select("admin_role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error || data?.admin_role !== "owner") return;
+
+    inviteButton.style.display = "";
+
+    inviteButton.addEventListener("click", () => {
+      dashboard.querySelectorAll(
+        "[data-section]"
+      ).forEach(section => {
+        section.classList.add("hidden");
+      });
+
+      invitePanel.classList.remove("hidden");
+    });
+  }
+
+  initializeInvitations().catch(console.error);
+})();
 </script></body></html>
