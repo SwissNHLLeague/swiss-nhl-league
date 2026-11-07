@@ -222,4 +222,21 @@ renderMatches('results-list',SWISS_NHL_RESULTS,true);
   }
 })();
 </script>
+
+<style>
+/* Vorläufig keine erfundenen Ligastatistiken anzeigen */
+#table-data,
+#scorer-data {
+  display: none !important;
+}
+
+#tabellen table::after,
+#scorer table::after {
+  content: "Noch keine offiziellen Daten vorhanden.";
+  display: block;
+  padding: 18px;
+  color: #9db3cf;
+  font-size: 14px;
+}
+</style>
 </body></html>
