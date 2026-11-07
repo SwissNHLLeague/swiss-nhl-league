@@ -373,4 +373,150 @@ clubsNachId = new Map(clubs.map(c => [c.id, c]));
   }
 })();
 </script>
+
+<script>
+/* Swiss NHL League – öffentliche Spieler- und Goalie-Statistiken */
+(function () {
+  const BASE = 'https://avvsnfgdmamhabcyngds.supabase.co';
+  const KEY = 'sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt';
+
+  const MODES = {
+    '1vs1': '1v1',
+    '3vs3': '3v3',
+    '6vs6': '6v6'
+  };
+
+  let spieler = [];
+  let goalies = [];
+
+  async function laden(funktion) {
+    const antwort = await fetch(
+      BASE + '/rest/v1/rpc/' + funktion,
+      {
+        headers: { apikey: KEY },
+        cache: 'no-store'
+      }
+    );
+
+    if (!antwort.ok) {
+      throw new Error(funktion + ': HTTP ' + antwort.status);
+    }
+
+    return antwort.json();
+  }
+
+  function bereichFinden(titel) {
+    const ueberschrift = [...document.querySelectorAll('*')]
+      .find(el =>
+        el.children.length === 0 &&
+        el.textContent.trim().toUpperCase() === titel
+      );
+
+    if (!ueberschrift) return null;
+
+    let el = ueberschrift.parentElement;
+
+    while (el && !el.querySelector('table')) {
+      el = el.parentElement;
+    }
+
+    return el;
+  }
+
+  function anzeigen(modus) {
+    const bereich = bereichFinden('TOP SCORER');
+    if (!bereich) return;
+
+    const tabelle = bereich.querySelector('table');
+    if (!tabelle) return;
+
+    const tbody = tabelle.querySelector('tbody');
+    if (!tbody) return;
+
+    const spielmodus = MODES[modus] || '1v1';
+
+    const daten = spieler
+      .filter(s => s.game_mode === spielmodus)
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 10);
+
+    tbody.replaceChildren();
+
+    daten.forEach((s, i) => {
+      const tr = document.createElement('tr');
+
+      [
+        i + 1,
+        s.gamer_name,
+        s.club_name,
+        s.points
+      ].forEach(wert => {
+        const td = document.createElement('td');
+        td.textContent = String(wert ?? '–');
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    const hinweis = bereich.querySelector('.snhl-empty');
+    if (hinweis) hinweis.remove();
+
+    if (!daten.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+
+      td.colSpan = 4;
+      td.textContent =
+        'Noch keine offiziellen Spielerstatistiken vorhanden.';
+      td.style.cssText = 'padding:18px;color:#9db3cf;';
+
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+
+    tabelle.style.display = '';
+    tbody.style.display = '';
+    tbody.querySelectorAll('tr').forEach(tr => {
+      tr.style.display = '';
+    });
+  }
+
+  async function start() {
+    try {
+      [spieler, goalies] = await Promise.all([
+        laden('get_public_player_stats'),
+        laden('get_public_goalie_stats')
+      ]);
+
+      const bereich = bereichFinden('TOP SCORER');
+      if (!bereich) return;
+
+      bereich.querySelectorAll('button').forEach(button => {
+        const modus = button.textContent.trim();
+
+        if (MODES[modus]) {
+          button.addEventListener('click', () => {
+            setTimeout(() => anzeigen(modus), 0);
+          });
+        }
+      });
+
+      anzeigen('1vs1');
+
+      console.log('Spielerstatistiken:', spieler.length);
+      console.log('Goalie-Statistiken:', goalies.length);
+
+    } catch (fehler) {
+      console.error('Statistikverbindung:', fehler);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
 </body></html>
