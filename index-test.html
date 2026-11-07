@@ -17,12 +17,9 @@
 const SWISS_NHL_CLUB_LOGOS = {
   // 'ZSC E-Sports': 'https://.../logo.png',
 };
-const SWISS_NHL_SAMPLE_GAMES = [
-  {date:'05.11.2026',time:'20:00',home:'ZSC E-Sports',away:'Bern EHC',mode:'1vs1'},
-  {date:'08.11.2026',time:'20:30',home:'Lausanne HC',away:'Genève-Servette',mode:'3vs3'},
-  {date:'12.11.2026',time:'20:15',home:'HC Davos',away:'EV Zug',mode:'6vs6'},
-  {date:'15.11.2026',time:'20:00',home:'SCR Gaming',away:'HC Fribourg',mode:'1vs1'}
-];
+
+const SWISS_NHL_SAMPLE_GAMES = [];
+
 // Resultate werden erst angezeigt, wenn echte abgeschlossene Spiele verfügbar sind.
 const SWISS_NHL_RESULTS = [];
 function matchText(parent,text,cls){const el=document.createElement('span');if(cls)el.className=cls;el.textContent=text;parent.appendChild(el);return el;}
