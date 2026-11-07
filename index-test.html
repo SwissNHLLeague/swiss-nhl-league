@@ -239,4 +239,138 @@ renderMatches('results-list',SWISS_NHL_RESULTS,true);
   font-size: 14px;
 }
 </style>
+
+<script>
+/* Swiss NHL League – echte Ligatabellen */
+(function () {
+  const BASE = 'https://avvsnfgdmamhabcyngds.supabase.co';
+  const KEY = 'sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt';
+
+  const headers = { apikey: KEY };
+  const modes = ['1vs1', '3vs3', '6vs6'];
+  let rows = [];
+let clubsNachId = new Map();
+  async function get(path) {
+    const response = await fetch(BASE + '/rest/v1/' + path, {
+      headers,
+      cache: 'no-store'
+    });
+    if (!response.ok) {
+      throw new Error('Supabase HTTP ' + response.status);
+    }
+    return response.json();
+  }
+
+  function findSection() {
+    const heading = [...document.querySelectorAll('*')]
+      .find(el =>
+        el.children.length === 0 &&
+        el.textContent.trim().toUpperCase() === 'AKTUELLE TABELLEN'
+      );
+
+    if (!heading) return null;
+
+    let el = heading;
+    while (el && !el.querySelector('table')) {
+      el = el.parentElement;
+    }
+    return el;
+  }
+
+  function render(mode) {
+    const section = findSection();
+    if (!section) return;
+
+    const table = section.querySelector('table');
+    if (!table) return;
+
+    let body = table.querySelector('tbody');
+    if (!body) {
+      body = document.createElement('tbody');
+      table.appendChild(body);
+    }
+
+    body.replaceChildren();
+
+    const filtered = rows.filter(r =>
+      String(r.game_mode || '').toLowerCase() === mode.toLowerCase()
+    );
+
+    if (!filtered.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.textContent = 'Noch keine offiziellen Tabellendaten vorhanden.';
+      td.style.cssText = 'padding:18px;color:#9db3cf;';
+      tr.appendChild(td);
+      body.appendChild(tr);
+    } else {
+      filtered.forEach((r, i) => {
+        const tr = document.createElement('tr');
+        
+const values = [
+  i + 1,
+  clubsNachId.get(r.club_id)?.name || 'Unbekannter Club',
+  r.spiele ?? 0,
+  (r.tore ?? 0) + ':' + (r.gegentore ?? 0),
+  r.punkte ?? 0
+];
+
+
+        values.forEach(value => {
+          const td = document.createElement('td');
+          td.textContent = String(value);
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+    }
+
+    const note = section.querySelector('.snhl-empty');
+    if (note) note.remove();
+
+    table.style.display = '';
+    body.style.display = '';
+    body.querySelectorAll('tr').forEach(tr => {
+      tr.style.display = '';
+    });
+  }
+
+  async function init() {
+    try {
+      const data = await get('league_standings?select=*');
+      rows = Array.isArray(data) ? data : [];
+
+const clubs = await get('rpc/get_public_clubs');
+clubsNachId = new Map(clubs.map(c => [c.id, c]));
+
+      const section = findSection();
+      if (!section) return;
+
+      const buttons = [...section.querySelectorAll('button')];
+
+      buttons.forEach(button => {
+        const mode = modes.find(m =>
+          button.textContent.trim().toLowerCase() === m.toLowerCase()
+        );
+        if (mode) {
+          button.addEventListener('click', () => {
+            setTimeout(() => render(mode), 0);
+          });
+        }
+      });
+
+      render('1vs1');
+    } catch (error) {
+      console.error('Ligatabelle:', error);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
 </body></html>
