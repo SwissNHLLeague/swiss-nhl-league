@@ -519,4 +519,127 @@ clubsNachId = new Map(clubs.map(c => [c.id, c]));
   }
 })();
 </script>
+
+<script>
+/* Swiss NHL League – öffentliche Goalie-Rangliste */
+(function () {
+  const BASE = 'https://avvsnfgdmamhabcyngds.supabase.co';
+  const KEY = 'sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt';
+  const MODES = {'1vs1':'1v1','3vs3':'3v3','6vs6':'6v6'};
+  let goalies = [];
+
+  function findScorerSection() {
+    const heading = [...document.querySelectorAll('*')]
+      .find(el => el.children.length === 0 &&
+        el.textContent.trim().toUpperCase() === 'TOP SCORER');
+    if (!heading) return null;
+    let el = heading.parentElement;
+    while (el && !el.querySelector('table')) el = el.parentElement;
+    return el;
+  }
+
+  function showGoalies(mode) {
+    const section = findScorerSection();
+    if (!section) return;
+
+    let box = document.getElementById('snhl-goalies');
+    if (!box) {
+      box = document.createElement('section');
+      box.id = 'snhl-goalies';
+      box.style.cssText =
+        'margin-top:20px;padding:16px;border:1px solid #294766;' +
+        'border-radius:10px;background:#101e31;color:white;';
+      section.insertAdjacentElement('afterend', box);
+    }
+
+    box.replaceChildren();
+
+    const title = document.createElement('h3');
+    title.textContent = '🥅 GOALIE-STATISTIKEN – ' + mode;
+    box.appendChild(title);
+
+    const filtered = goalies
+      .filter(g => g.game_mode === MODES[mode])
+      .sort((a,b) =>
+        Number(b.save_percentage ?? -1) -
+        Number(a.save_percentage ?? -1)
+      );
+
+    if (!filtered.length) {
+      const note = document.createElement('p');
+      note.textContent = 'Noch keine offiziellen Goalie-Daten vorhanden.';
+      note.style.color = '#9db3cf';
+      box.appendChild(note);
+      return;
+    }
+
+    const table = document.createElement('table');
+    table.style.cssText = 'width:100%;font-size:12px;';
+
+    const head = document.createElement('tr');
+    ['Goalie','Club','Saison','Sp','Siege','SV%','GAA','SO']
+      .forEach(label => {
+        const th = document.createElement('th');
+        th.textContent = label;
+        head.appendChild(th);
+      });
+    table.appendChild(head);
+
+    filtered.forEach(g => {
+      const tr = document.createElement('tr');
+      [
+        g.gamer_name, g.club_name, g.season,
+        g.games_played, g.wins,
+        g.save_percentage == null ? '–' : g.save_percentage + '%',
+        g.goals_against_average ?? '–',
+        g.shutouts
+      ].forEach(value => {
+        const td = document.createElement('td');
+        td.textContent = String(value ?? '–');
+        td.style.padding = '8px 3px';
+        tr.appendChild(td);
+      });
+      table.appendChild(tr);
+    });
+
+    const scroll = document.createElement('div');
+    scroll.style.overflowX = 'auto';
+    scroll.appendChild(table);
+    box.appendChild(scroll);
+  }
+
+  async function start() {
+    try {
+      const response = await fetch(
+        BASE + '/rest/v1/rpc/get_public_goalie_stats',
+        {headers:{apikey:KEY},cache:'no-store'}
+      );
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+
+      goalies = await response.json();
+      const section = findScorerSection();
+      if (!section) return;
+
+      section.querySelectorAll('button').forEach(button => {
+        const mode = button.textContent.trim();
+        if (MODES[mode]) {
+          button.addEventListener('click', () => {
+            showGoalies(mode);
+          });
+        }
+      });
+
+      showGoalies('1vs1');
+    } catch (error) {
+      console.error('Goalie-Statistiken:', error);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
 </body></html>
