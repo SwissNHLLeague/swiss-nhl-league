@@ -52,4 +52,127 @@ function renderMatches(containerId,games,results){
 }
 renderMatches('match-list',SWISS_NHL_SAMPLE_GAMES,false);
 renderMatches('results-list',SWISS_NHL_RESULTS,true);
-</script></body></html>
+</script>
+<script>
+ 
+(async function () {
+  const BASE = 'https://avvsnfgdmamhabcyngds.supabase.co';
+  const KEY = 'sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt';
+
+  async function laden(pfad) {
+    const antwort = await fetch(BASE + '/rest/v1/' + pfad, {
+      headers: { apikey: KEY },
+      cache: 'no-store'
+    });
+
+    if (!antwort.ok) {
+      throw new Error('Supabase Fehler: ' + antwort.status);
+    }
+
+    return antwort.json();
+  }
+
+  const hinweis = document.querySelector('#spiele .sample-note');
+
+  try {
+    const [clubs, games] = await Promise.all([
+      laden('rpc/get_public_clubs'),
+      laden('games?select=id,home_club_id,away_club_id,scheduled_at,game_mode,status,home_score,away_score&order=scheduled_at.asc&limit=200')
+    ]);
+
+    const clubsNachId = new Map(
+      clubs.map(club => [club.id, club])
+    );
+
+    const datumFormat = new Intl.DateTimeFormat('de-CH', {
+      timeZone: 'Europe/Zurich',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23'
+    });
+
+    function spielUmwandeln(spiel) {
+      const datum = new Date(spiel.scheduled_at);
+      const teile = datumFormat.formatToParts(datum);
+      const wert = typ =>
+        teile.find(teil => teil.type === typ)?.value || '--';
+
+      const heimclub = clubsNachId.get(spiel.home_club_id);
+      const gastclub = clubsNachId.get(spiel.away_club_id);
+
+      const heimname = heimclub?.name || 'Unbekannter Club';
+      const gastname = gastclub?.name || 'Unbekannter Club';
+
+      if (heimclub?.logo_url) {
+        SWISS_NHL_CLUB_LOGOS[heimname] = heimclub.logo_url;
+      }
+
+      if (gastclub?.logo_url) {
+        SWISS_NHL_CLUB_LOGOS[gastname] = gastclub.logo_url;
+      }
+
+      return {
+        date: wert('day') + '.' + wert('month') + '.' + wert('year'),
+        time: wert('hour') + ':' + wert('minute'),
+        mode: spiel.game_mode || '',
+        home: heimname,
+        away: gastname,
+        homeScore: spiel.home_score,
+        awayScore: spiel.away_score
+      };
+    }
+
+    const kommendeSpiele = [];
+    const resultate = [];
+
+    for (const spiel of games) {
+      if (!spiel.scheduled_at) continue;
+
+      const status = String(spiel.status || '').toLowerCase();
+
+      const beendet = [
+        'completed',
+        'finished',
+        'final'
+      ].includes(status);
+
+      if (
+        beendet &&
+        spiel.home_score != null &&
+        spiel.away_score != null
+      ) {
+        resultate.push(spielUmwandeln(spiel));
+      } else if (
+        !beendet &&
+        new Date(spiel.scheduled_at).getTime() >= Date.now()
+      ) {
+        kommendeSpiele.push(spielUmwandeln(spiel));
+      }
+    }
+
+    renderMatches('match-list', kommendeSpiele, false);
+    renderMatches('results-list', resultate, true);
+
+    if (hinweis) {
+      hinweis.textContent =
+        'Offizielle Live-Daten der Swiss NHL League';
+    }
+
+    console.log('Clubs geladen:', clubs.length);
+    console.log('Spiele geladen:', games.length);
+
+  } catch (fehler) {
+    console.error('Supabase:', fehler);
+
+    if (hinweis) {
+      hinweis.textContent =
+        'Die Ligadaten konnten nicht geladen werden.';
+    }
+  }
+})();
+ 
+</script>
+</body></html>
