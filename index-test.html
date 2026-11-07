@@ -528,15 +528,13 @@ clubsNachId = new Map(clubs.map(c => [c.id, c]));
   const MODES = {'1vs1':'1v1','3vs3':'3v3','6vs6':'6v6'};
   let goalies = [];
 
-  function findScorerSection() {
-    const heading = [...document.querySelectorAll('*')]
-      .find(el => el.children.length === 0 &&
-        el.textContent.trim().toUpperCase() === 'TOP SCORER');
-    if (!heading) return null;
-    let el = heading.parentElement;
-    while (el && !el.querySelector('table')) el = el.parentElement;
-    return el;
-  }
+  
+
+function findScorerSection() {
+  return document.getElementById('scorer');
+}
+
+
 
   function showGoalies(mode) {
     const section = findScorerSection();
@@ -617,7 +615,7 @@ clubsNachId = new Map(clubs.map(c => [c.id, c]));
       if (!response.ok) throw new Error('HTTP ' + response.status);
 
       goalies = await response.json();
-      const section = findScorerSection();
+  const section = findScorerSection();
       if (!section) return;
 
       section.querySelectorAll('button').forEach(button => {
