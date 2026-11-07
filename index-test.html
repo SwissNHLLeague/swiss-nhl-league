@@ -175,4 +175,51 @@ renderMatches('results-list',SWISS_NHL_RESULTS,true);
 })();
  
 </script>
+
+<script>
+/* Swiss NHL League: Demo-Tabellen und Demo-Scorer ausblenden */
+(function () {
+  const ueberschriften = [
+    'AKTUELLE TABELLEN',
+    'TOP SCORER'
+  ];
+
+  function beispieldatenAusblenden() {
+    for (const titel of ueberschriften) {
+      const elemente = [...document.querySelectorAll('h1,h2,h3,h4')];
+      const ueberschrift = elemente.find(el =>
+        el.textContent.trim().toUpperCase().includes(titel)
+      );
+
+      if (!ueberschrift) continue;
+
+      const bereich = ueberschrift.closest('section,article');
+      if (!bereich) continue;
+
+      const tabellen = bereich.querySelectorAll('table');
+
+      tabellen.forEach(tabelle => {
+        const zeilen = tabelle.querySelectorAll('tbody tr');
+        zeilen.forEach(zeile => zeile.remove());
+
+        let hinweis = tabelle.parentElement.querySelector('.snhl-no-data');
+        if (!hinweis) {
+          hinweis = document.createElement('p');
+          hinweis.className = 'snhl-no-data';
+          hinweis.style.padding = '16px';
+          hinweis.style.color = '#9db3cf';
+          tabelle.insertAdjacentElement('afterend', hinweis);
+        }
+        hinweis.textContent = 'Noch keine offiziellen Daten vorhanden.';
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', beispieldatenAusblenden);
+  } else {
+    beispieldatenAusblenden();
+  }
+})();
+</script>
 </body></html>
