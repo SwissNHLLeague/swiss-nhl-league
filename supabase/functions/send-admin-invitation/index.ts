@@ -9,6 +9,7 @@ const headers = {
     "authorization, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
+  "Cache-Control": "no-store",
 };
 
 function reply(message: object, status = 200) {
@@ -27,33 +28,41 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== "POST") {
-    return reply({ error: "Methode nicht erlaubt" }, 405);
+    return reply(
+      { error: "Methode nicht erlaubt" },
+      405
+    );
   }
 
   try {
     const url = Deno.env.get("SUPABASE_URL");
+
     const key =
       Deno.env.get("SUPABASE_ANON_KEY") ??
       Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
 
     if (!url || !key) {
-      return reply({
-        error: "Serverkonfiguration fehlt",
-      }, 503);
+      return reply(
+        { error: "Serverkonfiguration fehlt" },
+        503
+      );
     }
 
     const authorization =
       req.headers.get("Authorization") ?? "";
 
     if (!authorization.startsWith("Bearer ")) {
-      return reply({
-        error: "Anmeldung erforderlich",
-      }, 401);
+      return reply(
+        { error: "Anmeldung erforderlich" },
+        401
+      );
     }
 
     const client = createClient(url, key, {
       global: {
-        headers: { Authorization: authorization },
+        headers: {
+          Authorization: authorization,
+        },
       },
       auth: {
         persistSession: false,
@@ -66,9 +75,10 @@ Deno.serve(async (req) => {
     );
 
     if (error || !data.user) {
-      return reply({
-        error: "Ungültige Anmeldung",
-      }, 401);
+      return reply(
+        { error: "Ungültige Anmeldung" },
+        401
+      );
     }
 
     const { data: admin, error: adminError } =
@@ -83,9 +93,10 @@ Deno.serve(async (req) => {
       !admin ||
       admin.admin_role !== "owner"
     ) {
-      return reply({
-        error: "Keine Berechtigung",
-      }, 403);
+      return reply(
+        { error: "Keine Berechtigung" },
+        403
+      );
     }
 
     const body = await req.json().catch(() => null);
@@ -104,38 +115,95 @@ Deno.serve(async (req) => {
       email.length > 254 ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     ) {
-      return reply({
-        error: "Ungültige E-Mail-Adresse",
-      }, 400);
+      return reply(
+        { error: "Ungültige E-Mail-Adresse" },
+        400
+      );
     }
 
-    if (![
-      "league_admin",
-      "moderator",
-      "stats_manager",
-    ].includes(role)) {
-      return reply({
-        error: "Ungültige Rolle",
-      }, 400);
+    if (
+      ![
+        "league_admin",
+        "moderator",
+        "stats_manager",
+      ].includes(role)
+    ) {
+      return reply(
+        { error: "Ungültige Rolle" },
+        400
+      );
     }
 
-    // Sicherer Testbetrieb:
-    // Keine Datenbankänderung.
-    // Keine Einladung erstellen.
-    // Keine E-Mail versenden.
-    // Keine Einladungstokens erzeugen.
+    const { data: invitations, error: rpcError } =
+      await client.rpc(
+        "admin_create_invitation_token",
+        {
+          p_email: email,
+          p_role: role,
+        }
+      );
 
-    return reply({
-      status: "test_ready",
-      message:
-        "Einladungsdaten erfolgreich geprüft. Versand deaktiviert.",
-    });
+    if (rpcError) {
+      if (rpcError.code === "42501") {
+        return reply(
+          { error: "Keine Berechtigung" },
+          403
+        );
+      }
 
-  } catch (error) {
-    console.error("Invitation test error", error);
+      if (
+        rpcError.message?.includes(
+          "Bereits eine aktive Einladung vorhanden"
+        )
+      ) {
+        return reply(
+          { error: "Bereits eine aktive Einladung vorhanden" },
+          409
+        );
+      }
 
-    return reply({
-      error: "Interner Serverfehler",
-    }, 500);
+      console.error(
+        "Einladung konnte nicht erstellt werden",
+        rpcError.code
+      );
+
+      return reply(
+        { error: "Einladung konnte nicht erstellt werden" },
+        500
+      );
+    }
+
+    const invitation = invitations?.[0];
+
+    if (
+      !invitation?.invitation_id ||
+      !invitation?.invitation_token
+    ) {
+      return reply(
+        { error: "Ungültige Datenbankantwort" },
+        500
+      );
+    }
+
+    // Testbetrieb ohne E-Mail-Versand.
+    // Token nur einmal an den berechtigten
+    // Owner zurückgeben.
+    // Token niemals protokollieren.
+
+    return reply(
+      {
+        status: "created",
+        invitation_id: invitation.invitation_id,
+        invitation_token: invitation.invitation_token,
+        expires_in_hours: 48,
+        email_sent: false,
+      },
+      201
+    );
+  } catch {
+    return reply(
+      { error: "Interner Serverfehler" },
+      500
+    );
   }
 });
