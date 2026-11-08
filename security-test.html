@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swiss NHL League – Sicherheitstest</title>
+<style>
+body {
+  background:#07101d;
+  color:white;
+  font-family:Arial,sans-serif;
+  padding:25px;
+}
+main {
+  max-width:480px;
+  margin:35px auto;
+  padding:25px;
+  background:#101d30;
+  border:1px solid #294c72;
+  border-radius:14px;
+}
+button {
+  background:#087cff;
+  color:white;
+  padding:15px;
+  border:0;
+  border-radius:8px;
+  font-size:16px;
+  width:100%;
+}
+button:disabled {opacity:.5}
+pre {
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+</style>
+</head>
+<body>
+<main>
+<h2>Swiss NHL League</h2>
+<h3>Sicherheitstest – Adminrechte</h3>
+<p id="status">Prüfe Anmeldung ...</p>
+<button id="testBtn" disabled>
+  HTTP-403-Test starten
+</button>
+<pre id="result"></pre>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const url =
+  "https://avvsnfgdmamhabcyngds.supabase.co";
+
+const key =
+  "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+const client = window.supabase.createClient(url,key);
+
+const status = document.getElementById("status");
+const button = document.getElementById("testBtn");
+const result = document.getElementById("result");
+
+let currentUser = null;
+
+async function checkUser() {
+  try {
+    const {data,error} = await client.auth.getUser();
+
+    if(error || !data.user) {
+      status.textContent =
+        "Nicht angemeldet. Bitte zuerst einloggen.";
+      return;
+    }
+
+    currentUser = data.user;
+
+    status.textContent =
+      "Angemeldet: " + currentUser.email;
+
+    button.disabled = false;
+  } catch(error) {
+    status.textContent = "Anmeldung konnte nicht geprüft werden.";
+  }
+}
+
+button.onclick = async () => {
+  button.disabled = true;
+  result.textContent = "Test läuft ...";
+
+  try {
+    const {data:sessionData,error:sessionError} =
+      await client.auth.getSession();
+
+    if(sessionError || !sessionData.session) {
+      throw new Error("Keine gültige Sitzung.");
+    }
+
+    const response = await fetch(
+      url + "/functions/v1/send-admin-invitation",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "apikey":key,
+          "Authorization":
+            "Bearer " + sessionData.session.access_token
+        },
+        body:JSON.stringify({})
+      }
+    );
+
+    const statusCode = response.status;
+
+    // Keine Antwortdaten oder Tokens anzeigen.
+    if(statusCode === 403) {
+      result.textContent =
+        "HTTP 403 – Zugriff korrekt verweigert.";
+    } else if(statusCode === 401) {
+      result.textContent =
+        "HTTP 401 – Anmeldung nicht akzeptiert.";
+    } else {
+      result.textContent =
+        "HTTP " + statusCode +
+        " – Ergebnis muss geprüft werden.";
+    }
+  } catch(error) {
+    result.textContent =
+      "Test konnte nicht abgeschlossen werden.";
+  } finally {
+    button.disabled = false;
+  }
+};
+
+checkUser();
+</script>
+</body>
+</html>
