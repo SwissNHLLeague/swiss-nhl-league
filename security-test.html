@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>Swiss NHL League – Sicherheitstest</title>
+  <style>
+    body {
+      background: #080f1e;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 24px;
+    }
+    main {
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 24px;
+      border: 1px solid #365b91;
+      border-radius: 14px;
+      background: #15223a;
+    }
+    button {
+      background: #3478ed;
+      color: white;
+      border: 0;
+      padding: 16px;
+      width: 100%;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    #result {
+      margin-top: 24px;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h2>Swiss NHL League</h2>
+    <p>Admin-Einladungen – Sicherheitstest</p>
+    <p id="account">Anmeldung wird geprüft...</p>
+
+    <button id="test" disabled>
+      Zugriff testen
+    </button>
+
+    <p id="result"></p>
+  </main>
+
+  <script type="module">
+    import { createClient } from
+      "https://esm.sh/@supabase/supabase-js@2";
+
+    const url =
+      "https://avvsnfgdmamhabcyngds.supabase.co";
+
+    // Nur der öffentliche Publishable/Anon-Key
+    // darf hier eingesetzt werden.
+    const key = "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+    const client = createClient(url, key);
+
+    const account = document.getElementById("account");
+    const result = document.getElementById("result");
+    const button = document.getElementById("test");
+
+    const { data, error } =
+      await client.auth.getUser();
+
+    if (error || !data.user) {
+      account.textContent =
+        "Nicht angemeldet. Bitte zuerst einloggen.";
+    } else {
+      account.textContent =
+        "Angemeldet: " + data.user.email;
+      button.disabled = false;
+    }
+
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      result.textContent = "Test läuft...";
+
+      try {
+        const { data: sessionData } =
+          await client.auth.getSession();
+
+        const token =
+          sessionData.session?.access_token;
+
+        if (!token) {
+          result.textContent =
+            "Keine gültige Anmeldung gefunden.";
+          return;
+        }
+
+        const response = await fetch(
+          url + "/functions/v1/send-admin-invitation",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + token,
+              "apikey": key
+            },
+            // Absichtlich ungültige Daten.
+            // Auch bei versehentlichem Owner-Login
+            // darf keine Einladung entstehen.
+            body: JSON.stringify({
+              email: "ungueltig",
+              role: "ungueltig"
+            })
+          }
+        );
+
+        if (response.status === 403) {
+          result.textContent =
+            "HTTP 403 – Zugriff korrekt verweigert.";
+        } else {
+          result.textContent =
+            "HTTP " + response.status +
+            " – Ergebnis muss geprüft werden.";
+        }
+      } catch {
+        result.textContent =
+          "Verbindungsfehler beim Test.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
