@@ -151,16 +151,21 @@ Deno.serve(async (req) => {
       }
     }
 
-    const record =
-      result && typeof result === "object" &&
-      !Array.isArray(result)
-        ? result as Record<string, unknown>
-        : null;
+    
+const record =
+  (Array.isArray(result) ? result[0] : result) &&
+  typeof (Array.isArray(result) ? result[0] : result) === "object"
+    ? (Array.isArray(result) ? result[0] : result)
+        as Record<string, unknown>
+    : null;
 
-    const invitationToken =
-      typeof record?.token === "string"
-        ? record.token
-        : null;
+
+    
+const invitationToken =
+  typeof record?.invitation_token === "string"
+    ? record.invitation_token
+    : null;
+
 
     if (
       !invitationToken ||
