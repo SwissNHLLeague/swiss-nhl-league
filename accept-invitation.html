@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>Swiss NHL League – Einladung annehmen</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #080f1e;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    header {
+      background: #17253f;
+      padding: 35px 15px;
+      text-align: center;
+      border-bottom: 3px solid #367cf1;
+    }
+
+    h1 { margin: 0; font-size: 26px; }
+    h1 span { color: #4383f3; }
+
+    main {
+      max-width: 550px;
+      margin: 55px auto;
+      padding: 25px;
+      background: #152239;
+      border: 1px solid #3b5d91;
+      border-radius: 15px;
+    }
+
+    input, button {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      margin-top: 14px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    input {
+      background: #0a1425;
+      color: white;
+      border: 1px solid #54709a;
+    }
+
+    button {
+      background: #397bf0;
+      color: white;
+      border: 0;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .muted { color: #b5c1d3; }
+    #result { overflow-wrap: anywhere; }
+    a { color: #83b2ff; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>SWISS <span>NHL</span> LEAGUE</h1>
+  <p>Administrator-Einladung</p>
+</header>
+
+<main>
+  <h2>Einladung annehmen</h2>
+
+  <p id="account" class="muted">
+    Anmeldung wird geprüft...
+  </p>
+
+  <p class="muted">
+    Melde dich mit der E-Mail-Adresse an,
+    an die die Einladung ausgestellt wurde.
+  </p>
+
+  <label for="token">
+    Geheimer Einladungstoken
+  </label>
+
+  <input
+    id="token"
+    type="password"
+    placeholder="Einladungstoken einfügen"
+    autocomplete="off"
+    autocapitalize="off"
+    spellcheck="false"
+    maxlength="64"
+  >
+
+  <button id="accept" disabled>
+    Einladung annehmen
+  </button>
+
+  <p id="result" role="status"
+     aria-live="polite"></p>
+
+  <p>
+    <a href="login.html">Zur Anmeldung</a>
+  </p>
+</main>
+
+<script type="module">
+  import { createClient } from
+    "https://esm.sh/@supabase/supabase-js@2";
+
+  const SUPABASE_URL =
+    "https://avvsnfgdmamhabcyngds.supabase.co";
+
+  // Hier nur den öffentlichen Publishable Key einsetzen.
+  const SUPABASE_KEY =
+    "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+  const client = createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  const account = document.getElementById("account");
+  const tokenInput = document.getElementById("token");
+  const button = document.getElementById("accept");
+  const result = document.getElementById("result");
+
+  const { data, error } = await client.auth.getUser();
+
+  if (error || !data?.user) {
+    account.textContent =
+      "Nicht angemeldet. Bitte zuerst anmelden.";
+  } else {
+    account.textContent =
+      "Angemeldet: " + data.user.email;
+    button.disabled = false;
+  }
+
+  button.addEventListener("click", async () => {
+    const token = tokenInput.value.trim();
+
+    if (!/^[0-9a-f]{64}$/.test(token)) {
+      result.textContent =
+        "Ungültiges Tokenformat.";
+      return;
+    }
+
+    const confirmed = confirm(
+      "Möchtest du diese Admin-Einladung " +
+      "wirklich annehmen?\n\n" +
+      "Dadurch erhält dein Konto " +
+      "Administratorrechte."
+    );
+
+    if (!confirmed) return;
+
+    button.disabled = true;
+    result.textContent = "Einladung wird geprüft...";
+
+    try {
+      const { data, error } = await client.rpc(
+        "admin_accept_invitation_token",
+        { p_token: token }
+      );
+
+      if (error) {
+        result.textContent =
+          "Einladung konnte nicht angenommen werden. " +
+          "Prüfe Anmeldung, Gültigkeit und Token.";
+        return;
+      }
+
+      tokenInput.value = "";
+      result.textContent =
+        data === "Einladung angenommen"
+          ? "Einladung erfolgreich angenommen! " +
+            "Deine Administratorrechte sind aktiviert."
+          : "Antwort: " + String(data);
+
+    } catch {
+      result.textContent =
+        "Verbindungsfehler. Bitte den Status " +
+        "vor einem erneuten Versuch prüfen.";
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
