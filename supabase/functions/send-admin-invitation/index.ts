@@ -1,24 +1,20 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const allowedOrigin =
-  "https://swissnhlleague.github.io";
+const origin = "https://swissnhlleague.github.io";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": allowedOrigin,
+const headers = {
+  "Access-Control-Allow-Origin": origin,
   "Access-Control-Allow-Headers":
     "authorization, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
 };
 
-function respond(
-  body: Record<string, unknown>,
-  status = 200
-) {
-  return new Response(JSON.stringify(body), {
+function reply(message: object, status = 200) {
+  return new Response(JSON.stringify(message), {
     status,
-    headers: corsHeaders,
+    headers,
   });
 }
 
@@ -26,41 +22,38 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
-      headers: corsHeaders,
+      headers,
     });
   }
 
   if (req.method !== "POST") {
-    return respond({ error: "Methode nicht erlaubt" }, 405);
+    return reply({ error: "Methode nicht erlaubt" }, 405);
   }
 
   try {
     const url = Deno.env.get("SUPABASE_URL");
-    const key = Deno.env.get("SUPABASE_ANON_KEY")
-      ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-    const resendKey = Deno.env.get("RESEND_API_KEY");
-    const sender = Deno.env.get("RESEND_FROM_EMAIL");
+    const key =
+      Deno.env.get("SUPABASE_ANON_KEY") ??
+      Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
 
-    if (!url || !key || !resendKey || !sender) {
-      return respond({
-        error: "Serverkonfiguration unvollständig",
+    if (!url || !key) {
+      return reply({
+        error: "Serverkonfiguration fehlt",
       }, 503);
     }
 
-    const authHeader =
+    const authorization =
       req.headers.get("Authorization") ?? "";
 
-    if (!authHeader.startsWith("Bearer ")) {
-      return respond({
+    if (!authorization.startsWith("Bearer ")) {
+      return reply({
         error: "Anmeldung erforderlich",
       }, 401);
     }
 
     const client = createClient(url, key, {
       global: {
-        headers: {
-          Authorization: authHeader,
-        },
+        headers: { Authorization: authorization },
       },
       auth: {
         persistSession: false,
@@ -68,13 +61,12 @@ Deno.serve(async (req) => {
       },
     });
 
-    const token = authHeader.slice(7);
+    const { data, error } = await client.auth.getUser(
+      authorization.slice(7)
+    );
 
-    const { data: authData, error: authError } =
-      await client.auth.getUser(token);
-
-    if (authError || !authData.user) {
-      return respond({
+    if (error || !data.user) {
+      return reply({
         error: "Ungültige Anmeldung",
       }, 401);
     }
@@ -83,7 +75,7 @@ Deno.serve(async (req) => {
       await client
         .from("admin_users")
         .select("admin_role")
-        .eq("user_id", authData.user.id)
+        .eq("user_id", data.user.id)
         .maybeSingle();
 
     if (
@@ -91,7 +83,7 @@ Deno.serve(async (req) => {
       !admin ||
       admin.admin_role !== "owner"
     ) {
-      return respond({
+      return reply({
         error: "Keine Berechtigung",
       }, 403);
     }
@@ -108,87 +100,41 @@ Deno.serve(async (req) => {
         ? body.role
         : "";
 
-    const allowedRoles = [
+    if (
+      email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      return reply({
+        error: "Ungültige E-Mail-Adresse",
+      }, 400);
+    }
+
+    if (![
       "league_admin",
       "moderator",
       "stats_manager",
-    ];
-
-    if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-      email.length > 254 ||
-      !allowedRoles.includes(role)
-    ) {
-      return respond({
-        error: "Ungültige Einladungsdaten",
+    ].includes(role)) {
+      return reply({
+        error: "Ungültige Rolle",
       }, 400);
     }
 
-    // Bestehende sichere Datenbankfunktion verwenden.
-    const { data, error } = await client.rpc(
-      "admin_create_invitation_token",
-      {
-        p_email: email,
-        p_role: role,
-      }
-    );
+    // Sicherer Testbetrieb:
+    // Keine Datenbankänderung.
+    // Keine Einladung erstellen.
+    // Keine E-Mail versenden.
+    // Keine Einladungstokens erzeugen.
 
-    if (error) {
-      console.error("Invitation RPC failed", error.code);
-      return respond({
-        error: "Einladung konnte nicht erstellt werden",
-      }, 400);
-    }
-
-    // Nur bekannte Rückgabeformate akzeptieren.
-    let result: unknown = data;
-
-    if (typeof result === "string") {
-      try {
-        result = JSON.parse(result);
-      } catch {
-        result = { token: result };
-      }
-    }
-
-    
-const record =
-  (Array.isArray(result) ? result[0] : result) &&
-  typeof (Array.isArray(result) ? result[0] : result) === "object"
-    ? (Array.isArray(result) ? result[0] : result)
-        as Record<string, unknown>
-    : null;
-
-
-    
-const invitationToken =
-  typeof record?.invitation_token === "string"
-    ? record.invitation_token
-    : null;
-
-
-    if (
-      !invitationToken ||
-      !/^[a-fA-F0-9]{64}$/.test(invitationToken)
-    ) {
-      return respond({
-        error:
-          "Einladungsformat muss zuerst geprüft werden",
-      }, 503);
-    }
-
-    // Noch kein Versand:
-    // Zuerst Rückgabeformat, Annahmeseite
-    // und Absenderdomain sicher bestätigen.
-    return respond({
-      status: "prepared",
+    return reply({
+      status: "test_ready",
       message:
-        "Einladung vorbereitet. Versand noch nicht freigeschaltet.",
+        "Einladungsdaten erfolgreich geprüft. Versand deaktiviert.",
     });
 
   } catch (error) {
-    console.error("Invitation function error", error);
-    return respond({
+    console.error("Invitation test error", error);
+
+    return reply({
       error: "Interner Serverfehler",
     }, 500);
   }
