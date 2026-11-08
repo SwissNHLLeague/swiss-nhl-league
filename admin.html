@@ -294,8 +294,18 @@ async function uploadClubLogo(clubId) {alert("Club-ID: " + clubId);
 
   invitePanel.innerHTML = `
     <h2>Liga-Leitung einladen</h2>
-    <p>Einladungen werden erst nach dem
-    abschliessenden Sicherheitstest freigeschaltet.</p>
+    
+<p>
+  Automatische Einladungen per E-Mail
+  werden vorbereitet.
+</p>
+<p class="muted">
+  Die Einladung ist 48 Stunden gültig.
+  Der Versand wird nach dem
+  abschliessenden Sicherheitstest
+  freigeschaltet.
+</p>
+
     <label for="snhl-invite-email">E-Mail-Adresse</label>
     <input id="snhl-invite-email"
            type="email"
