@@ -532,6 +532,140 @@ item.append(matchup, meta, state);
 }
 $('refreshGames').onclick = loadGames;
 
+/* Swiss NHL League
+   Schritt 416.36L.98MU
+   GM-Verwaltung
+*/
+
+let gmBusy = false;
+
+function gmMessage(message) {
+  $("gmStatus").textContent = message;
+}
+
+async function loadGms() {
+  if (!currentClub?.id) return;
+
+  const list = $("gmList");
+  list.textContent = "Lade GM...";
+
+  const { data, error } = await client.rpc(
+    "snhl_list_club_gms",
+    { p_club_id: currentClub.id }
+  );
+
+  if (error) {
+    list.textContent =
+      "GM konnte nicht geladen werden: " +
+      error.message;
+    return;
+  }
+
+  list.replaceChildren();
+
+  if (!data?.length) {
+    list.textContent =
+      "Für diesen Club ist noch kein GM eingetragen.";
+    return;
+  }
+
+  for (const gm of data) {
+    const item = document.createElement("div");
+    item.className = "item";
+
+    const label = document.createElement("p");
+    label.textContent =
+      "General Manager · Benutzer-ID: " +
+      gm.user_id;
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "danger";
+    remove.textContent = "GM entfernen";
+
+    remove.onclick = async () => {
+      if (gmBusy) return;
+
+      if (!confirm(
+        "Diesen General Manager wirklich entfernen?"
+      )) return;
+
+      gmBusy = true;
+      remove.disabled = true;
+
+      try {
+        const { error: removeError } =
+          await client.rpc(
+            "snhl_remove_club_gm",
+            {
+              p_club_id: currentClub.id,
+              p_user_id: gm.user_id
+            }
+          );
+
+        if (removeError) throw removeError;
+
+        gmMessage("GM erfolgreich entfernt.");
+        await loadGms();
+      } catch (err) {
+        gmMessage("Fehler: " + err.message);
+      } finally {
+        gmBusy = false;
+        remove.disabled = false;
+      }
+    };
+
+    item.append(label, remove);
+    list.appendChild(item);
+  }
+}
+
+$("assignGmButton").onclick = async () => {
+  if (gmBusy || !currentClub?.id) return;
+
+  const userId = $("gmUserId").value.trim();
+
+  const uuidPattern =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  if (!uuidPattern.test(userId)) {
+    gmMessage("Bitte eine gültige Benutzer-ID eingeben.");
+    return;
+  }
+
+  if (!confirm(
+    "Diesen Benutzer als General Manager ernennen?"
+  )) return;
+
+  gmBusy = true;
+  $("assignGmButton").disabled = true;
+
+  try {
+    const { error } = await client.rpc(
+      "snhl_assign_club_gm",
+      {
+        p_club_id: currentClub.id,
+        p_user_id: userId
+      }
+    );
+
+    if (error) throw error;
+
+    $("gmUserId").value = "";
+    gmMessage("General Manager erfolgreich ernannt.");
+    await loadGms();
+  } catch (err) {
+    gmMessage("Fehler: " + err.message);
+  } finally {
+    gmBusy = false;
+    $("assignGmButton").disabled = false;
+  }
+};
+
+document.querySelector(
+  '[data-tab="gm"]'
+).addEventListener("click", loadGms);
+
 async function init(){
   if(SUPABASE_KEY==="DEIN_PUBLISHABLE_KEY"){
     deny("Bitte zuerst den Supabase Publishable Key eintragen.");
