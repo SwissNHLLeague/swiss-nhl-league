@@ -142,6 +142,39 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 <p>Maximal 2 eigene Logo-Uploads pro Saison.</p>
 <p>Danach kann nur die Ligaleitung das Logo ändern.</p>
 </section>
+
+<section class="panel hidden" data-section="gm">
+  <h2>GM-Verwaltung</h2>
+
+  <p class="muted">
+    Als Clubinhaber kannst du einen registrierten
+    Benutzer als General Manager ernennen oder
+    einen bestehenden GM entfernen.
+  </p>
+
+  <h3>Aktueller General Manager</h3>
+  <div id="gmList" aria-live="polite">
+    Lade GM...
+  </div>
+
+  <h3>GM ernennen</h3>
+  <label for="gmUserId">Benutzer-ID (UUID)</label>
+  <input
+    id="gmUserId"
+    type="text"
+    placeholder="Benutzer-ID eingeben"
+    autocomplete="off"
+    style="width:100%;padding:12px;margin:10px 0;
+           border-radius:8px;border:1px solid #365477;
+           background:#203351;color:white"
+  >
+
+  <button type="button" id="assignGmButton">
+    GM ernennen
+  </button>
+
+  <p id="gmStatus" role="status" class="muted"></p>
+</section>
 </div>
 </main>
 
