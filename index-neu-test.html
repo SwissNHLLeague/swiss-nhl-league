@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Swiss NHL League – Arena Test</title>
 <style>
-body{background:#07101d;color:white;font-family:Arial,sans-serif}
+body{margin:0;background:#07101d;color:white;font-family:Arial,sans-serif}
 #loading{text-align:center;padding:50px 20px}
 </style>
 </head>
@@ -15,332 +15,117 @@ body{background:#07101d;color:white;font-family:Arial,sans-serif}
 <h2>Swiss NHL League</h2>
 <p>Originaldesign wird geladen …</p>
 </div>
-
 <script>
 (async function(){
 "use strict";
 
-const originalURL =
-"https://raw.githubusercontent.com/SwissNHLLeague/swiss-nhl-league/22a6fb133436de17dd3c5629bc6e8c04e05d2366/index.html";
+const url="https://raw.githubusercontent.com/SwissNHLLeague/swiss-nhl-league/22a6fb133436de17dd3c5629bc6e8c04e05d2366/index.html";
 
-try {
-  const response = await fetch(originalURL);
-  if(!response.ok) throw Error("Original nicht erreichbar");
+try{
+ const response=await fetch(url);
+ if(!response.ok)throw Error("Original nicht erreichbar");
 
-  let html = await response.text();
-  if(!html.includes("Swiss NHL League")){
-    throw Error("Ungültige Originaldatei");
-  }
+ let html=await response.text();
+ if(!html.includes("Swiss NHL League"))
+   throw Error("Originaldatei ungültig");
 
-  const extraCSS = `
-<style id="snhl-extra-style">
-.snhl-extra{
- max-width:1200px;
- margin:28px auto;
- padding:0 16px;
- color:#f5f9ff;
- font-family:Arial,sans-serif;
-}
-.snhl-extra *{box-sizing:border-box}
-.snhl-extra h2{
- font-size:clamp(21px,4vw,29px);
- margin:0 0 16px;
- color:#fff;
-}
-.snhl-panel{
- background:linear-gradient(145deg,#102c4c,#091726);
- border:1px solid #315b89;
- border-radius:12px;
- padding:20px;
- margin:18px 0;
-}
-.snhl-grid{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
- gap:16px;
-}
-.snhl-empty{
- padding:18px;
- background:#10233a;
- border:1px dashed #41668c;
- border-radius:9px;
- color:#bdd1e8;
-}
-.snhl-button{
- background:#087cf0;
- color:white;
- padding:12px 17px;
- border:1px solid #459cff;
- border-radius:7px;
- cursor:pointer;
- font-weight:bold;
-}
-.snhl-score{
- padding:16px;
- background:#193755;
- border-radius:8px;
- margin:10px 0;
-}
-.snhl-table{
- width:100%;
- border-collapse:collapse;
- color:white;
-}
-.snhl-table th,.snhl-table td{
- padding:12px 8px;
- border-bottom:1px solid #345575;
- text-align:left;
-}
-.snhl-table-wrap{overflow-x:auto}
-.snhl-tag{color:#91c9ff;font-size:13px}
-.snhl-live{color:#ff7676;font-weight:bold}
-.snhl-video{
- width:100%;
- aspect-ratio:16/9;
- border:0;
- border-radius:8px;
- background:#000;
-}
-</style>`;
-
-  const extraHTML = `
-<div class="snhl-extra" id="snhl-live-center">
-<section class="snhl-panel">
-<h2>🔴 Live Scoreboard</h2>
-<div id="snhl-scores" aria-live="polite"></div>
-</section>
-
-<div class="snhl-grid">
-<section class="snhl-panel">
-<h2>📺 Twitch Live & Replays</h2>
-<div id="snhl-streams"></div>
-</section>
-<section class="snhl-panel">
-<h2>📅 Offizieller Spielplan</h2>
-<div id="snhl-schedule"></div>
-</section>
-</div>
-
-<div class="snhl-grid">
-<section class="snhl-panel">
-<h2>🏆 Tabellen</h2>
-<div class="snhl-table-wrap">
-<table class="snhl-table">
-<thead>
-<tr>
-<th>#</th><th>Club</th><th>Sp.</th><th>Pts.</th>
-</tr>
-</thead>
-<tbody id="snhl-standings"></tbody>
-</table>
-</div>
-</section>
-
-<section class="snhl-panel">
-<h2>🥅 Spielerstatistiken</h2>
-<div id="snhl-players"></div>
-</section>
-</div>
-
-<section class="snhl-panel">
-<h2>🛡️ Clubübersicht</h2>
-<div id="snhl-clubs"></div>
-</section>
-</div>`;
-
-  const extraJS = `
-<script>
-(function(){
-"use strict";
-
-/*
-  Vorbereitung für echte Daten.
-  Noch keine Supabase-Anbindung.
-  Keine erfundenen Live-Ergebnisse.
-*/
-const data={
- matches:[],
- streams:[],
- standings:[],
- players:[],
- clubs:[]
-};
-
-window.SNHL_EXTRA_DATA=data;
-
-const byId=id=>document.getElementById(id);
-
-function node(tag,text){
- const item=document.createElement(tag);
- if(text!==undefined)item.textContent=String(text);
- return item;
-}
-
-function empty(target,message){
- target.replaceChildren();
- const item=node("div",message);
- item.className="snhl-empty";
- target.appendChild(item);
-}
-
-function scores(){
- const box=byId("snhl-scores");
- if(!data.matches.length){
-  empty(box,"Aktuell keine offiziellen Ergebnisse verfügbar.");
-  return;
+ const style=`
+ <style>
+ .snhl-extra{
+   max-width:1200px;margin:30px auto;
+   padding:0 16px;color:white;
+   font-family:Arial,sans-serif
  }
- box.replaceChildren();
- data.matches.forEach(m=>{
-  const card=node("div");
-  card.className="snhl-score";
-  const title=node("strong",
-   (m.home||"Heim")+"  "+
-   (m.homeScore??"–")+" : "+
-   (m.awayScore??"–")+"  "+
-   (m.away||"Gast")
-  );
-  const status=node("p",
-   (m.status||"GEPLANT")+
-   (m.clock?" · "+m.clock:"")
-  );
-  if(m.status==="LIVE")status.className="snhl-live";
-  card.append(title,status);
-  box.appendChild(card);
- });
-}
-
-function streams(){
- const box=byId("snhl-streams");
- if(!data.streams.length){
-  empty(box,"Noch keine offiziellen Streams oder Replays verfügbar.");
-  return;
+ .snhl-extra *{box-sizing:border-box}
+ .snhl-panel{
+   background:linear-gradient(145deg,#102c4c,#091726);
+   border:1px solid #315b89;
+   border-radius:12px;padding:20px;margin:16px 0
  }
- box.replaceChildren();
- data.streams.forEach(s=>{
-  const card=node("div");
-  card.className="snhl-score";
-  const heading=node("h3",s.title||"Twitch Match");
-  const button=node("button","Stream ansehen");
-  button.className="snhl-button";
-  button.onclick=()=>{
-   const channel=String(s.channel||"")
-    .replace(/[^a-zA-Z0-9_]/g,"");
-   const vod=String(s.vodId||"")
-    .replace(/[^0-9]/g,"");
-   if(!channel&&!vod)return;
-   const iframe=document.createElement("iframe");
-   iframe.className="snhl-video";
-   iframe.title=s.title||"Twitch";
-   iframe.allow="autoplay; fullscreen";
-   iframe.allowFullscreen=true;
-   const source=vod?"video=v"+vod:"channel="+channel;
-   iframe.src="https://player.twitch.tv/?"+
-    source+"&parent="+
-    encodeURIComponent(location.hostname)+
-    "&autoplay=false";
-   card.querySelector("iframe")?.remove();
-   card.appendChild(iframe);
-  };
-  card.append(heading,button);
-  box.appendChild(card);
- });
-}
-
-function schedule(){
- const box=byId("snhl-schedule");
- if(!data.matches.length){
-  empty(box,"Noch kein offizieller Spielplan verfügbar.");
-  return;
+ .snhl-grid{
+   display:grid;
+   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+   gap:16px
  }
- box.replaceChildren();
- data.matches.forEach(m=>{
-  const card=node("div",
-   (m.home||"Heim")+" vs. "+(m.away||"Gast")+
-   " · "+(m.status||"GEPLANT")
-  );
-  card.className="snhl-score";
-  box.appendChild(card);
- });
-}
-
-function standings(){
- const box=byId("snhl-standings");
- box.replaceChildren();
- if(!data.standings.length){
-  const tr=node("tr");
-  const td=node("td","Noch keine Tabelle verfügbar.");
-  td.colSpan=4;
-  tr.appendChild(td);
-  box.appendChild(tr);
-  return;
+ .snhl-extra h2{color:white;font-size:23px}
+ .snhl-empty{
+   padding:18px;background:#10233a;
+   border:1px dashed #41668c;border-radius:9px;
+   color:#bdd1e8
  }
- data.standings.forEach((r,i)=>{
-  const tr=node("tr");
-  [i+1,r.club||"–",r.played??0,r.points??0]
-   .forEach(v=>tr.appendChild(node("td",v)));
-  box.appendChild(tr);
- });
-}
-
-function simpleList(id,items,label,format){
- const box=byId(id);
- if(!items.length){
-  empty(box,label);
-  return;
+ .snhl-table{width:100%;border-collapse:collapse}
+ .snhl-table td,.snhl-table th{
+   padding:10px;border-bottom:1px solid #345575;
+   text-align:left;color:white
  }
- box.replaceChildren();
- items.forEach(item=>{
-  const card=node("div",format(item));
-  card.className="snhl-score";
-  box.appendChild(card);
- });
-}
+ </style>`;
 
-function render(){
- scores();
- streams();
- schedule();
- standings();
- simpleList(
-  "snhl-players",data.players,
-  "Noch keine Spielerstatistiken verfügbar.",
-  p=>(p.name||"Spieler")+" · "+(p.points??0)+" Punkte"
- );
- simpleList(
-  "snhl-clubs",data.clubs,
-  "Noch keine offiziellen Clubs veröffentlicht.",
-  c=>(c.name||"Club")+" · "+
-   (c.player_count??0)+" aktive Spieler"
- );
-}
+ const content=`
+ <div class="snhl-extra">
+  <section class="snhl-panel" id="snhl-live">
+   <h2>🔴 Live Scoreboard</h2>
+   <div class="snhl-empty">
+    Aktuell keine offiziellen Live-Ergebnisse verfügbar.
+   </div>
+  </section>
 
-window.addEventListener("snhl:extra-updated",render);
-render();
-})();
-<\/script>`;
+  <div class="snhl-grid">
+   <section class="snhl-panel">
+    <h2>📺 Twitch Live & Replays</h2>
+    <div class="snhl-empty">
+     Noch keine offiziellen Streams oder Replays verfügbar.
+    </div>
+   </section>
+   <section class="snhl-panel">
+    <h2>📅 Spielplan</h2>
+    <div class="snhl-empty">
+     Noch kein offizieller Spielplan verfügbar.
+    </div>
+   </section>
+  </div>
 
-  if(!/<\\/body\\s*>/i.test(html)){
-    throw Error("HTML-Ende fehlt");
-  }
+  <div class="snhl-grid">
+   <section class="snhl-panel">
+    <h2>🏆 Tabellen</h2>
+    <table class="snhl-table">
+     <thead>
+      <tr><th>#</th><th>Club</th><th>Sp.</th><th>Pts.</th></tr>
+     </thead>
+     <tbody>
+      <tr><td colspan="4">Noch keine Tabelle verfügbar.</td></tr>
+     </tbody>
+    </table>
+   </section>
+   <section class="snhl-panel">
+    <h2>🥅 Spielerstatistiken</h2>
+    <div class="snhl-empty">
+     Noch keine Spielerstatistiken verfügbar.
+    </div>
+   </section>
+  </div>
 
-  html=html.replace(
-    /<\\/head\\s*>/i,
-    extraCSS+"</head>"
-  );
+  <section class="snhl-panel">
+   <h2>🛡️ Clubübersicht</h2>
+   <div class="snhl-empty">
+    Noch keine offiziellen Clubs veröffentlicht.
+   </div>
+  </section>
+ </div>`;
 
-  html=html.replace(
-    /<\\/body\\s*>/i,
-    extraHTML+extraJS+"</body>"
-  );
+ if(!/<\/head\s*>/i.test(html) ||
+    !/<\/body\s*>/i.test(html))
+   throw Error("HTML-Struktur unvollständig");
 
-  document.open();
-  document.write(html);
-  document.close();
+ html=html.replace(/<\/head\s*>/i,style+"</head>");
+ html=html.replace(/<\/body\s*>/i,content+"</body>");
+
+ document.open();
+ document.write(html);
+ document.close();
 
 }catch(error){
  document.getElementById("loading").textContent=
-  "Originaldesign konnte nicht geladen werden: "+
-  error.message;
+  "Fehler beim Laden: "+error.message;
 }
 })();
 </script>
