@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swiss NHL League – Test</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#07101d;color:white;font-family:Arial,sans-serif}
+header{background:#0c1b2e;padding:18px;text-align:center;border-bottom:2px solid #1683ff}
+header img{width:150px;max-width:100%}
+nav{display:flex;overflow-x:auto;background:#06101c;padding:12px;gap:18px}
+nav a{color:white;text-decoration:none;white-space:nowrap;font-size:13px}
+main{max-width:1200px;margin:auto;padding:18px}
+.hero{padding:45px 20px;text-align:center;background:linear-gradient(120deg,#103663,#07101d);border-radius:14px}
+h1{font-size:clamp(30px,7vw,55px)}
+h2{font-size:21px}
+.hero p{color:#c0d8f2}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px}
+.panel{background:#10233a;border:1px solid #294767;border-radius:12px;padding:20px;margin-top:18px}
+.btn{display:inline-block;background:#1683ff;color:white;padding:12px 20px;border-radius:8px;text-decoration:none;border:0}
+.empty{color:#b5c9df;padding:15px;background:#142b45;border-radius:8px}
+footer{text-align:center;padding:30px;color:#a2b8d1}
+</style>
+</head>
+<body>
+<header>
+<img src="Photoroom_20261020_001711.png" alt="Swiss NHL League">
+</header>
+<nav>
+<a href="#live">Live Center</a>
+<a href="#ligen">Ligen</a>
+<a href="#spiele">Spielplan</a>
+<a href="#tabellen">Tabellen</a>
+<a href="#clubs">Clubs</a>
+<a href="#streams">Twitch</a>
+<a href="login.html">Login</a>
+</nav>
+<main>
+<section class="hero">
+<h1>YOUR LEAGUE.<br>YOUR GAME.</h1>
+<p>Swiss NHL League · NHL 27 · PS5 · 1vs1 / 3vs3 / 6vs6</p>
+<a class="btn" href="#live">Live Center</a>
+</section>
+<section class="panel" id="live">
+<h2>🔴 Live Scoreboard</h2>
+<div class="empty">Aktuell keine offiziellen Live-Ergebnisse verfügbar.</div>
+</section>
+<section class="grid" id="ligen">
+<div class="panel"><h2>🏒 1vs1</h2><p>Einzelwettbewerb</p></div>
+<div class="panel"><h2>🏒 3vs3</h2><p>Dreier-Teams</p></div>
+<div class="panel"><h2>🏒 6vs6</h2><p>Club-Wettbewerb</p></div>
+</section>
+<section class="grid">
+<div class="panel" id="spiele">
+<h2>📅 Spielplan</h2>
+<div class="empty">Noch kein Spielplan veröffentlicht.</div>
+</div>
+<div class="panel" id="tabellen">
+<h2>🏆 Tabellen</h2>
+<div class="empty">Noch keine Tabellen verfügbar.</div>
+</div>
+</section>
+<section class="panel" id="clubs">
+<h2>🛡️ Clubübersicht</h2>
+<div class="empty">Noch keine Clubs geladen.</div>
+</section>
+<section class="panel" id="streams">
+<h2>📺 Twitch Live & Replays</h2>
+<div class="empty">Aktuell keine offiziellen Streams verfügbar.</div>
+</section>
+</main>
+<footer>SWISS NHL LEAGUE · EST. 2022</footer>
+</body>
+</html>
