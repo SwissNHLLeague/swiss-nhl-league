@@ -104,12 +104,8 @@ try{
    </section>
   </div>
 
-  <section class="snhl-panel">
-   <h2>🛡️ Clubübersicht</h2>
-   <div class="snhl-empty">
-    Noch keine offiziellen Clubs veröffentlicht.
-   </div>
-  </section>
+  
+ 
  </div>`;
 
  if(!/<\/head\s*>/i.test(html) ||
@@ -117,7 +113,14 @@ try{
    throw Error("HTML-Struktur unvollständig");
 
  html=html.replace(/<\/head\s*>/i,style+"</head>");
- html=html.replace(/<\/body\s*>/i,content+"</body>");
+ const clubsPosition =
+  /<section\b(?=[^>]*\bid=["']clubs["'])[^>]*>/i;
+
+if (!clubsPosition.test(html)) {
+  throw Error("Clubbereich nicht gefunden");
+}
+
+html = html.replace(clubsPosition, match => content + match);
 
  document.open();
  document.write(html);
