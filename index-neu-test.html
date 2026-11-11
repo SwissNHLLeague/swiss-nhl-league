@@ -158,7 +158,18 @@ const clubScript = `
 
       const clubs = await response.json();
 
-      const container = document.createElement("div");
+      
+const oldDescription = target.querySelector("p");
+
+if (
+  oldDescription &&
+  oldDescription.textContent.includes(
+    "Clubprofile und Anmeldungen"
+  )
+) {
+  oldDescription.remove();
+}
+const container = document.createElement("div");
       container.style.display = "grid";
       container.style.gap = "14px";
       container.style.marginTop = "20px";
