@@ -768,6 +768,162 @@ html = html.replace(
 
 /* Swiss NHL League – isolierter Live-Anzeigetest */
 
+
+/* Swiss NHL League – Simulierte Spieluhr */
+
+const clockSimulationCode = `
+(function () {
+  "use strict";
+
+  if (
+    new URLSearchParams(location.search)
+      .get("simulation") !== "1"
+  ) return;
+
+  const target = document.getElementById(
+    "snhl-live-results"
+  );
+
+  if (!target) return;
+
+  let attempts = 0;
+
+  const finder = setInterval(function () {
+    const card = target.querySelector("article");
+
+    if (!card) {
+      if (++attempts >= 20) clearInterval(finder);
+      return;
+    }
+
+    clearInterval(finder);
+
+    let period = "2";
+    let remaining = 754;
+    let running = false;
+    let lastTick = 0;
+
+    const panel = document.createElement("div");
+    panel.style.cssText =
+      "margin-top:18px;padding-top:15px;" +
+      "border-top:1px solid #315b89;" +
+      "text-align:center";
+
+    const title = document.createElement("div");
+    title.style.fontWeight = "bold";
+
+    const clock = document.createElement("div");
+    clock.style.cssText =
+      "font-size:32px;font-weight:bold;" +
+      "margin:12px 0;font-variant-numeric:tabular-nums";
+
+    const controls = document.createElement("div");
+    controls.style.cssText =
+      "display:flex;flex-wrap:wrap;" +
+      "justify-content:center;gap:8px";
+
+    function button(label, action) {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.style.cssText =
+        "background:#1683ff;color:white;" +
+        "border:0;border-radius:8px;" +
+        "padding:11px;cursor:pointer";
+      b.addEventListener("click", action);
+      controls.appendChild(b);
+      return b;
+    }
+
+    function render() {
+      const names = {
+        "1": "1. Drittel",
+        "2": "2. Drittel",
+        "3": "3. Drittel",
+        OT: "Verlängerung",
+        SO: "Penaltyschiessen"
+      };
+
+      title.textContent =
+        (names[period] || period) +
+        (running ? " · Uhr läuft" : " · Pause");
+
+      const m = Math.floor(remaining / 60);
+      const s = remaining % 60;
+
+      clock.textContent =
+        String(m).padStart(2, "0") + ":" +
+        String(s).padStart(2, "0");
+    }
+
+    button("▶ Start", function () {
+      if (remaining > 0 && period !== "SO") {
+        running = true;
+        lastTick = Date.now();
+        render();
+      }
+    });
+
+    button("⏸ Pause", function () {
+      running = false;
+      render();
+    });
+
+    button("↻ Zurücksetzen", function () {
+      running = false;
+      remaining = 754;
+      period = "2";
+      render();
+    });
+
+    button("Nächstes Drittel", function () {
+      running = false;
+
+      const order = ["1", "2", "3", "OT", "SO"];
+      const index = order.indexOf(period);
+
+      period = order[Math.min(index + 1, 4)];
+      remaining = period === "SO" ? 0 : 1200;
+      render();
+    });
+
+    panel.append(title, clock, controls);
+    card.appendChild(panel);
+
+    render();
+
+    const timer = setInterval(function () {
+      if (!panel.isConnected) {
+        clearInterval(timer);
+        return;
+      }
+
+      if (!running) return;
+
+      const now = Date.now();
+      const elapsed = Math.floor((now - lastTick) / 1000);
+
+      if (elapsed < 1) return;
+
+      remaining = Math.max(0, remaining - elapsed);
+      lastTick += elapsed * 1000;
+
+      if (remaining === 0) running = false;
+
+      render();
+    }, 250);
+  }, 200);
+})();
+`;
+
+const clockSimulationScript =
+  "<scr" + "ipt>" +
+  clockSimulationCode +
+  "</scr" + "ipt>";
+
+html = html.replace(
+  /<\\/body\\s*>/i,
+  () => clockSimulationScript + "</body>"
+);
 const simulationCode = `
 (function () {
   "use strict";
