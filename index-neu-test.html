@@ -772,6 +772,7 @@ html = html.replace(
 /* Swiss NHL League – Simulierte Spieluhr */
 
 const clockSimulationCode = `
+
 (function () {
   "use strict";
 
@@ -938,6 +939,18 @@ html = html.replace(
 );
 const simulationCode = `
 (function () {
+function createClubLogo(url, name) {
+  const img = document.createElement("img");
+  img.src = url;
+  img.alt = name;
+  img.style.cssText =
+    "width:65px;height:65px;object-fit:contain;" +
+    "border-radius:10px;";
+  img.onerror = function () {
+    img.style.display = "none";
+  };
+  return img;
+}
   "use strict";
 
   const params = new URLSearchParams(location.search);
@@ -969,7 +982,15 @@ const simulationCode = `
   const teams = document.createElement("p");
   teams.textContent =
     "Swiss NHL Testclub 2 vs. Swiss NHL Testclub Zürich";
+const logoRow = document.createElement("div");
+logoRow.style.cssText =
+  "display:flex;justify-content:space-around;" +
+  "align-items:center;gap:16px;margin:16px 0;";
 
+const homeLogo = createClubLogo("", "Swiss NHL Testclub 2");
+const awayLogo = createClubLogo("", "Swiss NHL Testclub Zürich");
+
+logoRow.append(homeLogo, awayLogo);
   const score = document.createElement("h2");
   const timer = document.createElement("p");
   const status = document.createElement("p");
@@ -994,7 +1015,7 @@ const simulationCode = `
   });
 
   test.append(
-    heading, teams, score, timer, status, button
+    heading, teams, logoRow, score, timer, status, button
   );
 target.querySelectorAll(".snhl-empty").forEach(
   element => element.remove()
