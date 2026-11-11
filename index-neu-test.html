@@ -62,12 +62,16 @@ try{
 
  const content=`
  <div class="snhl-extra">
-  <section class="snhl-panel" id="snhl-live">
-   <h2>🔴 Live Scoreboard</h2>
-   <div class="snhl-empty">
-    Aktuell keine offiziellen Live-Ergebnisse verfügbar.
-   </div>
-  </section>
+  
+<section class="snhl-panel" id="snhl-live">
+  <h2>🔴 Live Scoreboard</h2>
+  <div id="snhl-live-results">
+    <div class="snhl-empty">
+      Live-Ergebnisse werden geladen …
+    </div>
+  </div>
+</section>
+
 
   <div class="snhl-grid">
    <section class="snhl-panel">
@@ -432,6 +436,146 @@ const scheduleScript =
 html = html.replace(
   /<\/body\s*>/i,
   () => scheduleScript + "</body>"
+);
+
+/* Swiss NHL League – Live Scoreboard */
+
+const liveCode = `
+(function () {
+  "use strict";
+
+  const URL =
+    "https://avvsnfgdmamhabcyngds.supabase.co";
+
+  const KEY =
+    "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+  async function loadLiveScores() {
+    const target = document.getElementById(
+      "snhl-live-results"
+    );
+
+    if (!target) return;
+
+    try {
+      const headers = { apikey: KEY };
+
+      const [gamesResponse, clubsResponse] =
+        await Promise.all([
+          fetch(
+            URL + "/rest/v1/games" +
+            "?select=id,game_mode,home_club_id," +
+            "away_club_id,home_score,away_score," +
+            "status,scheduled_at,decision_type" +
+            "&status=in.(in_progress,completed)" +
+            "&order=scheduled_at.desc&limit=20",
+            { headers }
+          ),
+          fetch(
+            URL + "/rest/v1/public_clubs" +
+            "?select=club_id,name",
+            { headers }
+          )
+        ]);
+
+      if (!gamesResponse.ok || !clubsResponse.ok) {
+        throw new Error("Daten konnten nicht geladen werden");
+      }
+
+      const games = await gamesResponse.json();
+      const clubs = await clubsResponse.json();
+
+      const names = new Map(
+        clubs.map(c => [c.club_id, c.name])
+      );
+
+      target.replaceChildren();
+
+      if (!games.length) {
+        const empty = document.createElement("div");
+        empty.className = "snhl-empty";
+        empty.textContent =
+          "Aktuell keine laufenden oder abgeschlossenen Spiele.";
+        target.appendChild(empty);
+        return;
+      }
+
+      games.forEach(game => {
+        const card = document.createElement("article");
+        card.style.background = "#10233a";
+        card.style.border = "1px solid #315b89";
+        card.style.borderRadius = "9px";
+        card.style.padding = "16px";
+        card.style.marginBottom = "12px";
+
+        const heading = document.createElement("strong");
+        heading.textContent =
+          (names.get(game.home_club_id) || "Heimclub") +
+          " vs. " +
+          (names.get(game.away_club_id) || "Gastclub");
+
+        const score = document.createElement("p");
+
+        if (
+          game.home_score != null &&
+          game.away_score != null
+        ) {
+          score.textContent =
+            game.home_score + " : " + game.away_score;
+        } else {
+          score.textContent = "Noch kein Spielstand";
+        }
+
+        score.style.fontSize = "24px";
+        score.style.fontWeight = "bold";
+        score.style.margin = "12px 0";
+
+        const status = document.createElement("p");
+        status.textContent =
+          game.status === "in_progress"
+            ? "🔴 LIVE"
+            : "Beendet" +
+              (game.decision_type
+                ? " · " + game.decision_type
+                : "");
+
+        status.style.color =
+          game.status === "in_progress"
+            ? "#ff7474"
+            : "#a9c8e8";
+
+        card.append(heading, score, status);
+        target.appendChild(card);
+      });
+
+    } catch (error) {
+      target.textContent =
+        "Live-Ergebnisse konnten nicht geladen werden.";
+      console.error(error);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      loadLiveScores
+    );
+  } else {
+    loadLiveScores();
+  }
+
+  setInterval(loadLiveScores, 30000);
+})();
+`;
+
+const liveScript =
+  "<scr" + "ipt>" +
+  liveCode +
+  "</scr" + "ipt>";
+
+html = html.replace(
+  /<\/body\s*>/i,
+  () => liveScript + "</body>"
 );
 document.open();
  document.write(html);
