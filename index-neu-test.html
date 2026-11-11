@@ -225,7 +225,8 @@ if (/^[A-Z]{2}$/.test(code)) {
     { type: "region" }
   ).of(code);
 
-  country.textContent = flag + " " + countryName;
+  country.textContent =
+  code === "CH" ? "🇨🇭 Schweiz" : flag + " " + countryName;
 } else {
   country.textContent = "Land nicht angegeben";
 }
