@@ -845,8 +845,9 @@ finished: "Spiel beendet"
       };
 
       title.textContent =
-        (names[period] || period) +
-        (running ? " · Uhr läuft" : " · Pause");
+  (names[period] || period) +
+  (period === "finished" ? "" :
+    running ? " · Uhr läuft" : " · Pause");
 
       const m = Math.floor(remaining / 60);
       const s = remaining % 60;
