@@ -984,7 +984,9 @@ const simulationCode = `
   test.append(
     heading, teams, score, timer, status, button
   );
-
+target.querySelectorAll(".snhl-empty").forEach(
+  element => element.remove()
+);
   target.prepend(test);
   render();
 
