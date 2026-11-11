@@ -921,7 +921,7 @@ const clockSimulationScript =
   "</scr" + "ipt>";
 
 html = html.replace(
-  /<\\/body\\s*>/i,
+  /<\/body\s*>/i,
   () => clockSimulationScript + "</body>"
 );
 const simulationCode = `
