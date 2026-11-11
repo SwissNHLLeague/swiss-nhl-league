@@ -490,9 +490,23 @@ const liveCode = `
       );
 
       
+
 if (
   new URLSearchParams(location.search).get("simulation") === "1"
-) return;
+) {
+  const simulation = target.querySelector("article");
+
+  if (simulation) {
+    Array.from(target.children).forEach(element => {
+      if (element !== simulation) {
+        element.remove();
+      }
+    });
+  }
+
+  return;
+}
+
 target.replaceChildren();
 
       if (!games.length) {
