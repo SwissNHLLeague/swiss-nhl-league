@@ -835,6 +835,14 @@ const clockSimulationCode = `
     }
 
     function render() {
+    const finished = period === "finished";
+
+Array.from(controls.children).forEach(function (b) {
+  b.style.display =
+    !finished || b.textContent.includes("Zurücksetzen")
+      ? ""
+      : "none";
+});
       const names = {
         "1": "1. Drittel",
         "2": "2. Drittel",
@@ -873,7 +881,8 @@ finished: "Spiel beendet"
     
 button("↻ Zurücksetzen", function () {
   running = false;
-  remaining = period === "SO" ? 0 : 1200;
+  if (period === "finished") period = "1";
+remaining = period === "SO" ? 0 : 1200;
   render();
 });
 
