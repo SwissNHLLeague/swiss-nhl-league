@@ -1018,19 +1018,36 @@ const simulationCode = `
       if (!response.ok) throw new Error("HTTP " + response.status);
       const clubs = await response.json();
       function applyLogo(slot, clubName) {
-        const club = clubs.find(function (c) {
-          return String(c.name || "").trim().toLowerCase() ===
-            clubName.toLowerCase();
-        });
-        const url = club && typeof club.logo_url === "string"
-          ? club.logo_url.trim() : "";
-        if (!url.startsWith("https://")) return;
-        slot.img.addEventListener("load", function () {
-          slot.placeholder.style.display = "none";
-          slot.img.style.display = "block";
-        }, { once: true });
-        slot.img.src = url;
-      }
+  const normalize = name =>
+    String(name || "")
+      .trim()
+      .toLocaleLowerCase("de-CH")
+      .replace(/\s+/g, " ");
+
+  const club = clubs.find(c =>
+    normalize(c.name) === normalize(clubName)
+  );
+
+  const url = String(club?.logo_url || "").trim();
+
+  if (!url.startsWith("https://")) {
+    console.warn("Keine gültige Logo-URL:", clubName);
+    return;
+  }
+
+  slot.img.onload = function () {
+    slot.placeholder.style.display = "none";
+    slot.img.style.display = "block";
+  };
+
+  slot.img.onerror = function () {
+    console.error("Logo konnte nicht geladen werden:", clubName);
+    slot.img.style.display = "none";
+    slot.placeholder.style.display = "block";
+  };
+
+  slot.img.src = url;
+}
       applyLogo(homeLogo, "Swiss NHL Testclub 2");
       applyLogo(awayLogo, "Swiss NHL Testclub Zürich");
     } catch (error) {
