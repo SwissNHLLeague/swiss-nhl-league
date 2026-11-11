@@ -881,8 +881,8 @@ finished: "Spiel beendet"
     
 button("↻ Zurücksetzen", function () {
   running = false;
-  if (period === "finished") period = "1";
-remaining = period === "SO" ? 0 : 1200;
+  period = "1";
+  remaining = 1200;
   render();
 });
 
