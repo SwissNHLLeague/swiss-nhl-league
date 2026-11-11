@@ -939,7 +939,7 @@ html = html.replace(
 );
 const simulationCode = `
 (function () {
-alert("Swiss NHL Simulation gestartet");
+
 "use strict";
 function createClubLogo(url, name) {
   const img = document.createElement("img");
@@ -960,9 +960,7 @@ function createClubLogo(url, name) {
 
   return img;
 }
-  return img;
-}
-
+  
   const params = new URLSearchParams(location.search);
 
   // Simulation nur bei ?simulation=1
