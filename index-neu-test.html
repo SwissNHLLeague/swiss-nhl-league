@@ -942,14 +942,23 @@ const simulationCode = `
 "use strict";
 function createClubLogo(url, name) {
   const img = document.createElement("img");
-  img.src = url;
+
   img.alt = name;
   img.style.cssText =
     "width:65px;height:65px;object-fit:contain;" +
-    "border-radius:10px;";
+    "border-radius:10px;display:none";
+
   img.onerror = function () {
     img.style.display = "none";
   };
+
+  if (url && /^https:\/\//i.test(url)) {
+    img.src = url;
+    img.style.display = "block";
+  }
+
+  return img;
+}
   return img;
 }
 
@@ -1038,7 +1047,7 @@ img.src = club.logo_url;
   }
 }
 
-loadSimulationLogos();
+// loadSimulationLogos();
 
   const score = document.createElement("h2");
   const timer = document.createElement("p");
