@@ -489,7 +489,11 @@ const liveCode = `
         clubs.map(c => [c.club_id, c.name])
       );
 
-      target.replaceChildren();
+      
+if (
+  new URLSearchParams(location.search).get("simulation") === "1"
+) return;
+target.replaceChildren();
 
       if (!games.length) {
         const empty = document.createElement("div");
