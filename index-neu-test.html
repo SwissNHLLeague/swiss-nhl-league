@@ -294,6 +294,141 @@ html = html.replace(
   /<\/body\s*>/i,
   clubScript + "</body>"
 );
+
+/* Swiss NHL League – Spielplan aus Supabase */
+
+const scheduleCode = `
+(function () {
+  "use strict";
+
+  const URL =
+    "https://avvsnfgdmamhabcyngds.supabase.co";
+
+  const KEY =
+    "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+  async function loadSchedule() {
+    const target = document.querySelector(
+      "#snhl-schedule"
+    );
+
+    if (!target) return;
+
+    target.textContent = "Spielplan wird geladen …";
+
+    try {
+      const headers = { apikey: KEY };
+
+      const [gamesResponse, clubsResponse] =
+        await Promise.all([
+          fetch(
+            URL + "/rest/v1/games" +
+            "?select=id,season,game_mode,home_club_id," +
+            "away_club_id,scheduled_at,status,match_type" +
+            "&order=scheduled_at.asc",
+            { headers }
+          ),
+          fetch(
+            URL + "/rest/v1/public_clubs" +
+            "?select=club_id,name",
+            { headers }
+          )
+        ]);
+
+      if (!gamesResponse.ok ||
+          !clubsResponse.ok) {
+        throw new Error(
+          "Spieldaten konnten nicht geladen werden"
+        );
+      }
+
+      const games = await gamesResponse.json();
+      const clubs = await clubsResponse.json();
+
+      const names = new Map(
+        clubs.map(c => [c.club_id, c.name])
+      );
+
+      target.replaceChildren();
+
+      if (!games.length) {
+        target.textContent =
+          "Noch keine Spiele veröffentlicht.";
+        return;
+      }
+
+      games.forEach(game => {
+        const card = document.createElement("article");
+        card.style.background = "#10233a";
+        card.style.border = "1px solid #315b89";
+        card.style.borderRadius = "9px";
+        card.style.padding = "15px";
+        card.style.marginBottom = "12px";
+
+        const title = document.createElement("strong");
+        title.textContent =
+          (names.get(game.home_club_id) || "Heimclub") +
+          " vs. " +
+          (names.get(game.away_club_id) || "Gastclub");
+
+        const info = document.createElement("p");
+        const date = new Date(game.scheduled_at);
+
+        const formattedDate =
+          new Intl.DateTimeFormat("de-CH", {
+            timeZone: "Europe/Zurich",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          }).format(date);
+
+        info.textContent =
+          formattedDate + " Uhr · " +
+          game.game_mode + " · " +
+          (game.match_type === "friendly"
+            ? "Testspiel"
+            : "Meisterschaft") +
+          " · " +
+          (game.status === "scheduled"
+            ? "Geplant"
+            : game.status);
+
+        info.style.color = "#b9d2ed";
+        info.style.marginBottom = "0";
+
+        card.append(title, info);
+        target.appendChild(card);
+      });
+
+    } catch (error) {
+      target.textContent =
+        "Spielplan konnte nicht geladen werden.";
+      console.error(error);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      loadSchedule
+    );
+  } else {
+    loadSchedule();
+  }
+})();
+`;
+
+const scheduleScript =
+  "<scr" + "ipt>" +
+  scheduleCode +
+  "</scr" + "ipt>";
+
+html = html.replace(
+  /<\/body\s*>/i,
+  () => scheduleScript + "</body>"
+);
 document.open();
  document.write(html);
  document.close();
