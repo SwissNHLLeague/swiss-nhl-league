@@ -990,6 +990,17 @@ logoRow.style.cssText =
 const homeLogo = createClubLogo("", "Swiss NHL Testclub 2");
 const awayLogo = createClubLogo("", "Swiss NHL Testclub Zürich");
 
+homeLogo.style.display = "none";
+awayLogo.style.display = "none";
+
+homeLogo.onerror = function () {
+  console.error("Heimclub-Logo konnte nicht geladen werden");
+};
+
+awayLogo.onerror = function () {
+  console.error("Gastclub-Logo konnte nicht geladen werden");
+};
+
 logoRow.append(homeLogo, awayLogo);
 
 async function loadSimulationLogos() {
@@ -1012,8 +1023,8 @@ async function loadSimulationLogos() {
       const club = clubs.find(c => c.name === clubName);
 
       if (club && /^https:\/\//i.test(club.logo_url || "")) {
-        img.src = club.logo_url;
         img.style.display = "block";
+img.src = club.logo_url;
       } else {
         img.style.display = "none";
       }
