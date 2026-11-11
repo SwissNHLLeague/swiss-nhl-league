@@ -991,6 +991,44 @@ const homeLogo = createClubLogo("", "Swiss NHL Testclub 2");
 const awayLogo = createClubLogo("", "Swiss NHL Testclub Zürich");
 
 logoRow.append(homeLogo, awayLogo);
+
+async function loadSimulationLogos() {
+  try {
+    const response = await fetch(
+      "https://avvsnfgdmamhabcyngds.supabase.co/rest/v1/public_clubs?select=name,logo_url",
+      {
+        headers: {
+          apikey: "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt"
+        },
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) throw new Error("HTTP " + response.status);
+
+    const clubs = await response.json();
+
+    function setLogo(img, clubName) {
+      const club = clubs.find(c => c.name === clubName);
+
+      if (club && /^https:\/\//i.test(club.logo_url || "")) {
+        img.src = club.logo_url;
+        img.style.display = "block";
+      } else {
+        img.style.display = "none";
+      }
+    }
+
+    setLogo(homeLogo, "Swiss NHL Testclub 2");
+    setLogo(awayLogo, "Swiss NHL Testclub Zürich");
+
+  } catch (error) {
+    console.error("Clublogos konnten nicht geladen werden:", error);
+  }
+}
+
+loadSimulationLogos();
+
   const score = document.createElement("h2");
   const timer = document.createElement("p");
   const status = document.createElement("p");
