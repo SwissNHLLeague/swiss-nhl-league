@@ -840,7 +840,8 @@ const clockSimulationCode = `
         "2": "2. Drittel",
         "3": "3. Drittel",
         OT: "Verlängerung",
-        SO: "Penaltyschiessen"
+        SO: "Penaltyschiessen",
+finished: "Spiel beendet"
       };
 
       title.textContent =
@@ -879,11 +880,11 @@ button("↻ Zurücksetzen", function () {
     button("Nächstes Drittel", function () {
       running = false;
 
-      const order = ["1", "2", "3", "OT", "SO"];
-      const index = order.indexOf(period);
+      const order = ["1", "2", "3", "OT", "SO", "finished"];
+const index = order.indexOf(period);
 
-      period = order[Math.min(index + 1, 4)];
-      remaining = period === "SO" ? 0 : 1200;
+period = order[Math.min(index + 1, 5)];
+remaining = period === "SO" || period === "finished" ? 0 : 1200;
       render();
     });
 
