@@ -577,6 +577,93 @@ html = html.replace(
   /<\/body\s*>/i,
   () => liveScript + "</body>"
 );
+
+/* Swiss NHL League – isolierter Live-Anzeigetest */
+
+const simulationCode = `
+(function () {
+  "use strict";
+
+  const params = new URLSearchParams(location.search);
+
+  // Simulation nur bei ?simulation=1
+  if (params.get("simulation") !== "1") return;
+
+  const target = document.getElementById(
+    "snhl-live-results"
+  );
+
+  if (!target) return;
+
+  let homeScore = 2;
+  let awayScore = 1;
+  let seconds = 0;
+
+  // Eigener Testbereich statt Änderung echter Daten
+  const test = document.createElement("article");
+  test.style.cssText =
+    "background:#10233a;border:2px solid #ffb347;" +
+    "border-radius:12px;padding:18px;margin-bottom:12px";
+
+  const heading = document.createElement("h3");
+  heading.textContent =
+    "TESTSIMULATION – kein echtes Ligaspiel";
+  heading.style.color = "#ffcf88";
+
+  const teams = document.createElement("p");
+  teams.textContent =
+    "Swiss NHL Testclub 2 vs. Swiss NHL Testclub Zürich";
+
+  const score = document.createElement("h2");
+  const timer = document.createElement("p");
+  const status = document.createElement("p");
+  status.textContent = "🔴 SIMULATION";
+  status.style.color = "#ff8b8b";
+
+  const button = document.createElement("button");
+  button.textContent = "Testtor Heimclub +1";
+  button.style.cssText =
+    "background:#1683ff;color:white;border:0;" +
+    "border-radius:8px;padding:12px;cursor:pointer";
+
+  function render() {
+    score.textContent = homeScore + " : " + awayScore;
+    timer.textContent =
+      "Testzeit: " + seconds + " Sekunden";
+  }
+
+  button.addEventListener("click", function () {
+    homeScore++;
+    render();
+  });
+
+  test.append(
+    heading, teams, score, timer, status, button
+  );
+
+  target.prepend(test);
+  render();
+
+  const interval = setInterval(function () {
+    if (!test.isConnected) {
+      clearInterval(interval);
+      return;
+    }
+    seconds += 5;
+    render();
+  }, 5000);
+})();
+`;
+
+const simulationScript =
+  "<scr" + "ipt>" +
+  simulationCode +
+  "</scr" + "ipt>";
+
+html = html.replace(
+  /<\/body\s*>/i,
+  () => simulationScript + "</body>"
+);
 document.open();
  document.write(html);
  document.close();
