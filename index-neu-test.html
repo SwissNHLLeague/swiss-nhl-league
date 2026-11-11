@@ -122,7 +122,115 @@ if (!clubsPosition.test(html)) {
 
 html = html.replace(clubsPosition, match => content + match);
 
- document.open();
+ 
+const clubScript = `
+<script>
+(function () {
+  "use strict";
+
+  const SUPABASE_URL =
+    "https://avvsnfgdmamhabcyngds.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+  async function loadClubs() {
+    const target = document.querySelector("#clubs");
+
+    if (!target) return;
+
+    try {
+      const response = await fetch(
+        SUPABASE_URL +
+        "/rest/v1/public_clubs" +
+        "?select=club_id,name,country_code,logo_url,player_count" +
+        "&order=name.asc",
+        {
+          headers: {
+            apikey: SUPABASE_KEY
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+
+      const clubs = await response.json();
+
+      const container = document.createElement("div");
+      container.style.display = "grid";
+      container.style.gap = "14px";
+      container.style.marginTop = "20px";
+
+      clubs.forEach(club => {
+        const card = document.createElement("div");
+
+        card.style.background = "#10233a";
+        card.style.border = "1px solid #315b89";
+        card.style.borderRadius = "10px";
+        card.style.padding = "18px";
+
+        const name = document.createElement("h3");
+        name.textContent = club.name || "Unbenannter Club";
+
+        const count = document.createElement("p");
+        const total = Number(club.player_count) || 0;
+
+        count.textContent = total + " aktive Spieler";
+        count.style.color =
+          total >= 7 && total <= 15
+            ? "#70e6a0"
+            : "#ff8b8b";
+
+        const country = document.createElement("p");
+        country.textContent =
+          club.country_code || "Land nicht angegeben";
+
+        card.append(name, country, count);
+
+        if (
+          club.logo_url &&
+          /^https:\/\//i.test(club.logo_url)
+        ) {
+          const logo = document.createElement("img");
+          logo.src = club.logo_url;
+          logo.alt = "Clublogo";
+          logo.style.width = "65px";
+          logo.style.height = "65px";
+          logo.style.objectFit = "contain";
+          card.prepend(logo);
+        }
+
+        container.appendChild(card);
+      });
+
+      if (!clubs.length) {
+        const message = document.createElement("p");
+        message.textContent = "Noch keine Clubs vorhanden.";
+        container.appendChild(message);
+      }
+
+      target.appendChild(container);
+
+    } catch (error) {
+      console.error("Clubdaten konnten nicht geladen werden:", error);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadClubs);
+  } else {
+    loadClubs();
+  }
+})();
+<\/script>`;
+
+html = html.replace(
+  /<\/body\s*>/i,
+  clubScript + "</body>"
+);
+document.open();
  document.write(html);
  document.close();
 
