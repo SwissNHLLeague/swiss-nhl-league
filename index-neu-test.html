@@ -939,6 +939,7 @@ html = html.replace(
 );
 const simulationCode = `
 (function () {
+"use strict";
 function createClubLogo(url, name) {
   const img = document.createElement("img");
   img.src = url;
@@ -951,7 +952,6 @@ function createClubLogo(url, name) {
   };
   return img;
 }
-  "use strict";
 
   const params = new URLSearchParams(location.search);
 
