@@ -170,9 +170,13 @@ if (
   oldDescription.remove();
 }
 const container = document.createElement("div");
-      container.style.display = "grid";
-      container.style.gap = "14px";
-      container.style.marginTop = "20px";
+      
+container.style.display = "grid";
+container.style.gridTemplateColumns =
+  "repeat(auto-fit,minmax(min(100%,320px),1fr))";
+container.style.gap = "12px";
+container.style.marginTop = "16px";
+
 
       clubs.forEach(club => {
         const card = document.createElement("div");
@@ -180,7 +184,14 @@ const container = document.createElement("div");
         card.style.background = "#10233a";
         card.style.border = "1px solid #315b89";
         card.style.borderRadius = "10px";
-        card.style.padding = "18px";
+        
+card.style.padding = "14px";
+card.style.display = "flex";
+card.style.alignItems = "center";
+card.style.gap = "14px";
+card.style.minHeight = "105px";
+card.style.flexWrap = "wrap";
+
 
         const name = document.createElement("h3");
         name.textContent = club.name || "Unbenannter Club";
@@ -198,7 +209,23 @@ const container = document.createElement("div");
         country.textContent =
           club.country_code || "Land nicht angegeben";
 
-        card.append(name, country, count);
+        
+const info = document.createElement("div");
+info.style.flex = "1";
+info.style.minWidth = "160px";
+
+name.style.margin = "0 0 6px";
+name.style.fontSize = "17px";
+
+country.style.margin = "0 0 5px";
+country.style.fontSize = "13px";
+
+count.style.margin = "0";
+count.style.fontSize = "13px";
+
+info.append(name, country, count);
+card.appendChild(info);
+
 
         if (
           club.logo_url &&
@@ -207,8 +234,11 @@ const container = document.createElement("div");
           const logo = document.createElement("img");
           logo.src = club.logo_url;
           logo.alt = "Clublogo";
-          logo.style.width = "65px";
-          logo.style.height = "65px";
+          
+logo.style.width = "68px";
+logo.style.height = "68px";
+logo.style.flexShrink = "0";
+
           logo.style.objectFit = "contain";
           card.prepend(logo);
         }
