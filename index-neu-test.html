@@ -662,14 +662,56 @@ const simulationCode = `
   target.prepend(test);
   render();
 
-  const interval = setInterval(function () {
-    if (!test.isConnected) {
-      clearInterval(interval);
-      return;
+  
+const testUrl =
+  "https://avvsnfgdmamhabcyngds.supabase.co";
+
+const testKey =
+  "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+async function refreshTestScore() {
+  try {
+    const response = await fetch(
+      testUrl +
+      "/rest/v1/snhl_live_test" +
+      "?select=home_score,away_score&id=eq.1",
+      {
+        headers: {
+          apikey: testKey
+        },
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
     }
-    seconds += 5;
-    render();
-  }, 5000);
+
+    const rows = await response.json();
+
+    if (rows.length) {
+      homeScore = rows[0].home_score;
+      awayScore = rows[0].away_score;
+      render();
+    }
+  } catch (error) {
+    console.error("Testdaten konnten nicht geladen werden", error);
+  }
+}
+
+refreshTestScore();
+
+const interval = setInterval(function () {
+  if (!test.isConnected) {
+    clearInterval(interval);
+    return;
+  }
+
+  seconds += 5;
+  refreshTestScore();
+  render();
+}, 5000);
+
 })();
 `;
 
