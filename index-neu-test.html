@@ -440,6 +440,7 @@ html = html.replace(
 
 /* Swiss NHL League – Live Scoreboard */
 
+
 const liveCode = `
 (function () {
   "use strict";
@@ -450,6 +451,92 @@ const liveCode = `
   const KEY =
     "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
 
+  const headers = { apikey: KEY };
+
+  const simulation =
+    new URLSearchParams(location.search)
+      .get("simulation") === "1";
+
+  // Simulation und echte Daten getrennt halten.
+  if (simulation) return;
+
+  const periodNames = {
+    "not_started": "Noch nicht gestartet",
+    "1": "1. Drittel",
+    "2": "2. Drittel",
+    "3": "3. Drittel",
+    "OT": "Verlängerung",
+    "SO": "Penaltyschiessen",
+    "finished": "Beendet"
+  };
+
+  function makeElement(tag, text, className) {
+    const element = document.createElement(tag);
+
+    if (text !== undefined && text !== null) {
+      element.textContent = String(text);
+    }
+
+    if (className) element.className = className;
+
+    return element;
+  }
+
+  function formatClock(seconds) {
+    if (seconds === null || seconds === undefined) {
+      return null;
+    }
+
+    const value = Number(seconds);
+
+    if (!Number.isInteger(value) || value < 0) {
+      return null;
+    }
+
+    const minutes = Math.floor(value / 60);
+    const remainder = value % 60;
+
+    return String(minutes).padStart(2, "0") +
+      ":" +
+      String(remainder).padStart(2, "0");
+  }
+
+  function makeTeam(club, fallback) {
+    const team = makeElement("div");
+
+    team.style.cssText =
+      "flex:1;min-width:0;text-align:center;" +
+      "overflow-wrap:anywhere";
+
+    if (club && club.logo_url &&
+        /^https:\\/\\//i.test(club.logo_url)) {
+      const logo = document.createElement("img");
+
+      logo.src = club.logo_url;
+      logo.alt = "Clublogo";
+      logo.loading = "lazy";
+
+      logo.style.cssText =
+        "width:72px;height:72px;" +
+        "object-fit:contain;display:block;" +
+        "margin:0 auto 10px";
+
+      team.appendChild(logo);
+    }
+
+    const name = makeElement(
+      "div",
+      club && club.name ? club.name : fallback
+    );
+
+    name.style.cssText =
+      "font-size:14px;font-weight:bold;line-height:1.4";
+
+    team.appendChild(name);
+
+    return team;
+  }
+
   async function loadLiveScores() {
     const target = document.getElementById(
       "snhl-live-results"
@@ -458,9 +545,7 @@ const liveCode = `
     if (!target) return;
 
     try {
-      const headers = { apikey: KEY };
-
-      const [gamesResponse, clubsResponse] =
+      const [gamesResponse, clubsResponse, liveResponse] =
         await Promise.all([
           fetch(
             URL + "/rest/v1/games" +
@@ -469,107 +554,191 @@ const liveCode = `
             "status,scheduled_at,decision_type" +
             "&status=in.(in_progress,completed)" +
             "&order=scheduled_at.desc&limit=20",
-            { headers }
+            { headers, cache: "no-store" }
           ),
+
           fetch(
             URL + "/rest/v1/public_clubs" +
-            "?select=club_id,name",
-            { headers }
+            "?select=club_id,name,logo_url",
+            { headers, cache: "no-store" }
+          ),
+
+          fetch(
+            URL + "/rest/v1/game_live_state" +
+            "?select=game_id,period,clock_seconds," +
+            "clock_running,updated_at",
+            { headers, cache: "no-store" }
           )
         ]);
 
-      if (!gamesResponse.ok || !clubsResponse.ok) {
-        throw new Error("Daten konnten nicht geladen werden");
+      if (!gamesResponse.ok ||
+          !clubsResponse.ok ||
+          !liveResponse.ok) {
+        throw new Error("Supabase-Abfrage fehlgeschlagen");
       }
 
-      const games = await gamesResponse.json();
-      const clubs = await clubsResponse.json();
+      const [games, clubs, liveStates] =
+        await Promise.all([
+          gamesResponse.json(),
+          clubsResponse.json(),
+          liveResponse.json()
+        ]);
 
-      const names = new Map(
-        clubs.map(c => [c.club_id, c.name])
+      const clubMap = new Map(
+        clubs.map(club => [club.club_id, club])
       );
 
-      
+      const liveMap = new Map(
+        liveStates.map(state => [
+          state.game_id,
+          state
+        ])
+      );
 
-if (
-  new URLSearchParams(location.search).get("simulation") === "1"
-) {
-  const simulation = target.querySelector("article");
-
-  if (simulation) {
-    Array.from(target.children).forEach(element => {
-      if (element !== simulation) {
-        element.remove();
-      }
-    });
-  }
-
-  return;
-}
-
-target.replaceChildren();
+      const fragment = document.createDocumentFragment();
 
       if (!games.length) {
-        const empty = document.createElement("div");
-        empty.className = "snhl-empty";
-        empty.textContent =
-          "Aktuell keine laufenden oder abgeschlossenen Spiele.";
-        target.appendChild(empty);
+        const empty = makeElement(
+          "div",
+          "Aktuell keine laufenden oder abgeschlossenen Spiele.",
+          "snhl-empty"
+        );
+
+        fragment.appendChild(empty);
+        target.replaceChildren(fragment);
         return;
       }
 
       games.forEach(game => {
-        const card = document.createElement("article");
-        card.style.background = "#10233a";
-        card.style.border = "1px solid #315b89";
-        card.style.borderRadius = "9px";
-        card.style.padding = "16px";
-        card.style.marginBottom = "12px";
+        const state = liveMap.get(game.id);
 
-        const heading = document.createElement("strong");
-        heading.textContent =
-          (names.get(game.home_club_id) || "Heimclub") +
-          " vs. " +
-          (names.get(game.away_club_id) || "Gastclub");
+        const card = makeElement("article");
 
-        const score = document.createElement("p");
+        card.style.cssText =
+          "background:#10233a;" +
+          "border:1px solid #315b89;" +
+          "border-radius:12px;" +
+          "padding:18px;margin-bottom:12px";
 
-        if (
-          game.home_score != null &&
-          game.away_score != null
-        ) {
-          score.textContent =
-            game.home_score + " : " + game.away_score;
-        } else {
-          score.textContent = "Noch kein Spielstand";
+        const header = makeElement(
+          "div",
+          game.status === "in_progress"
+            ? "🔴 LIVE · " + game.game_mode
+            : "BEENDET · " + game.game_mode
+        );
+
+        header.style.cssText =
+          "font-weight:bold;color:" +
+          (game.status === "in_progress"
+            ? "#ff8585"
+            : "#a9c8e8") +
+          ";margin-bottom:18px";
+
+        const teams = makeElement("div");
+
+        teams.style.cssText =
+          "display:flex;align-items:center;" +
+          "justify-content:space-between;" +
+          "gap:8px";
+
+        const home = makeTeam(
+          clubMap.get(game.home_club_id),
+          "Heimclub"
+        );
+
+        const away = makeTeam(
+          clubMap.get(game.away_club_id),
+          "Gastclub"
+        );
+
+        const middle = makeElement("div");
+
+        middle.style.cssText =
+          "text-align:center;flex-shrink:0;" +
+          "min-width:82px";
+
+        const hasScore =
+          game.home_score !== null &&
+          game.away_score !== null;
+
+        const score = makeElement(
+          "div",
+          hasScore
+            ? game.home_score + " : " + game.away_score
+            : "– : –"
+        );
+
+        score.style.cssText =
+          "font-size:28px;font-weight:bold;" +
+          "white-space:nowrap";
+
+        middle.appendChild(score);
+
+        teams.append(home, middle, away);
+
+        card.append(header, teams);
+
+        if (state) {
+          const period = makeElement(
+            "div",
+            periodNames[state.period] || "Spielphase unbekannt"
+          );
+
+          period.style.cssText =
+            "text-align:center;margin-top:18px;" +
+            "font-weight:bold;color:#c5dcf5";
+
+          card.appendChild(period);
+
+          const clock = formatClock(state.clock_seconds);
+
+          if (clock !== null &&
+              game.status === "in_progress") {
+            const clockDisplay = makeElement(
+              "div",
+              clock +
+                (state.clock_running ? " · Uhr läuft" : " · Pause")
+            );
+
+            clockDisplay.style.cssText =
+              "text-align:center;margin-top:8px;" +
+              "font-size:17px;color:#e0efff";
+
+            card.appendChild(clockDisplay);
+          }
         }
 
-        score.style.fontSize = "24px";
-        score.style.fontWeight = "bold";
-        score.style.margin = "12px 0";
+        if (game.status === "completed" &&
+            game.decision_type) {
+          const decision = makeElement(
+            "div",
+            "Entscheidung: " + game.decision_type
+          );
 
-        const status = document.createElement("p");
-        status.textContent =
-          game.status === "in_progress"
-            ? "🔴 LIVE"
-            : "Beendet" +
-              (game.decision_type
-                ? " · " + game.decision_type
-                : "");
+          decision.style.cssText =
+            "text-align:center;margin-top:12px;" +
+            "color:#a9c8e8";
 
-        status.style.color =
-          game.status === "in_progress"
-            ? "#ff7474"
-            : "#a9c8e8";
+          card.appendChild(decision);
+        }
 
-        card.append(heading, score, status);
-        target.appendChild(card);
+        fragment.appendChild(card);
       });
 
+      target.replaceChildren(fragment);
+
     } catch (error) {
-      target.textContent =
-        "Live-Ergebnisse konnten nicht geladen werden.";
-      console.error(error);
+      console.error("Live-Scoreboard:", error);
+
+      if (!target.querySelector("article")) {
+        const empty = makeElement(
+          "div",
+          "Live-Ergebnisse konnten nicht geladen werden.",
+          "snhl-empty"
+        );
+
+        target.replaceChildren(empty);
+      }
     }
   }
 
@@ -585,6 +754,7 @@ target.replaceChildren();
   setInterval(loadLiveScores, 5000);
 })();
 `;
+
 
 const liveScript =
   "<scr" + "ipt>" +
