@@ -206,8 +206,30 @@ card.style.flexWrap = "wrap";
             : "#ff8b8b";
 
         const country = document.createElement("p");
-        country.textContent =
-          club.country_code || "Land nicht angegeben";
+       
+const code = String(club.country_code || "")
+  .trim()
+  .toUpperCase();
+
+if (/^[A-Z]{2}$/.test(code)) {
+  const flag = [...code]
+    .map(letter =>
+      String.fromCodePoint(
+        127397 + letter.charCodeAt(0)
+      )
+    )
+    .join("");
+
+  const countryName = new Intl.DisplayNames(
+    ["de"],
+    { type: "region" }
+  ).of(code);
+
+  country.textContent = flag + " " + countryName;
+} else {
+  country.textContent = "Land nicht angegeben";
+}
+
 
         
 const info = document.createElement("div");
