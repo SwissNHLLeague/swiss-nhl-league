@@ -972,6 +972,72 @@ const simulationCode = `
     "Swiss NHL Testclub 2 vs. Swiss NHL Testclub Zürich";
 
 
+  // Clublogos werden unabhängig vom Spielstand geladen.
+  const logoRow = document.createElement("div");
+  logoRow.style.cssText =
+    "display:flex;justify-content:space-around;" +
+    "align-items:center;gap:16px;margin:14px 0;" +
+    "min-height:68px";
+
+  function logoSlot(name) {
+    const slot = document.createElement("div");
+    slot.style.cssText = "flex:1;text-align:center;min-width:0";
+    const img = document.createElement("img");
+    img.alt = "Logo " + name;
+    img.style.cssText =
+      "width:68px;height:68px;object-fit:contain;" +
+      "display:none;margin:auto";
+    const placeholder = document.createElement("div");
+    placeholder.textContent = "🏒";
+    placeholder.style.cssText =
+      "font-size:28px;line-height:68px;opacity:.65";
+    img.addEventListener("error", function () {
+      img.style.display = "none";
+      placeholder.style.display = "block";
+    });
+    slot.append(img, placeholder);
+    return { img: img, placeholder: placeholder, slot: slot };
+  }
+
+  const homeLogo = logoSlot("Swiss NHL Testclub 2");
+  const awayLogo = logoSlot("Swiss NHL Testclub Zürich");
+  logoRow.append(homeLogo.slot, awayLogo.slot);
+
+  async function loadSimulationLogos() {
+    try {
+      const response = await fetch(
+        "https://avvsnfgdmamhabcyngds.supabase.co/rest/v1/public_clubs" +
+        "?select=name,logo_url",
+        {
+          headers: {
+            apikey: "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt"
+          },
+          cache: "no-store"
+        }
+      );
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const clubs = await response.json();
+      function applyLogo(slot, clubName) {
+        const club = clubs.find(function (c) {
+          return String(c.name || "").trim().toLowerCase() ===
+            clubName.toLowerCase();
+        });
+        const url = club && typeof club.logo_url === "string"
+          ? club.logo_url.trim() : "";
+        if (!url.startsWith("https://")) return;
+        slot.img.addEventListener("load", function () {
+          slot.placeholder.style.display = "none";
+          slot.img.style.display = "block";
+        }, { once: true });
+        slot.img.src = url;
+      }
+      applyLogo(homeLogo, "Swiss NHL Testclub 2");
+      applyLogo(awayLogo, "Swiss NHL Testclub Zürich");
+    } catch (error) {
+      console.error("Testclub-Logos:", error);
+    }
+  }
+
   const score = document.createElement("h2");
   const timer = document.createElement("p");
   const status = document.createElement("p");
@@ -996,13 +1062,14 @@ const simulationCode = `
   });
 
   test.append(
-    heading, teams, score, timer, status, button
+    heading, teams, logoRow, score, timer, status, button
   );
 target.querySelectorAll(".snhl-empty").forEach(
   element => element.remove()
 );
   target.prepend(test);
   render();
+  loadSimulationLogos();
 
   
 const testUrl =
