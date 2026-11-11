@@ -868,12 +868,13 @@ const clockSimulationCode = `
       render();
     });
 
-    button("↻ Zurücksetzen", function () {
-      running = false;
-      remaining = 754;
-      period = "2";
-      render();
-    });
+    
+button("↻ Zurücksetzen", function () {
+  running = false;
+  remaining = period === "SO" ? 0 : 1200;
+  render();
+});
+
 
     button("Nächstes Drittel", function () {
       running = false;
