@@ -899,7 +899,20 @@ remaining = period === "SO" || period === "finished" ? 0 : 1200;
       render();
     });
 
-    panel.append(title, clock, controls);
+    const center = card.querySelector("#snhl-score-center");
+    if (center) {
+      center.prepend(title);
+      center.appendChild(clock);
+      title.style.cssText =
+        "font-weight:bold;font-size:clamp(11px,2.8vw,15px);" +
+        "line-height:1.3;white-space:normal";
+      clock.style.cssText =
+        "font-size:clamp(17px,4.5vw,27px);font-weight:bold;" +
+        "margin:4px 0 0;font-variant-numeric:tabular-nums";
+      panel.appendChild(controls);
+    } else {
+      panel.append(title, clock, controls);
+    }
     card.appendChild(panel);
 
     render();
@@ -1001,7 +1014,7 @@ const simulationCode = `
 
   const homeLogo = logoSlot("Swiss NHL Testclub 2");
   const awayLogo = logoSlot("Swiss NHL Testclub Zürich");
-  logoRow.append(homeLogo.slot, awayLogo.slot);
+  // Logos und Resultat werden unten gemeinsam angeordnet.
 
   async function loadSimulationLogos() {
     try {
@@ -1018,36 +1031,19 @@ const simulationCode = `
       if (!response.ok) throw new Error("HTTP " + response.status);
       const clubs = await response.json();
       function applyLogo(slot, clubName) {
-  const normalize = name =>
-    String(name || "")
-      .trim()
-      .toLocaleLowerCase("de-CH")
-      .replace(/\s+/g, " ");
-
-  const club = clubs.find(c =>
-    normalize(c.name) === normalize(clubName)
-  );
-
-  const url = String(club?.logo_url || "").trim();
-
-  if (!url.startsWith("https://")) {
-    console.warn("Keine gültige Logo-URL:", clubName);
-    return;
-  }
-
-  slot.img.onload = function () {
-    slot.placeholder.style.display = "none";
-    slot.img.style.display = "block";
-  };
-
-  slot.img.onerror = function () {
-    console.error("Logo konnte nicht geladen werden:", clubName);
-    slot.img.style.display = "none";
-    slot.placeholder.style.display = "block";
-  };
-
-  slot.img.src = url;
-}
+        const club = clubs.find(function (c) {
+          return String(c.name || "").trim().toLowerCase() ===
+            clubName.toLowerCase();
+        });
+        const url = club && typeof club.logo_url === "string"
+          ? club.logo_url.trim() : "";
+        if (!url.startsWith("https://")) return;
+        slot.img.addEventListener("load", function () {
+          slot.placeholder.style.display = "none";
+          slot.img.style.display = "block";
+        }, { once: true });
+        slot.img.src = url;
+      }
       applyLogo(homeLogo, "Swiss NHL Testclub 2");
       applyLogo(awayLogo, "Swiss NHL Testclub Zürich");
     } catch (error) {
@@ -1056,6 +1052,20 @@ const simulationCode = `
   }
 
   const score = document.createElement("h2");
+  score.style.cssText =
+    "flex:0 0 auto;min-width:88px;text-align:center;" +
+    "font-size:clamp(23px,6vw,36px);font-weight:800;" +
+    "white-space:nowrap;margin:0;font-variant-numeric:tabular-nums";
+  logoRow.style.justifyContent = "space-between";
+  logoRow.style.gap = "6px";
+  const center = document.createElement("div");
+  center.id = "snhl-score-center";
+  center.style.cssText =
+    "flex:1.3;min-width:105px;text-align:center;" +
+    "display:flex;flex-direction:column;" +
+    "align-items:center;justify-content:center;gap:3px";
+  center.appendChild(score);
+  logoRow.append(homeLogo.slot, center, awayLogo.slot);
   const timer = document.createElement("p");
   const status = document.createElement("p");
   status.textContent = "🔴 SIMULATION";
@@ -1079,7 +1089,7 @@ const simulationCode = `
   });
 
   test.append(
-    heading, teams, logoRow, score, timer, status, button
+    heading, teams, logoRow, timer, status, button
   );
 target.querySelectorAll(".snhl-empty").forEach(
   element => element.remove()
