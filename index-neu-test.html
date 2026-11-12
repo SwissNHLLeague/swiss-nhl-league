@@ -450,7 +450,7 @@ const standingsTestCode = `
   async function refreshStandings() {
     try {
       const [response, clubsResponse] = await Promise.all([
-        fetch(base + "/rest/v1/snhl_standings_test?select=club_name,games_played,goals_for,goals_against,points", { headers, cache: "no-store" }),
+        fetch(base + "/rest/v1/snhl_standings_auto_test?select=club,games_played,goals_for,goals_against,goal_difference,points", { headers, cache: "no-store" }),
         fetch(base + "/rest/v1/public_clubs?select=name,logo_url", { headers, cache: "no-store" })
       ]);
       if (!response.ok) throw Error("Tabelle HTTP " + response.status);
@@ -465,9 +465,9 @@ const standingsTestCode = `
       data.sort((a,b) => Number(b.points)-Number(a.points) ||
         (Number(b.goals_for)-Number(b.goals_against))-(Number(a.goals_for)-Number(a.goals_against)) ||
         Number(b.goals_for)-Number(a.goals_for) ||
-        String(a.club_name).localeCompare(String(b.club_name),"de"));
+        String(a.club).localeCompare(String(b.club),"de"));
       const label = document.createElement("p");
-      label.textContent = "TESTTABELLE – keine echten Ligadaten";
+      label.textContent = "AUTOMATISCHE TESTTABELLE – keine echten Ligadaten";
       label.style.cssText = "font-size:13px;color:#ffcf88;font-weight:bold";
       const wrapper = document.createElement("div");
       wrapper.style.overflowX = "auto";
@@ -490,18 +490,18 @@ const standingsTestCode = `
         const clubCell = document.createElement("td");
         const clubLine = document.createElement("div");
         clubLine.style.cssText = "display:flex;align-items:center;gap:9px;min-width:150px";
-        const logoUrl = logos.get(normalize(d.club_name));
+        const logoUrl = logos.get(normalize(d.club));
         if (typeof logoUrl === "string" && logoUrl.startsWith("https://")) {
           const logo = document.createElement("img");
           logo.src = logoUrl;
-          logo.alt = "Logo " + d.club_name;
+          logo.alt = "Logo " + d.club;
           logo.loading = "lazy";
           logo.style.cssText = "width:36px;height:36px;object-fit:contain;background:transparent;border:0;flex-shrink:0";
           logo.onerror = function () { logo.style.display = "none"; };
           clubLine.appendChild(logo);
         }
         const clubName = document.createElement("span");
-        clubName.textContent = String(d.club_name);
+        clubName.textContent = String(d.club);
         clubLine.appendChild(clubName);
         clubCell.appendChild(clubLine);
         tr.appendChild(clubCell);
