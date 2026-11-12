@@ -457,7 +457,7 @@ const liveCode = `
       .get("simulation") === "1";
 
   // Simulation und echte Daten getrennt halten.
-  if (simulation) return;
+  if (simulation || new URLSearchParams(location.search).get("live_test") === "1") return;
 
   const periodNames = {
     "not_started": "Noch nicht gestartet",
@@ -761,6 +761,94 @@ html = html.replace(
   /<\/body\s*>/i,
   () => liveScript + "</body>"
 );
+
+/* Isolierter Live-Datentest – nur lesender Zugriff */
+const liveDisplayTestCode = `
+(function () {
+  "use strict";
+  if (new URLSearchParams(location.search).get("live_test") !== "1") return;
+  const target = document.getElementById("snhl-live-results");
+  if (!target) return;
+  const base = "https://avvsnfgdmamhabcyngds.supabase.co/rest/v1/";
+  const headers = { apikey: "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt" };
+  const card = document.createElement("article");
+  card.style.cssText = "background:#10233a;border:2px solid #ffb347;border-radius:12px;padding:18px;text-align:center";
+  const heading = document.createElement("h3");
+  heading.textContent = "TESTANZEIGE – keine echten Ligadaten";
+  heading.style.color = "#ffcf88";
+  const row = document.createElement("div");
+  row.style.cssText = "display:grid;grid-template-columns:minmax(0,1fr) minmax(95px,1fr) minmax(0,1fr);align-items:center;gap:8px";
+  const center = document.createElement("div");
+  const phase = document.createElement("div");
+  phase.style.cssText = "font-size:14px;font-weight:bold";
+  const score = document.createElement("div");
+  score.style.cssText = "font-size:clamp(24px,6vw,38px);font-weight:bold;margin:8px 0;white-space:nowrap";
+  const clock = document.createElement("div");
+  clock.style.cssText = "font-size:24px;font-weight:bold;font-variant-numeric:tabular-nums";
+  center.append(phase, score, clock);
+  function makeTeam(name) {
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "min-width:0;overflow-wrap:anywhere;font-size:13px;font-weight:bold";
+    const logo = document.createElement("img");
+    logo.alt = "Clublogo";
+    logo.style.cssText = "display:none;width:75px;height:75px;object-fit:contain;margin:0 auto 8px";
+    const label = document.createElement("div");
+    label.textContent = name;
+    wrap.append(logo,label);
+    return {wrap,logo};
+  }
+  const home = makeTeam("Swiss NHL Testclub 2");
+  const away = makeTeam("Swiss NHL Testclub Zürich");
+  row.append(home.wrap,center,away.wrap);
+  const note = document.createElement("p");
+  note.style.color = "#bdd1e8";
+  note.textContent = "Separater Supabase-Test · automatische Aktualisierung alle 5 Sekunden";
+  card.append(heading,row,note);
+  target.replaceChildren(card);
+  const names = {"1":"1. Drittel","2":"2. Drittel","3":"3. Drittel",OT:"Verlängerung",SO:"Penaltyschiessen",finished:"Spiel beendet"};
+  function setLogo(slot,club) {
+    const url = String(club && club.logo_url || "").trim();
+    if (!url.startsWith("https://")) return;
+    slot.logo.onload = function () { slot.logo.style.display = "block"; };
+    slot.logo.onerror = function () { slot.logo.style.display = "none"; };
+    slot.logo.src = url;
+  }
+  let busy = false;
+  async function refresh() {
+    if (busy || !card.isConnected) return;
+    busy = true;
+    try {
+      const results = await Promise.all([
+        fetch(base + "snhl_live_display_test?select=home_score,away_score,period,clock_seconds,clock_running&id=eq.1",{headers,cache:"no-store"}),
+        fetch(base + "public_clubs?select=name,logo_url",{headers,cache:"no-store"})
+      ]);
+      if (!results[0].ok || !results[1].ok) throw Error("Supabase HTTP " + results.map(r=>r.status).join("/"));
+      const data = await results[0].json();
+      const clubs = await results[1].json();
+      if (!data.length) throw Error("Kein Testdatensatz mit id=1");
+      const d = data[0];
+      phase.textContent = (names[d.period] || d.period) + (d.period === "finished" ? "" : d.clock_running ? " · Uhr läuft" : " · Pause");
+      score.textContent = d.home_score + " : " + d.away_score;
+      const seconds = Math.max(0,Number(d.clock_seconds) || 0);
+      clock.textContent = String(Math.floor(seconds/60)).padStart(2,"0") + ":" + String(seconds%60).padStart(2,"0");
+      const normalized = x => String(x || "").trim().toLocaleLowerCase("de-CH");
+      setLogo(home,clubs.find(c=>normalized(c.name)===normalized("Swiss NHL Testclub 2")));
+      setLogo(away,clubs.find(c=>normalized(c.name)===normalized("Swiss NHL Testclub Zürich")));
+      note.textContent = "Separater Supabase-Test · automatische Aktualisierung alle 5 Sekunden";
+    } catch (err) {
+      note.textContent = "Testdaten konnten nicht geladen werden: " + err.message;
+      console.error("Live-Datentest:",err);
+    } finally { busy = false; }
+  }
+  refresh();
+  const interval = setInterval(function () {
+    if (!card.isConnected) { clearInterval(interval); return; }
+    refresh();
+  },5000);
+})();
+`;
+const liveDisplayTestScript = "<scr" + "ipt>" + liveDisplayTestCode + "</scr" + "ipt>";
+html = html.replace(/<\/body\s*>/i, () => liveDisplayTestScript + "</body>");
 
 /* Swiss NHL League – isolierter Live-Anzeigetest */
 
