@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -824,7 +823,12 @@ const liveDisplayTestCode = `
     }
     clock.textContent = String(Math.floor(seconds / 60)).padStart(2,"0") + ":" +
       String(seconds % 60).padStart(2,"0");
-    phase.textContent = (names[clockState.period] || clockState.period) +
+    const otFinish = clockState.period === "finished" &&
+      clockState.endedInOt && (clockState.gameMode === "3vs3" || clockState.gameMode === "6vs6");
+    const finishTime = clockState.finishedAt;
+    const afterTwoMinutes = Number.isFinite(finishTime) && Date.now() - finishTime >= 120000;
+    phase.textContent = (otFinish ? (afterTwoMinutes ? "ENDE" : "Spiel beendet") :
+      (names[clockState.period] || clockState.period)) +
       (clockState.period === "finished" ? "" : clockState.running && seconds > 0 ? " · Uhr läuft" : clockState.period === "1" && seconds === 1200 ? " · Spielbeginn" : " · Pause");
   }
   const clockInterval = setInterval(function () {
@@ -836,7 +840,7 @@ const liveDisplayTestCode = `
     busy = true;
     try {
       const results = await Promise.all([
-        fetch(base + "snhl_live_display_test?select=home_score,away_score,period,clock_seconds,clock_running,updated_at&id=eq.1",{headers,cache:"no-store"}),
+        fetch(base + "snhl_live_display_test?select=home_score,away_score,period,clock_seconds,clock_running,updated_at,game_mode,ended_in_ot,finished_at&id=eq.1",{headers,cache:"no-store"}),
         fetch(base + "public_clubs?select=name,logo_url",{headers,cache:"no-store"})
       ]);
       if (!results[0].ok || !results[1].ok) throw Error("Supabase HTTP " + results.map(r=>r.status).join("/"));
@@ -850,7 +854,10 @@ const liveDisplayTestCode = `
         period: d.period,
         seconds: Math.max(0, Number(d.clock_seconds) || 0),
         running: d.clock_running === true,
-        since: Number.isFinite(stamp) ? stamp : Date.now()
+        since: Number.isFinite(stamp) ? stamp : Date.now(),
+        gameMode: d.game_mode,
+        endedInOt: d.ended_in_ot === true,
+        finishedAt: d.finished_at ? Date.parse(d.finished_at) : NaN
       };
       drawClock();
       const normalized = x => String(x || "").trim().toLocaleLowerCase("de-CH");
