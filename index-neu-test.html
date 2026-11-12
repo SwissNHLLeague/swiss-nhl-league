@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -814,12 +815,28 @@ const liveDisplayTestCode = `
     slot.logo.src = url;
   }
   let busy = false;
+  let clockState = null;
+  function drawClock() {
+    if (!clockState) return;
+    let seconds = clockState.seconds;
+    if (clockState.running && clockState.period !== "finished" && clockState.period !== "SO") {
+      seconds = Math.max(0, seconds - Math.floor((Date.now() - clockState.since) / 1000));
+    }
+    clock.textContent = String(Math.floor(seconds / 60)).padStart(2,"0") + ":" +
+      String(seconds % 60).padStart(2,"0");
+    phase.textContent = (names[clockState.period] || clockState.period) +
+      (clockState.period === "finished" ? "" : seconds > 0 && clockState.running ? " · Uhr läuft" : " · Pause");
+  }
+  const clockInterval = setInterval(function () {
+    if (!card.isConnected) { clearInterval(clockInterval); return; }
+    drawClock();
+  }, 250);
   async function refresh() {
     if (busy || !card.isConnected) return;
     busy = true;
     try {
       const results = await Promise.all([
-        fetch(base + "snhl_live_display_test?select=home_score,away_score,period,clock_seconds,clock_running&id=eq.1",{headers,cache:"no-store"}),
+        fetch(base + "snhl_live_display_test?select=home_score,away_score,period,clock_seconds,clock_running,updated_at&id=eq.1",{headers,cache:"no-store"}),
         fetch(base + "public_clubs?select=name,logo_url",{headers,cache:"no-store"})
       ]);
       if (!results[0].ok || !results[1].ok) throw Error("Supabase HTTP " + results.map(r=>r.status).join("/"));
@@ -827,10 +844,15 @@ const liveDisplayTestCode = `
       const clubs = await results[1].json();
       if (!data.length) throw Error("Kein Testdatensatz mit id=1");
       const d = data[0];
-      phase.textContent = (names[d.period] || d.period) + (d.period === "finished" ? "" : d.clock_running ? " · Uhr läuft" : " · Pause");
       score.textContent = d.home_score + " : " + d.away_score;
-      const seconds = Math.max(0,Number(d.clock_seconds) || 0);
-      clock.textContent = String(Math.floor(seconds/60)).padStart(2,"0") + ":" + String(seconds%60).padStart(2,"0");
+      const stamp = Date.parse(d.updated_at);
+      clockState = {
+        period: d.period,
+        seconds: Math.max(0, Number(d.clock_seconds) || 0),
+        running: d.clock_running === true,
+        since: Number.isFinite(stamp) ? stamp : Date.now()
+      };
+      drawClock();
       const normalized = x => String(x || "").trim().toLocaleLowerCase("de-CH");
       setLogo(home,clubs.find(c=>normalized(c.name)===normalized("Swiss NHL Testclub 2")));
       setLogo(away,clubs.find(c=>normalized(c.name)===normalized("Swiss NHL Testclub Zürich")));
