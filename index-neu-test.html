@@ -449,9 +449,15 @@ const standingsTestCode = `
   const headers = { apikey: "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt" };
   async function refreshStandings() {
     try {
-      const response = await fetch(base + "/rest/v1/snhl_standings_test?select=club_name,games_played,goals_for,goals_against,points", { headers, cache: "no-store" });
-      if (!response.ok) throw Error("HTTP " + response.status);
+      const [response, clubsResponse] = await Promise.all([
+        fetch(base + "/rest/v1/snhl_standings_test?select=club_name,games_played,goals_for,goals_against,points", { headers, cache: "no-store" }),
+        fetch(base + "/rest/v1/public_clubs?select=name,logo_url", { headers, cache: "no-store" })
+      ]);
+      if (!response.ok) throw Error("Tabelle HTTP " + response.status);
       const data = await response.json();
+      const clubs = clubsResponse.ok ? await clubsResponse.json() : [];
+      const normalize = value => String(value || "").trim().toLocaleLowerCase("de-CH");
+      const logos = new Map(clubs.map(c => [normalize(c.name), c.logo_url]));
       if (!data.length) {
         target.textContent = "Keine Testtabellendaten sichtbar. Bitte Supabase-Leserechte prüfen.";
         return;
@@ -478,7 +484,28 @@ const standingsTestCode = `
         const tr = document.createElement("tr");
         const gf = Number(d.goals_for)||0, ga = Number(d.goals_against)||0;
         const diff = gf-ga;
-        [i+1,d.club_name,d.games_played,gf+":"+ga,(diff>0?"+":"")+diff,d.points].forEach(v => {
+        const rank = document.createElement("td");
+        rank.textContent = String(i + 1);
+        tr.appendChild(rank);
+        const clubCell = document.createElement("td");
+        const clubLine = document.createElement("div");
+        clubLine.style.cssText = "display:flex;align-items:center;gap:9px;min-width:150px";
+        const logoUrl = logos.get(normalize(d.club_name));
+        if (typeof logoUrl === "string" && logoUrl.startsWith("https://")) {
+          const logo = document.createElement("img");
+          logo.src = logoUrl;
+          logo.alt = "Logo " + d.club_name;
+          logo.loading = "lazy";
+          logo.style.cssText = "width:36px;height:36px;object-fit:contain;background:transparent;border:0;flex-shrink:0";
+          logo.onerror = function () { logo.style.display = "none"; };
+          clubLine.appendChild(logo);
+        }
+        const clubName = document.createElement("span");
+        clubName.textContent = String(d.club_name);
+        clubLine.appendChild(clubName);
+        clubCell.appendChild(clubLine);
+        tr.appendChild(clubCell);
+        [d.games_played,gf+":"+ga,(diff>0?"+":"")+diff,d.points].forEach(v => {
           const td = document.createElement("td"); td.textContent = String(v); tr.appendChild(td);
         });
         body.appendChild(tr);
