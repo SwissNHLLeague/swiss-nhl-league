@@ -825,7 +825,7 @@ const liveDisplayTestCode = `
     clock.textContent = String(Math.floor(seconds / 60)).padStart(2,"0") + ":" +
       String(seconds % 60).padStart(2,"0");
     phase.textContent = (names[clockState.period] || clockState.period) +
-      (clockState.period === "finished" ? "" : seconds > 0 && clockState.running ? " · Uhr läuft" : " · Pause");
+      (clockState.period === "finished" ? "" : clockState.running && seconds > 0 ? " · Uhr läuft" : clockState.period === "1" && seconds === 1200 ? " · Spielbeginn" : " · Pause");
   }
   const clockInterval = setInterval(function () {
     if (!card.isConnected) { clearInterval(clockInterval); return; }
