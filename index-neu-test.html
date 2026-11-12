@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -450,7 +451,7 @@ const standingsTestCode = `
   async function refreshStandings() {
     try {
       const [response, clubsResponse] = await Promise.all([
-        fetch(base + "/rest/v1/snhl_standings_auto_test?select=club,games_played,goals_for,goals_against,goal_difference,points", { headers, cache: "no-store" }),
+        fetch(base + "/rest/v1/snhl_standings_detailed_test?select=r,team,gp,pts,p_gp,w,otw,sow,sol,otl,l,gf,ga,gdf&order=r.asc", { headers, cache: "no-store" }),
         fetch(base + "/rest/v1/public_clubs?select=name,logo_url", { headers, cache: "no-store" })
       ]);
       if (!response.ok) throw Error("Tabelle HTTP " + response.status);
@@ -459,60 +460,65 @@ const standingsTestCode = `
       const normalize = value => String(value || "").trim().toLocaleLowerCase("de-CH");
       const logos = new Map(clubs.map(c => [normalize(c.name), c.logo_url]));
       if (!data.length) {
-        target.textContent = "Keine Testtabellendaten sichtbar. Bitte Supabase-Leserechte prüfen.";
+        target.textContent = "Keine automatischen Testtabellendaten vorhanden.";
         return;
       }
-      data.sort((a,b) => Number(b.points)-Number(a.points) ||
-        (Number(b.goals_for)-Number(b.goals_against))-(Number(a.goals_for)-Number(a.goals_against)) ||
-        Number(b.goals_for)-Number(a.goals_for) ||
-        String(a.club).localeCompare(String(b.club),"de"));
       const label = document.createElement("p");
       label.textContent = "AUTOMATISCHE TESTTABELLE – keine echten Ligadaten";
       label.style.cssText = "font-size:13px;color:#ffcf88;font-weight:bold";
       const wrapper = document.createElement("div");
-      wrapper.style.overflowX = "auto";
+      wrapper.style.cssText = "overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch";
+      wrapper.setAttribute("role", "region");
+      wrapper.setAttribute("aria-label", "Test-Ligatabelle horizontal scrollbar");
+      wrapper.tabIndex = 0;
       const table = document.createElement("table");
       table.className = "snhl-table";
+      table.style.cssText = "min-width:1050px;width:100%;white-space:nowrap";
       const head = document.createElement("thead");
       const trh = document.createElement("tr");
-      ["#","Club","Sp.","Tore","Diff.","Pkt."].forEach(t => {
-        const th = document.createElement("th"); th.textContent = t; trh.appendChild(th);
+      ["R","Team","GP","PTS","P/GP","W","OTW","SOW","SOL","OTL","L","GF","GA","GDF"].forEach(t => {
+        const th = document.createElement("th"); th.textContent = t;
+        th.style.cssText = "padding:10px 8px";
+        if (t === "Team") th.style.minWidth = "215px";
+        trh.appendChild(th);
       });
       head.appendChild(trh);
       const body = document.createElement("tbody");
-      data.forEach((d,i) => {
+      data.forEach(d => {
         const tr = document.createElement("tr");
-        const gf = Number(d.goals_for)||0, ga = Number(d.goals_against)||0;
-        const diff = gf-ga;
         const rank = document.createElement("td");
-        rank.textContent = String(i + 1);
+        rank.textContent = String(d.r);
         tr.appendChild(rank);
         const clubCell = document.createElement("td");
         const clubLine = document.createElement("div");
-        clubLine.style.cssText = "display:flex;align-items:center;gap:9px;min-width:150px";
-        const logoUrl = logos.get(normalize(d.club));
+        clubLine.style.cssText = "display:flex;align-items:center;gap:9px;min-width:200px";
+        const logoUrl = logos.get(normalize(d.team));
         if (typeof logoUrl === "string" && logoUrl.startsWith("https://")) {
           const logo = document.createElement("img");
           logo.src = logoUrl;
-          logo.alt = "Logo " + d.club;
+          logo.alt = "Logo " + d.team;
           logo.loading = "lazy";
           logo.style.cssText = "width:36px;height:36px;object-fit:contain;background:transparent;border:0;flex-shrink:0";
           logo.onerror = function () { logo.style.display = "none"; };
           clubLine.appendChild(logo);
         }
         const clubName = document.createElement("span");
-        clubName.textContent = String(d.club);
+        clubName.textContent = String(d.team);
         clubLine.appendChild(clubName);
         clubCell.appendChild(clubLine);
         tr.appendChild(clubCell);
-        [d.games_played,gf+":"+ga,(diff>0?"+":"")+diff,d.points].forEach(v => {
+        const pGp = Number(d.p_gp);
+        [d.gp,d.pts,Number.isFinite(pGp) ? pGp.toFixed(3) : "0.000",d.w,d.otw,d.sow,d.sol,d.otl,d.l,d.gf,d.ga,(Number(d.gdf)>0?"+":"")+d.gdf].forEach(v => {
           const td = document.createElement("td"); td.textContent = String(v); tr.appendChild(td);
         });
         body.appendChild(tr);
       });
       table.append(head,body);
       wrapper.appendChild(table);
-      target.replaceChildren(label,wrapper);
+      const hint = document.createElement("p");
+      hint.textContent = "← Tabelle seitlich verschieben →";
+      hint.style.cssText = "font-size:12px;color:#bdd1e8;margin:8px 0 0";
+      target.replaceChildren(label,wrapper,hint);
     } catch (error) {
       target.textContent = "Testtabelle konnte nicht geladen werden: " + error.message;
       console.error("SNHL-Testtabelle",error);
