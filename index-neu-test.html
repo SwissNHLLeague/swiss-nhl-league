@@ -548,9 +548,11 @@ html = html.replace(/<\/body\s*>/i, () => standingsTestScript + "</body>");
   const headers = { apikey: "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt" };
   const modes = ["3vs3", "6vs6"];
   let mode = "3vs3";
+  let fieldSort = "pts";
   let players = [];
   let goalies = [];
-
+  let logos = new Map();
+  const normalize = value => String(value || "").trim().toLocaleLowerCase("de-CH");
   const notice = document.createElement("p");
   notice.textContent = "TESTSTATISTIKEN – keine echten Ligadaten";
   notice.style.cssText = "font-size:13px;font-weight:bold;color:#ffcf88";
@@ -559,6 +561,35 @@ html = html.replace(/<\/body\s*>/i, () => standingsTestScript + "</body>");
   const results = document.createElement("div");
   results.setAttribute("aria-live", "polite");
   target.replaceChildren(notice, controls, results);
+
+  function makeButton(label, active, action) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.setAttribute("aria-pressed", String(active));
+    button.style.cssText = "border:1px solid #4782bc;border-radius:8px;padding:10px 15px;color:white;cursor:pointer;background:" + (active ? "#1768ae" : "#10233a");
+    button.addEventListener("click", action);
+    return button;
+  }
+
+  function clubCell(row) {
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "display:flex;align-items:center;gap:8px;min-width:185px";
+    const url = logos.get(normalize(row.club_name));
+    if (typeof url === "string" && /^https:\/\//i.test(url)) {
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = "Logo " + row.club_name;
+      img.loading = "lazy";
+      img.style.cssText = "width:30px;height:30px;object-fit:contain;flex-shrink:0";
+      img.onerror = function () { img.style.display = "none"; };
+      wrap.appendChild(img);
+    }
+    const label = document.createElement("span");
+    label.textContent = row.club_name || "–";
+    wrap.appendChild(label);
+    return wrap;
+  }
 
   function table(title, rows, columns) {
     const section = document.createElement("section");
@@ -580,7 +611,7 @@ html = html.replace(/<\/body\s*>/i, () => standingsTestScript + "</body>");
     wrapper.tabIndex = 0;
     const grid = document.createElement("table");
     grid.className = "snhl-table";
-    grid.style.cssText = "min-width:780px;width:100%;white-space:nowrap";
+    grid.style.cssText = "min-width:940px;width:100%;white-space:nowrap";
     const head = document.createElement("thead");
     const hr = document.createElement("tr");
     columns.forEach(c => {
@@ -590,12 +621,13 @@ html = html.replace(/<\/body\s*>/i, () => standingsTestScript + "</body>");
     });
     head.appendChild(hr);
     const body = document.createElement("tbody");
-    rows.forEach(r => {
+    rows.forEach((r, index) => {
       const tr = document.createElement("tr");
       columns.forEach(c => {
         const td = document.createElement("td");
-        const value = c[1](r);
-        td.textContent = value === null || value === undefined ? "–" : String(value);
+        const value = c[1](r, index);
+        if (value instanceof Node) td.appendChild(value);
+        else td.textContent = value === null || value === undefined ? "–" : String(value);
         tr.appendChild(td);
       });
       body.appendChild(tr);
@@ -612,33 +644,44 @@ html = html.replace(/<\/body\s*>/i, () => standingsTestScript + "</body>");
 
   function render() {
     controls.replaceChildren();
-    modes.forEach(m => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = m;
-      button.setAttribute("aria-pressed", String(mode === m));
-      button.style.cssText = "border:1px solid #4782bc;border-radius:8px;padding:10px 18px;color:white;cursor:pointer;background:" + (mode === m ? "#1768ae" : "#10233a");
-      button.addEventListener("click", () => { mode = m; render(); });
-      controls.appendChild(button);
-    });
-    const field = players.filter(r => r.game_mode === mode).sort((a,b) => Number(b.pts) - Number(a.pts));
-    const keepers = goalies.filter(r => r.game_mode === mode).sort((a,b) => Number(b.sv_pct) - Number(a.sv_pct));
+    modes.forEach(m => controls.appendChild(makeButton(m, mode === m, () => { mode = m; render(); })));
+    const sortControls = document.createElement("div");
+    sortControls.style.cssText = "display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0";
+    const sortLabel = document.createElement("span");
+    sortLabel.textContent = "Feldspieler-Rangliste:";
+    sortLabel.style.cssText = "font-size:13px;color:#bdd1e8";
+    sortControls.appendChild(sortLabel);
+    sortControls.appendChild(makeButton("Punkte", fieldSort === "pts", () => { fieldSort = "pts"; render(); }));
+    sortControls.appendChild(makeButton("Tore", fieldSort === "g", () => { fieldSort = "g"; render(); }));
+
+    const field = players.filter(r => r.game_mode === mode).sort((a,b) =>
+      Number(b[fieldSort] || 0) - Number(a[fieldSort] || 0) ||
+      Number(b.pts || 0) - Number(a.pts || 0) ||
+      Number(b.g || 0) - Number(a.g || 0) ||
+      String(a.player_name).localeCompare(String(b.player_name), "de")
+    );
+    const keepers = goalies.filter(r => r.game_mode === mode).sort((a,b) =>
+      (b.sv_pct == null ? -1 : Number(b.sv_pct)) - (a.sv_pct == null ? -1 : Number(a.sv_pct)) ||
+      Number(b.sv || 0) - Number(a.sv || 0) ||
+      String(a.player_name).localeCompare(String(b.player_name), "de")
+    );
     const fieldColumns = [
-      ["Spieler", r => r.player_name], ["Club", r => r.club_name],
+      ["R", (r,i) => i+1], ["Spieler", r => r.player_name], ["Club", clubCell],
       ["GP", r => r.gp], ["G", r => r.g], ["A", r => r.a],
       ["PTS", r => r.pts], ["SOG", r => r.sog],
       ["+/-", r => r.plus_minus], ["PIM", r => r.pim]
     ];
     const goalieColumns = [
-      ["Torhüter", r => r.player_name], ["Club", r => r.club_name],
+      ["R", (r,i) => i+1], ["Torhüter", r => r.player_name], ["Club", clubCell],
       ["GP", r => r.gp], ["W", r => r.w], ["SA", r => r.sa],
       ["SV", r => r.sv], ["GA", r => r.ga],
       ["SV%", r => r.sv_pct == null ? "–" : (Number(r.sv_pct) * 100).toFixed(1) + " %"],
       ["GAA", r => r.gaa == null ? "–" : Number(r.gaa).toFixed(2)],
       ["SO", r => r.so]
     ];
-    results.replaceChildren(table("Feldspieler · " + mode, field, fieldColumns),
-                            table("Torhüter · " + mode, keepers, goalieColumns));
+    results.replaceChildren(sortControls,
+      table("Feldspieler · " + mode + (fieldSort === "g" ? " · Torschützen" : " · Punkte"), field, fieldColumns),
+      table("Torhüter · " + mode + " · Fangquote", keepers, goalieColumns));
   }
 
   let busy = false;
@@ -648,12 +691,14 @@ html = html.replace(/<\/body\s*>/i, () => standingsTestScript + "</body>");
     try {
       const responses = await Promise.all([
         fetch(base + "snhl_player_stats_view_test?select=player_name,club_name,game_mode,gp,g,a,pts,sog,plus_minus,pim", { headers, cache:"no-store" }),
-        fetch(base + "snhl_goalie_stats_view_test?select=player_name,club_name,game_mode,gp,w,sa,sv,ga,sv_pct,gaa,so", { headers, cache:"no-store" })
+        fetch(base + "snhl_goalie_stats_view_test?select=player_name,club_name,game_mode,gp,w,sa,sv,ga,sv_pct,gaa,so", { headers, cache:"no-store" }),
+        fetch(base + "public_clubs?select=name,logo_url", { headers, cache:"no-store" })
       ]);
       if (!responses.every(r => r.ok)) throw new Error("HTTP " + responses.map(r => r.status).join("/"));
       const data = await Promise.all(responses.map(r => r.json()));
       players = data[0];
       goalies = data[1];
+      logos = new Map(data[2].map(c => [normalize(c.name), c.logo_url]));
       render();
     } catch (error) {
       results.textContent = "Teststatistiken konnten nicht geladen werden: " + error.message;
