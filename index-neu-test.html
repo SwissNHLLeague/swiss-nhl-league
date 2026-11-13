@@ -576,7 +576,7 @@ html = html.replace(/<\/body\s*>/i, () => standingsTestScript + "</body>");
     const wrap = document.createElement("div");
     wrap.style.cssText = "display:flex;align-items:center;gap:8px;min-width:185px";
     const url = logos.get(normalize(row.club_name));
-    if (typeof url === "string" && /^https:\/\//i.test(url)) {
+    if (typeof url === "string" && url.startsWith("https://")) {
       const img = document.createElement("img");
       img.src = url;
       img.alt = "Logo " + row.club_name;
