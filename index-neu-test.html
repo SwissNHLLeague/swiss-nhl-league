@@ -105,8 +105,8 @@ try{
    </section>
    <section class="snhl-panel">
     <h2>🥅 Spielerstatistiken</h2>
-    <div class="snhl-empty">
-     Noch keine Spielerstatistiken verfügbar.
+    <div id="snhl-player-statistics">
+     <div class="snhl-empty">Noch keine Spielerstatistiken verfügbar.</div>
     </div>
    </section>
   </div>
@@ -536,6 +536,139 @@ const standingsTestCode = `
 `;
 const standingsTestScript = "<scr" + "ipt>" + standingsTestCode + "</scr" + "ipt>";
 html = html.replace(/<\/body\s*>/i, () => standingsTestScript + "</body>");
+
+  /* Swiss NHL League – Spielerstatistiken 3vs3 und 6vs6 (Test) */
+  const playerStatsCode = `
+(function () {
+  "use strict";
+  if (new URLSearchParams(location.search).get("live_test") !== "1") return;
+  const target = document.getElementById("snhl-player-statistics");
+  if (!target) return;
+  const base = "https://avvsnfgdmamhabcyngds.supabase.co/rest/v1/";
+  const headers = { apikey: "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt" };
+  const modes = ["3vs3", "6vs6"];
+  let mode = "3vs3";
+  let players = [];
+  let goalies = [];
+
+  const notice = document.createElement("p");
+  notice.textContent = "TESTSTATISTIKEN – keine echten Ligadaten";
+  notice.style.cssText = "font-size:13px;font-weight:bold;color:#ffcf88";
+  const controls = document.createElement("div");
+  controls.style.cssText = "display:flex;gap:9px;flex-wrap:wrap;margin:14px 0";
+  const results = document.createElement("div");
+  results.setAttribute("aria-live", "polite");
+  target.replaceChildren(notice, controls, results);
+
+  function table(title, rows, columns) {
+    const section = document.createElement("section");
+    const heading = document.createElement("h3");
+    heading.textContent = title;
+    heading.style.cssText = "font-size:17px;margin:18px 0 10px;color:#fff";
+    section.appendChild(heading);
+    if (!rows.length) {
+      const empty = document.createElement("div");
+      empty.className = "snhl-empty";
+      empty.textContent = "Noch keine Testdaten für " + mode + " vorhanden.";
+      section.appendChild(empty);
+      return section;
+    }
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = "max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch";
+    wrapper.setAttribute("role", "region");
+    wrapper.setAttribute("aria-label", title + " horizontal scrollbar");
+    wrapper.tabIndex = 0;
+    const grid = document.createElement("table");
+    grid.className = "snhl-table";
+    grid.style.cssText = "min-width:780px;width:100%;white-space:nowrap";
+    const head = document.createElement("thead");
+    const hr = document.createElement("tr");
+    columns.forEach(c => {
+      const th = document.createElement("th");
+      th.textContent = c[0];
+      hr.appendChild(th);
+    });
+    head.appendChild(hr);
+    const body = document.createElement("tbody");
+    rows.forEach(r => {
+      const tr = document.createElement("tr");
+      columns.forEach(c => {
+        const td = document.createElement("td");
+        const value = c[1](r);
+        td.textContent = value === null || value === undefined ? "–" : String(value);
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+    grid.append(head, body);
+    wrapper.appendChild(grid);
+    section.appendChild(wrapper);
+    const hint = document.createElement("p");
+    hint.textContent = "← Tabelle seitlich verschieben →";
+    hint.style.cssText = "font-size:12px;color:#bdd1e8;margin:8px 0";
+    section.appendChild(hint);
+    return section;
+  }
+
+  function render() {
+    controls.replaceChildren();
+    modes.forEach(m => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = m;
+      button.setAttribute("aria-pressed", String(mode === m));
+      button.style.cssText = "border:1px solid #4782bc;border-radius:8px;padding:10px 18px;color:white;cursor:pointer;background:" + (mode === m ? "#1768ae" : "#10233a");
+      button.addEventListener("click", () => { mode = m; render(); });
+      controls.appendChild(button);
+    });
+    const field = players.filter(r => r.game_mode === mode).sort((a,b) => Number(b.pts) - Number(a.pts));
+    const keepers = goalies.filter(r => r.game_mode === mode).sort((a,b) => Number(b.sv_pct) - Number(a.sv_pct));
+    const fieldColumns = [
+      ["Spieler", r => r.player_name], ["Club", r => r.club_name],
+      ["GP", r => r.gp], ["G", r => r.g], ["A", r => r.a],
+      ["PTS", r => r.pts], ["SOG", r => r.sog],
+      ["+/-", r => r.plus_minus], ["PIM", r => r.pim]
+    ];
+    const goalieColumns = [
+      ["Torhüter", r => r.player_name], ["Club", r => r.club_name],
+      ["GP", r => r.gp], ["W", r => r.w], ["SA", r => r.sa],
+      ["SV", r => r.sv], ["GA", r => r.ga],
+      ["SV%", r => r.sv_pct == null ? "–" : (Number(r.sv_pct) * 100).toFixed(1) + " %"],
+      ["GAA", r => r.gaa == null ? "–" : Number(r.gaa).toFixed(2)],
+      ["SO", r => r.so]
+    ];
+    results.replaceChildren(table("Feldspieler · " + mode, field, fieldColumns),
+                            table("Torhüter · " + mode, keepers, goalieColumns));
+  }
+
+  let busy = false;
+  async function refresh() {
+    if (busy || !target.isConnected) return;
+    busy = true;
+    try {
+      const responses = await Promise.all([
+        fetch(base + "snhl_player_stats_view_test?select=player_name,club_name,game_mode,gp,g,a,pts,sog,plus_minus,pim", { headers, cache:"no-store" }),
+        fetch(base + "snhl_goalie_stats_view_test?select=player_name,club_name,game_mode,gp,w,sa,sv,ga,sv_pct,gaa,so", { headers, cache:"no-store" })
+      ]);
+      if (!responses.every(r => r.ok)) throw new Error("HTTP " + responses.map(r => r.status).join("/"));
+      const data = await Promise.all(responses.map(r => r.json()));
+      players = data[0];
+      goalies = data[1];
+      render();
+    } catch (error) {
+      results.textContent = "Teststatistiken konnten nicht geladen werden: " + error.message;
+      console.error("SNHL-Spielerstatistiken", error);
+    } finally { busy = false; }
+  }
+  refresh();
+  const timer = setInterval(() => {
+    if (!target.isConnected) { clearInterval(timer); return; }
+    refresh();
+  }, 30000);
+})();
+`;
+  const playerStatsScript = "<scr" + "ipt>" + playerStatsCode + "</scr" + "ipt>";
+  html = html.replace(/<\/body\s*>/i, () => playerStatsScript + "</body>");
 
 /* Swiss NHL League – Live Scoreboard */
 
