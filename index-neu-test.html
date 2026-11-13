@@ -451,7 +451,7 @@ const standingsTestCode = `
       const [response, clubsResponse, rankingResponse] = await Promise.all([
         fetch(base + "/rest/v1/snhl_standings_detailed_test?select=r,team,gp,pts,p_gp,w,otw,sow,sol,otl,l,gf,ga,gdf&order=r.asc", { headers, cache: "no-store" }),
         fetch(base + "/rest/v1/public_clubs?select=name,logo_url", { headers, cache: "no-store" }),
-        fetch(base + "/rest/v1/snhl_standings_ranking_v2_test?select=platz,club,pts,w,gdf,direkte_punkte,direkte_tore&order=platz.asc", { headers, cache: "no-store" })
+        fetch(base + "/rest/v1/snhl_standings_ranking_v3_test?select=platz,club,pts,w,gdf,direkte_punkte,direkte_tore&order=platz.asc", { headers, cache: "no-store" })
       ]);
       if (!response.ok) throw Error("Tabelle HTTP " + response.status);
       if (!rankingResponse.ok) throw Error("Rangliste HTTP " + rankingResponse.status);
