@@ -6,13 +6,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Clubverwaltung | Swiss NHL League</title>
 <style>
-:root{color-scheme:dark;--bg:#07101d;--panel:#142139;--card:#203351;--blue:#397cf4;--line:#365477}
+:root{
+  color-scheme:dark;
+  --bg:#07101d;
+  --panel:#142139;
+  --card:#203351;
+  --blue:#397cf4;
+  --line:#365477;
+  --muted:#aebed4;
+}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:white;font-family:Arial,sans-serif}
 header{text-align:center;background:#192640;padding:30px 12px;border-bottom:4px solid var(--blue)}
 h1{font-size:clamp(24px,5vw,36px);margin:0}
 h1 span{color:var(--blue)}
-header p{letter-spacing:3px;color:#b6c5da;font-size:12px}
+header p{letter-spacing:3px;color:var(--muted);font-size:12px}
 main{max-width:1000px;margin:30px auto;padding:15px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px}
 h2{margin-top:0}
@@ -25,22 +33,24 @@ button:disabled{opacity:.5;cursor:not-allowed}
 nav button{background:var(--card);text-align:left}
 nav button.active{background:var(--blue)}
 .hidden{display:none!important}
-.muted{color:#aebed4}
+.muted{color:var(--muted)}
 .logo{width:110px;height:110px;object-fit:contain}
 .item{border-top:1px solid var(--line);padding:15px 0;overflow-wrap:anywhere}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .danger{background:#a53648}
 .notice{padding:12px;background:#263b58;border-radius:8px;margin:12px 0}
-input{max-width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid var(--line);background:var(--card);color:white}
-input[type=email]{width:100%}
+input,select{max-width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid var(--line);background:var(--card);color:white}
+input[type=email],select{width:100%}
 footer{text-align:center;color:#95a7c1;padding:25px}
 .matchup{display:grid;grid-template-columns:minmax(0,1fr) 35px minmax(0,1fr);align-items:center;gap:8px;margin:20px 0;text-align:center}
 .match-club{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0;overflow-wrap:anywhere}
 .match-logo{width:100%;max-width:100px;height:100px;object-fit:contain}
 .match-vs{color:var(--blue);font-size:20px}
+a{color:#85b4ff}
 </style>
 </head>
 <body>
+
 <header>
 <h1>SWISS <span>NHL</span> LEAGUE</h1>
 <p>CLUBVERWALTUNG · PLAYSTATION 5</p>
@@ -48,6 +58,7 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 
 <main>
 <div id="loading" class="panel">Prüfe Anmeldung...</div>
+
 <div id="denied" class="panel hidden">
 <h2>Zugriff nicht erlaubt</h2>
 <p id="deniedMessage"></p>
@@ -63,8 +74,14 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 </section>
 
 <div class="grid">
-<div class="card"><div id="playerCount" class="number">0</div>Aktive Spieler</div>
-<div class="card"><div class="number">15</div>Maximaler Kader</div>
+<div class="card">
+<div id="playerCount" class="number">0</div>
+Aktive Spieler
+</div>
+<div class="card">
+<div class="number">15</div>
+Maximaler Kader
+</div>
 </div>
 
 <nav>
@@ -76,6 +93,7 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 <button data-tab="logo">Clublogo</button>
 <button data-tab="gm">GM-Verwaltung</button>
 </nav>
+
 <p id="status" role="status" class="muted"></p>
 
 <section class="panel" data-section="overview">
@@ -105,87 +123,164 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 
 <section class="panel hidden" data-section="transfers">
 <h2>Transferverwaltung</h2>
-<p>Transferfenster 2027/28</p>
-<p>01.09.2027 bis 12.12.2027</p>
-<div class="notice">Transferanträge werden später eingerichtet.</div>
+
+<div class="notice">
+<h3>Transferfenster</h3>
+<p id="transferWindowStatus">Lade Transferstatus...</p>
+<p id="transferWindowDates" class="muted"></p>
+</div>
+
+<p class="muted">
+Ein Transfer benötigt die Zustimmung beider Clubinhaber
+und die Freigabe der Liga-Leitung.
+</p>
+
+<button id="refreshTransfers" type="button">
+Transfers aktualisieren
+</button>
+
+<h3>Transferanträge</h3>
+<div id="transferList">Lade Transfers...</div>
+
+<div class="notice">
+Ein Spieler darf nur einem Club angehören.
+Der Zielclub darf maximal 15 aktive Spieler haben.
+Neue Transferabschlüsse sind ausserhalb
+des Transferfensters gesperrt.
+</div>
 </section>
 
 <section class="panel hidden" data-section="logo">
 <h2>Clublogo</h2>
 <input type="file" id="clubLogoFile" accept="image/png,image/jpeg">
-<button type="button" id="uploadLogoButton">Logo hochladen</button>
+<button id="uploadLogoButton" type="button">Logo hochladen</button>
 <p>Maximal 2 eigene Logoänderungen pro Saison.</p>
 <p>Danach kann nur die Ligaleitung das Logo ändern.</p>
 </section>
 
 <section class="panel hidden" data-section="gm">
 <h2>GM-Verwaltung</h2>
-<p class="muted">Maximal 2 General Managers pro Club. Nur der Clubinhaber darf GMs ernennen und entfernen.</p>
+<p class="muted">
+Maximal 2 General Managers pro Club.
+Nur der Clubinhaber darf GMs ernennen oder entfernen.
+</p>
 <h3>General Managers</h3>
 <p id="gmSlots">0 von 2 GM-Plätzen belegt</p>
 <div id="gmList">Lade General Managers...</div>
+
 <div id="gmOwnerControls">
 <h3>GM ernennen</h3>
 <label for="gmEmail">E-Mail-Adresse des registrierten Benutzers</label>
 <input id="gmEmail" type="email" placeholder="beispiel@email.ch" autocomplete="off">
-<button type="button" id="assignGmButton">GM ernennen</button>
+<button id="assignGmButton" type="button">GM ernennen</button>
 </div>
 <p id="gmStatus" role="status" class="muted"></p>
 </section>
+
 </div>
 </main>
 
 <footer>© Swiss NHL League | EST. 2022</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
-const SUPABASE_URL="https://avvsnfgdmamhabcyngds.supabase.co";
-const SUPABASE_KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
-const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const $=id=>document.getElementById(id);
-let currentClub=null,currentUser=null,isClubOwner=false;
-let gmBusy=false,gamesBusy=false,logoBusy=false;
 
-function message(text){$("status").textContent=text}
+const SUPABASE_URL =
+"https://avvsnfgdmamhabcyngds.supabase.co";
+const SUPABASE_KEY =
+"sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+const client=window.supabase.createClient(
+  SUPABASE_URL,SUPABASE_KEY
+);
+
+const $=id=>document.getElementById(id);
+
+let currentClub=null;
+let currentUser=null;
+let isClubOwner=false;
+let gmBusy=false;
+let gamesBusy=false;
+let logoBusy=false;
+let transferBusy=false;
+
+function message(text){
+  $("status").textContent=text;
+}
+
 function deny(text){
   $("loading").classList.add("hidden");
   $("dashboard").classList.add("hidden");
   $("denied").classList.remove("hidden");
   $("deniedMessage").textContent=text;
 }
+
 function showTab(tab){
-  document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
-  document.querySelectorAll("[data-section]").forEach(s=>s.classList.toggle("hidden",s.dataset.section!==tab));
+  document.querySelectorAll("[data-tab]").forEach(b=>{
+    b.classList.toggle("active",b.dataset.tab===tab);
+  });
+  document.querySelectorAll("[data-section]").forEach(s=>{
+    s.classList.toggle("hidden",s.dataset.section===tab?false:true);
+  });
   if(tab==="gm")loadGms();
   if(tab==="games")loadGames();
+  if(tab==="transfers")loadTransfers();
 }
+
 document.querySelectorAll("[data-tab]").forEach(b=>{
   b.onclick=()=>showTab(b.dataset.tab);
 });
 
 async function init(){
-  const {data:{user},error:authError}=await client.auth.getUser();
-  if(authError||!user){deny("Bitte zuerst einloggen.");return}
+  const {data:{user},error:authError}=
+    await client.auth.getUser();
+
+  if(authError||!user){
+    deny("Bitte zuerst einloggen.");
+    return;
+  }
+
   currentUser=user;
 
-  const {data:owned,error:ownerError}=await client.from("clubs")
+  const {data:owned,error:ownerError}=
+    await client.from("clubs")
     .select("id,name,logo_url,owner_id")
     .eq("owner_id",user.id).limit(1);
-  if(ownerError){deny("Clubprüfung fehlgeschlagen: "+ownerError.message);return}
+
+  if(ownerError){
+    deny("Clubprüfung fehlgeschlagen: "+ownerError.message);
+    return;
+  }
 
   if(owned?.length){
     currentClub=owned[0];
     isClubOwner=true;
   }else{
-    const {data:managed,error:managerError}=await client.from("club_managers")
-      .select("club_id").eq("user_id",user.id).eq("role","gm").limit(1);
-    if(managerError){deny("GM-Zuordnung konnte nicht geprüft werden: "+managerError.message);return}
-    if(!managed?.length){deny("Deinem Konto ist noch kein Club zugeordnet.");return}
+    const {data:managed,error:managerError}=
+      await client.from("club_managers")
+      .select("club_id")
+      .eq("user_id",user.id)
+      .eq("role","gm").limit(1);
 
-    const {data:club,error:clubError}=await client.from("clubs")
+    if(managerError){
+      deny("GM-Zuordnung konnte nicht geprüft werden: "+managerError.message);
+      return;
+    }
+    if(!managed?.length){
+      deny("Deinem Konto ist noch kein Club zugeordnet.");
+      return;
+    }
+
+    const {data:club,error:clubError}=
+      await client.from("clubs")
       .select("id,name,logo_url,owner_id")
       .eq("id",managed[0].club_id).single();
-    if(clubError||!club){deny("Club konnte nicht geladen werden.");return}
+
+    if(clubError||!club){
+      deny("Club konnte nicht geladen werden.");
+      return;
+    }
     currentClub=club;
   }
 
@@ -198,40 +293,70 @@ async function init(){
     $("clubLogo").src=currentClub.logo_url;
     $("clubLogo").classList.remove("hidden");
   }
+
   $("loading").classList.add("hidden");
   $("dashboard").classList.remove("hidden");
-  await Promise.all([loadRoster(),loadRequests(),loadGames()]);
+
+  await Promise.all([
+    loadRoster(),
+    loadRequests(),
+    loadGames()
+  ]);
 }
 
 async function loadRoster(){
   const list=$("rosterList");
   const {data,error}=await client.from("club_players")
     .select("user_id,is_active,joined_at")
-    .eq("club_id",currentClub.id).eq("is_active",true);
-  if(error){list.textContent="Kader konnte nicht geladen werden: "+error.message;return}
+    .eq("club_id",currentClub.id)
+    .eq("is_active",true);
+
+  if(error){
+    list.textContent="Kader konnte nicht geladen werden: "+error.message;
+    return;
+  }
+
   const players=data||[];
   $("playerCount").textContent=players.length;
+
   $("rosterStatus").textContent=players.length<7
     ?`Es fehlen ${7-players.length} Spieler zum Mindestkader.`
-    :players.length>=15?"Kader vollständig belegt.":"Mindestkader erreicht.";
-  list.replaceChildren();
-  if(!players.length){list.textContent="Noch keine aktiven Spieler.";return}
+    :players.length>=15
+    ?"Kader vollständig belegt."
+    :"Mindestkader erreicht.";
 
-  const {data:profiles,error:profileError}=await client.from("player_profiles")
+  list.replaceChildren();
+
+  if(!players.length){
+    list.textContent="Noch keine aktiven Spieler.";
+    return;
+  }
+
+  const {data:profiles,error:profileError}=
+    await client.from("player_profiles")
     .select("user_id,first_name,last_name,psn_id,position,jersey_number,platform,xbox_gamertag")
     .in("user_id",players.map(p=>p.user_id));
-  if(profileError){list.textContent="Spielerprofile konnten nicht geladen werden: "+profileError.message;return}
+
+  if(profileError){
+    list.textContent="Spielerprofile konnten nicht geladen werden: "+profileError.message;
+    return;
+  }
+
   const map=new Map((profiles||[]).map(p=>[p.user_id,p]));
 
   for(const player of players){
     const profile=map.get(player.user_id);
     const div=document.createElement("div");
     div.className="item";
+
     const name=document.createElement("strong");
     const playerName=profile
       ?[profile.first_name,profile.last_name].filter(Boolean).join(" ")||"Spieler"
       :"Spielerprofil fehlt";
-    name.textContent=(profile?.jersey_number==null?"":"#"+profile.jersey_number+" · ")+playerName;
+
+    name.textContent=
+      (profile?.jersey_number==null?"":"#"+profile.jersey_number+" · ")+playerName;
+
     div.appendChild(name);
 
     if(profile){
@@ -239,7 +364,9 @@ async function loadRoster(){
       const platform=profile.platform||"PS5";
       info.textContent="Plattform: "+platform+" | "+
         (platform==="Xbox"?"Gamertag: ":"PSN: ")+
-        (platform==="Xbox"?profile.xbox_gamertag||"Nicht angegeben":profile.psn_id||"Nicht angegeben")+
+        (platform==="Xbox"
+          ?profile.xbox_gamertag||"Nicht angegeben"
+          :profile.psn_id||"Nicht angegeben")+
         " | Position: "+(profile.position||"Nicht angegeben");
       div.appendChild(info);
     }
@@ -248,14 +375,25 @@ async function loadRoster(){
     remove.type="button";
     remove.className="danger";
     remove.textContent="Spieler entfernen";
+
     remove.onclick=async()=>{
       if(!confirm(playerName+" wirklich aus dem Club entfernen?"))return;
       remove.disabled=true;
-      const {error:e}=await client.rpc("release_club_player",{p_user_id:player.user_id});
-      if(e){message("Fehler: "+e.message);remove.disabled=false;return}
+
+      const {error:e}=await client.rpc(
+        "release_club_player",
+        {p_user_id:player.user_id}
+      );
+
+      if(e){
+        message("Fehler: "+e.message);
+        remove.disabled=false;
+        return;
+      }
       message("Spieler erfolgreich entfernt.");
       await loadRoster();
     };
+
     div.appendChild(remove);
     list.appendChild(div);
   }
@@ -264,21 +402,33 @@ async function loadRoster(){
 async function loadRequests(){
   const list=$("requestList");
   list.textContent="Lade Spieleranfragen...";
+
   const {data,error}=await client.from("player_requests")
     .select("id,user_id,status,created_at")
-    .eq("club_id",currentClub.id).eq("status","pending")
+    .eq("club_id",currentClub.id)
+    .eq("status","pending")
     .order("created_at",{ascending:true});
-  if(error){list.textContent="Fehler: "+error.message;return}
+
+  if(error){
+    list.textContent="Fehler: "+error.message;
+    return;
+  }
+
   list.replaceChildren();
-  if(!data?.length){list.textContent="Keine offenen Spieleranfragen.";return}
+  if(!data?.length){
+    list.textContent="Keine offenen Spieleranfragen.";
+    return;
+  }
 
   for(const request of data){
     const div=document.createElement("div");
     div.className="item";
     const label=document.createElement("p");
     label.textContent="Spieler-ID: "+request.user_id;
+
     const actions=document.createElement("div");
     actions.className="actions";
+
     for(const approve of [true,false]){
       const btn=document.createElement("button");
       btn.type="button";
@@ -287,42 +437,68 @@ async function loadRequests(){
       btn.onclick=()=>reviewRequest(request.id,approve);
       actions.appendChild(btn);
     }
+
     div.append(label,actions);
     list.appendChild(div);
   }
 }
 
 async function reviewRequest(id,approve){
-  if(!confirm(approve?"Spieler wirklich aufnehmen?":"Spieleranfrage wirklich ablehnen?"))return;
+  if(!confirm(
+    approve?"Spieler wirklich aufnehmen?":"Spieleranfrage wirklich ablehnen?"
+  ))return;
+
   message("Anfrage wird bearbeitet...");
-  const {data,error}=await client.rpc("review_player_request",{
-    p_request_id:id,p_approve:approve
-  });
-  if(error){message("Fehler: "+error.message);return}
+
+  const {data,error}=await client.rpc(
+    "review_player_request",
+    {p_request_id:id,p_approve:approve}
+  );
+
+  if(error){
+    message("Fehler: "+error.message);
+    return;
+  }
+
   message(typeof data==="string"?data:"Anfrage bearbeitet.");
   await Promise.all([loadRequests(),loadRoster()]);
 }
 
 const formatGameTime=value=>new Intl.DateTimeFormat("de-CH",{
-  timeZone:"Europe/Zurich",day:"2-digit",month:"2-digit",year:"numeric",
+  timeZone:"Europe/Zurich",
+  day:"2-digit",month:"2-digit",year:"numeric",
   hour:"2-digit",minute:"2-digit"
 }).format(new Date(value));
 
 async function loadGames(){
   if(!currentClub||gamesBusy)return;
+
   const list=$("gamesList");
   list.textContent="Lade Spiele...";
+
   const {data,error}=await client.from("games")
     .select("id,home_club_id,away_club_id,scheduled_at,status,game_mode,home_confirmed_at,away_confirmed_at")
     .or(`home_club_id.eq.${currentClub.id},away_club_id.eq.${currentClub.id}`)
     .order("scheduled_at",{ascending:true}).limit(100);
-  if(error){list.textContent="Spiele konnten nicht geladen werden: "+error.message;return}
-  list.replaceChildren();
-  if(!data?.length){list.textContent="Noch keine Spiele für deinen Club vorhanden.";return}
 
-  const ids=[...new Set(data.flatMap(g=>[g.home_club_id,g.away_club_id]))];
+  if(error){
+    list.textContent="Spiele konnten nicht geladen werden: "+error.message;
+    return;
+  }
+
+  list.replaceChildren();
+  if(!data?.length){
+    list.textContent="Noch keine Spiele für deinen Club vorhanden.";
+    return;
+  }
+
+  const ids=[...new Set(data.flatMap(g=>[
+    g.home_club_id,g.away_club_id
+  ]))];
+
   const {data:clubs}=await client.from("clubs")
     .select("id,name,logo_url").in("id",ids);
+
   const map=new Map((clubs||[]).map(c=>[c.id,c]));
 
   for(const game of data){
@@ -356,57 +532,87 @@ async function loadGames(){
       box.appendChild(name);
       return box;
     }
+
     const vs=document.createElement("strong");
     vs.className="match-vs";
     vs.textContent="VS";
-    matchup.append(clubDisplay(home,"Heimclub"),vs,clubDisplay(away,"Auswärtsclub"));
+
+    matchup.append(
+      clubDisplay(home,"Heimclub"),
+      vs,
+      clubDisplay(away,"Auswärtsclub")
+    );
 
     const meta=document.createElement("p");
-    meta.textContent="Spielbeginn: "+(valid?formatGameTime(game.scheduled_at):"Nicht festgelegt")+
-      " (Schweiz) · Modus: "+(game.game_mode||"–")+" · Status: "+(game.status||"–");
+    meta.textContent="Spielbeginn: "+
+      (valid?formatGameTime(game.scheduled_at):"Nicht festgelegt")+
+      " (Schweiz) · Modus: "+(game.game_mode||"–")+
+      " · Status: "+(game.status||"–");
+
     const state=document.createElement("p");
     state.textContent="Dein Club: "+(mine?"Bestätigt":"Offen")+
       " · Gegner: "+(other?"Bestätigt":"Offen");
+
     item.append(matchup,meta,state);
 
     if(!mine&&allowed){
       const button=document.createElement("button");
       button.type="button";
-      button.textContent=inTime?"Spieltermin bestätigen":"Bestätigungsfrist abgelaufen";
+      button.textContent=inTime
+        ?"Spieltermin bestätigen"
+        :"Bestätigungsfrist abgelaufen";
       button.disabled=!inTime;
+
       button.onclick=async()=>{
         if(gamesBusy||!confirm("Diesen Spieltermin verbindlich bestätigen?"))return;
         gamesBusy=true;
         button.disabled=true;
         message("Bestätigung wird geprüft...");
+
         try{
-          const {error:e}=await client.rpc("club_confirm_game",{p_game_id:game.id});
+          const {error:e}=await client.rpc(
+            "club_confirm_game",
+            {p_game_id:game.id}
+          );
           if(e)throw e;
           message("Spielbestätigung gespeichert.");
-        }catch(e){message("Bestätigung fehlgeschlagen: "+e.message)}
-        finally{gamesBusy=false;await loadGames()}
+        }catch(e){
+          message("Bestätigung fehlgeschlagen: "+e.message);
+        }finally{
+          gamesBusy=false;
+          await loadGames();
+        }
       };
       item.appendChild(button);
     }
+
     list.appendChild(item);
   }
 }
 
-function gmMessage(text){$("gmStatus").textContent=text}
+function gmMessage(text){
+  $("gmStatus").textContent=text;
+}
 
 async function loadGms(){
   if(!currentClub?.id)return;
+
   const list=$("gmList");
   list.textContent="Lade General Managers...";
-  const {data,error}=await client.rpc("snhl_list_club_gms",{
-    p_club_id:currentClub.id
-  });
+
+  const {data,error}=await client.rpc(
+    "snhl_list_club_gms",
+    {p_club_id:currentClub.id}
+  );
+
   if(error){
     list.textContent="GM-Liste konnte nicht geladen werden: "+error.message;
     return;
   }
+
   const gms=data||[];
   list.replaceChildren();
+
   $("gmSlots").textContent=gms.length+" von 2 GM-Plätzen belegt";
   $("gmOwnerControls").classList.toggle("hidden",!isClubOwner);
   $("assignGmButton").disabled=!isClubOwner||gms.length>=2;
@@ -428,86 +634,128 @@ async function loadGms(){
       remove.type="button";
       remove.className="danger";
       remove.textContent="GM entfernen";
+
       remove.onclick=async()=>{
         if(gmBusy||!confirm("Diesen General Manager wirklich entfernen?"))return;
         gmBusy=true;
         remove.disabled=true;
+
         try{
-          const {error:e}=await client.rpc("snhl_remove_club_gm",{
-            p_club_id:currentClub.id,p_user_id:gm.user_id
-          });
+          const {error:e}=await client.rpc(
+            "snhl_remove_club_gm",
+            {p_club_id:currentClub.id,p_user_id:gm.user_id}
+          );
           if(e)throw e;
           gmMessage("GM erfolgreich entfernt.");
           await loadGms();
-        }catch(e){gmMessage("Fehler: "+e.message)}
-        finally{gmBusy=false;remove.disabled=false}
+        }catch(e){
+          gmMessage("Fehler: "+e.message);
+        }finally{
+          gmBusy=false;
+          remove.disabled=false;
+        }
       };
+
       item.appendChild(remove);
     }
+
     list.appendChild(item);
   }
 }
 
 $("assignGmButton").onclick=async()=>{
   if(gmBusy||!currentClub?.id||!isClubOwner)return;
+
   const email=$("gmEmail").value.trim();
+
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
     gmMessage("Bitte eine gültige E-Mail-Adresse eingeben.");
     return;
   }
+
   if(!confirm(email+" als General Manager ernennen?"))return;
+
   gmBusy=true;
   $("assignGmButton").disabled=true;
   gmMessage("GM wird ernannt...");
+
   try{
-    const {error}=await client.rpc("snhl_assign_club_gm_by_email",{
-      p_club_id:currentClub.id,p_email:email
-    });
+    const {error}=await client.rpc(
+      "snhl_assign_club_gm_by_email",
+      {p_club_id:currentClub.id,p_email:email}
+    );
     if(error)throw error;
     $("gmEmail").value="";
     gmMessage("GM erfolgreich ernannt.");
-    await loadGms();
-  }catch(e){gmMessage("Fehler: "+e.message)}
-  finally{
+  }catch(e){
+    gmMessage("Fehler: "+e.message);
+  }finally{
     gmBusy=false;
-    if(isClubOwner)await loadGms();
+    await loadGms();
   }
 };
 
 async function uploadOwnerLogo(){
   if(logoBusy||!currentClub?.id)return;
+
   const file=$("clubLogoFile").files[0];
-  if(!file){alert("Bitte zuerst ein Logo auswählen.");return}
+  if(!file){
+    alert("Bitte zuerst ein Logo auswählen.");
+    return;
+  }
+
   if(!["image/png","image/jpeg"].includes(file.type)||
-     file.size<8||file.size>2*1024*1024){
+    file.size<8||file.size>2*1024*1024){
     alert("Nur PNG/JPEG bis 2 MB erlaubt.");
     return;
   }
+
   const {data,error}=await client.auth.getSession();
   const token=data?.session?.access_token;
-  if(error||!token){alert("Bitte erneut anmelden.");return}
+
+  if(error||!token){
+    alert("Bitte erneut anmelden.");
+    return;
+  }
+
   const form=new FormData();
   form.append("club_id",currentClub.id);
   form.append("file",file);
+
   logoBusy=true;
   $("uploadLogoButton").disabled=true;
+
   try{
-    const response=await fetch(SUPABASE_URL+"/functions/v1/upload-club-logo",{
-      method:"POST",
-      headers:{Authorization:"Bearer "+token},
-      body:form
-    });
+    const response=await fetch(
+      SUPABASE_URL+"/functions/v1/upload-club-logo",
+      {
+        method:"POST",
+        headers:{Authorization:"Bearer "+token},
+        body:form
+      }
+    );
+
     const result=await response.json();
+
     if(!response.ok){
       const reason=result.reason||result.error||"Unbekannter Fehler";
+
       if(reason.includes("LIMIT_REACHED")){
-        alert("Upload-Limit erreicht!\n\nDu hast deine 2 erlaubten Clublogo-Uploads für diese Saison bereits verwendet.\n\nBitte kontaktiere die Ligaleitung.");
+        alert(
+          "Upload-Limit erreicht!\n\n"+
+          "Du hast deine 2 erlaubten Clublogo-Uploads "+
+          "für diese Saison bereits verwendet.\n\n"+
+          "Bitte kontaktiere die Ligaleitung."
+        );
       }else{
         alert("Logo-Upload fehlgeschlagen: "+reason);
       }
       return;
     }
-    alert(result.already_current?"Dieses Logo ist bereits aktuell.":"Clublogo erfolgreich hochgeladen!");
+
+    alert(result.already_current
+      ?"Dieses Logo ist bereits aktuell."
+      :"Clublogo erfolgreich hochgeladen!");
     location.reload();
   }catch(e){
     console.error(e);
@@ -518,14 +766,184 @@ async function uploadOwnerLogo(){
   }
 }
 
+// TRANSFERVERWALTUNG
+
+function swissDate(value){
+  if(!value)return "Nicht festgelegt";
+  return new Intl.DateTimeFormat("de-CH",{
+    timeZone:"Europe/Zurich",
+    day:"2-digit",
+    month:"2-digit",
+    year:"numeric",
+    hour:"2-digit",
+    minute:"2-digit"
+  }).format(new Date(value))+" Uhr";
+}
+
+async function loadTransferWindow(){
+  const {data,error}=await client.rpc(
+    "snhl_transfer_window_status"
+  );
+
+  if(error){
+    $("transferWindowStatus").textContent=
+      "Fehler: "+error.message;
+    return false;
+  }
+
+  const label=data?.is_open
+    ?"GEÖFFNET"
+    :data?.status==="scheduled"
+      ?"Geplant – noch geschlossen"
+      :"GESCHLOSSEN";
+
+  $("transferWindowStatus").textContent=label;
+
+  $("transferWindowDates").textContent=
+    data?.opens_at&&data?.closes_at
+      ?"Öffnung: "+swissDate(data.opens_at)+
+       " | Schliessung: "+swissDate(data.closes_at)
+      :"Kein Transferzeitraum geplant.";
+
+  return data?.is_open===true;
+}
+
+async function loadTransfers(){
+  if(!currentClub?.id||transferBusy)return;
+
+  const list=$("transferList");
+  list.textContent="Lade Transferanträge...";
+
+  const open=await loadTransferWindow();
+
+  const {data,error}=await client.rpc(
+    "snhl_list_transfers"
+  );
+
+  if(error){
+    list.textContent="Transfers konnten nicht geladen werden: "+
+      error.message;
+    return;
+  }
+
+  const transfers=(data||[]).filter(t=>
+    t.from_club_id===currentClub.id||
+    t.to_club_id===currentClub.id
+  );
+
+  list.replaceChildren();
+
+  if(!transfers.length){
+    list.textContent="Keine Transferanträge für deinen Club vorhanden.";
+    return;
+  }
+
+  for(const tr of transfers){
+    const item=document.createElement("div");
+    item.className="item";
+
+    const heading=document.createElement("h3");
+    heading.textContent=
+      (tr.from_club_name||"Alter Club")+
+      " → "+(tr.to_club_name||"Neuer Club");
+
+    const player=document.createElement("p");
+    player.textContent="Spieler-ID: "+tr.player_id;
+
+    const status=document.createElement("p");
+    status.textContent=
+      "Status: "+tr.transfer_status+
+      (tr.completed?" · Abgeschlossen":"");
+
+    const approvals=document.createElement("p");
+    approvals.textContent=
+      "Alter Club: "+(tr.old_club_approved?"Zugestimmt":"Offen")+
+      " | Neuer Club: "+(tr.new_club_approved?"Zugestimmt":"Offen")+
+      " | Liga-Leitung: "+(tr.league_approved?"Freigegeben":"Offen");
+
+    item.append(heading,player,status,approvals);
+
+    const isOld=tr.from_club_id===currentClub.id;
+    const isNew=tr.to_club_id===currentClub.id;
+    const alreadyApproved=isOld
+      ?tr.old_club_approved
+      :tr.new_club_approved;
+
+    // Die bestehende RPC erlaubt derzeit nur Clubinhabern
+    // die Zustimmung. GM-Rechte werden serverseitig ergänzt.
+    const canReview=isClubOwner&&open&&
+      tr.transfer_status==="pending"&&
+      !tr.completed&&!alreadyApproved&&
+      (isOld||isNew);
+
+    if(canReview){
+      const actions=document.createElement("div");
+      actions.className="actions";
+
+      for(const approve of [true,false]){
+        const button=document.createElement("button");
+        button.type="button";
+        button.textContent=approve
+          ?"Transfer zustimmen"
+          :"Transfer ablehnen";
+        if(!approve)button.className="danger";
+
+        button.onclick=()=>reviewTransfer(tr.request_id,approve);
+        actions.appendChild(button);
+      }
+
+      item.appendChild(actions);
+    }
+
+    list.appendChild(item);
+  }
+}
+
+async function reviewTransfer(id,approve){
+  if(transferBusy)return;
+
+  if(!confirm(approve
+    ?"Diesem Transfer verbindlich zustimmen?"
+    :"Diesen Transfer ablehnen?"
+  ))return;
+
+  transferBusy=true;
+  message("Transferentscheidung wird gespeichert...");
+
+  try{
+    const {data,error}=await client.rpc(
+      "review_club_transfer",
+      {
+        p_request_id:id,
+        p_approve:approve
+      }
+    );
+
+    if(error)throw error;
+
+    message(typeof data==="string"
+      ?data
+      :"Transferentscheidung gespeichert.");
+  }catch(e){
+    message("Transferfehler: "+e.message);
+  }finally{
+    transferBusy=false;
+    await loadTransfers();
+  }
+}
+
+$("refreshTransfers").onclick=loadTransfers;
 $("uploadLogoButton").onclick=uploadOwnerLogo;
 $("refreshGames").onclick=loadGames;
+
 $("logout").onclick=async()=>{
   await client.auth.signOut();
   location.href="login.html";
 };
+
 init().catch(e=>deny(e.message));
 </script>
 </body>
 </html>
+
 
