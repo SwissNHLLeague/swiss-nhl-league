@@ -1,57 +1,289 @@
+
 <!DOCTYPE html>
-<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin | Swiss NHL League</title><style>
-:root{color-scheme:dark;--bg:#07101d;--panel:#111f35;--line:#304c70;--blue:#357cf5;--muted:#aabbd1}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#fff;font-family:Arial,sans-serif}header{background:#172540;border-bottom:3px solid var(--blue);padding:24px 16px;text-align:center}header h1{margin:0;font-size:clamp(23px,5vw,38px)}header h1 span{color:var(--blue)}header p{letter-spacing:3px;color:var(--muted);font-size:12px}main{max-width:1100px;margin:30px auto;padding:0 18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}.muted{color:var(--muted)}.hidden{display:none!important}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}.metric{background:#1c304e;border-radius:10px;padding:18px}.metric strong{display:block;font-size:29px;margin-bottom:6px}.nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:20px 0}button,.btn{border:0;border-radius:9px;padding:13px 15px;background:var(--blue);color:white;font-weight:bold;cursor:pointer;text-decoration:none;font-size:14px}.nav button{background:#203451;text-align:left}.nav button.active{background:var(--blue)}input,select{width:100%;padding:12px;background:#071321;border:1px solid #45617f;border-radius:8px;color:white;margin:6px 0 14px}label{display:block}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #31465f;padding:10px}section h2{margin-top:0}#status{min-height:22px}.actions{display:flex;gap:10px;flex-wrap:wrap}.danger{background:#a82f45}.info{background:#244368}footer{text-align:center;color:var(--muted);padding:25px}a{color:#80b2ff}
-</style></head><body><header><h1>SWISS <span>NHL</span> LEAGUE</h1><p>ADMINISTRATION · NHL 27 · PS5</p></header><main>
-<div id="loading" class="panel">Prüfe deine Anmeldung und Admin-Berechtigung …</div>
-<div id="denied" class="panel hidden"><h2>Zugriff nicht erlaubt</h2><p id="denyReason">Du benötigst eine gültige Anmeldung mit Admin-Rechten.</p><a href="login.html">Zur Anmeldung</a></div>
-<div id="dashboard" class="hidden"><div class="panel"><div class="actions" style="justify-content:space-between;align-items:center"><div><h2 style="margin:0">Admin-Dashboard</h2><p class="muted" id="who"></p></div><button id="logout" class="danger">Abmelden</button></div></div>
-<div class="grid"><div class="metric"><strong id="clubsCount">–</strong>Clubs</div><div class="metric"><strong id="playersCount">–</strong>Spieler</div><div class="metric"><strong id="gamesCount">–</strong>Spiele</div><div class="metric"><strong id="usersCount">–</strong>Mitglieder</div></div>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin | Swiss NHL League</title>
+<style>
+:root{color-scheme:dark;--bg:#07101d;--panel:#111f35;--line:#304c70;--blue:#357cf5;--muted:#aabbd1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#fff;font-family:Arial,sans-serif}
+header{background:#172540;border-bottom:3px solid var(--blue);padding:24px 16px;text-align:center}
+header h1{margin:0;font-size:clamp(23px,5vw,38px)}
+header h1 span{color:var(--blue)}
+header p{letter-spacing:3px;color:var(--muted);font-size:12px}
+main{max-width:1100px;margin:30px auto;padding:0 18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+.muted{color:var(--muted)}
+.hidden{display:none!important}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.metric{background:#1c304e;border-radius:10px;padding:18px}
+.metric strong{display:block;font-size:29px;margin-bottom:6px}
+.nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:20px 0}
+button,.btn{border:0;border-radius:9px;padding:13px 15px;background:var(--blue);color:white;font-weight:bold;cursor:pointer;text-decoration:none;font-size:14px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.nav button{background:#203451;text-align:left}
+.nav button.active{background:var(--blue)}
+input,select{width:100%;padding:12px;background:#071321;border:1px solid #45617f;border-radius:8px;color:white;margin:6px 0 14px}
+label{display:block;margin-top:10px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;border-bottom:1px solid #31465f;padding:10px;overflow-wrap:anywhere}
+section h2{margin-top:0}
+#status{min-height:22px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.danger{background:#a82f45}
+.info{background:#244368}
+footer{text-align:center;color:var(--muted);padding:25px}
+a{color:#80b2ff}
+.notice{background:#203451;padding:14px;border-radius:10px;margin:15px 0}
+.status-open{color:#76e0a2}
+.status-closed{color:#ffb1b1}
+.status-planned{color:#ffda87}
+.calendar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px}
+.calendar-box{background:#1c304e;padding:16px;border-radius:12px}
+.small{font-size:13px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>SWISS <span>NHL</span> LEAGUE</h1>
+<p>ADMINISTRATION · NHL 27 · PS5</p>
+</header>
+
+<main>
+<div id="loading" class="panel">
+Prüfe Anmeldung und Admin-Berechtigung...
+</div>
+
+<div id="denied" class="panel hidden">
+<h2>Zugriff nicht erlaubt</h2>
+<p id="denyReason"></p>
+<a href="login.html">Zur Anmeldung</a>
+</div>
+
+<div id="dashboard" class="hidden">
+<div class="panel">
+<div class="actions" style="justify-content:space-between">
+<div>
+<h2 style="margin:0">Admin-Dashboard</h2>
+<p class="muted" id="who"></p>
+</div>
+<button id="logout" class="danger">Abmelden</button>
+</div>
+</div>
+
+<div class="grid">
+<div class="metric"><strong id="clubsCount">–</strong>Clubs</div>
+<div class="metric"><strong id="playersCount">–</strong>Spieler</div>
+<div class="metric"><strong id="gamesCount">–</strong>Spiele</div>
+<div class="metric"><strong id="usersCount">–</strong>Mitglieder</div>
+</div>
 
 <nav class="nav" id="nav">
-  <button data-tab="overview" class="active">Übersicht</button>
-  <button data-tab="clubs">Clubs</button>
-  <button data-tab="players">Spieler</button>
-  <button data-tab="games">Spielplan</button>
-  <button data-tab="leagues">Ligen</button>
-  <button data-tab="users">Mitglieder</button>
-  <button data-tab="requests">Clubanträge</button>
+<button data-tab="overview" class="active">Übersicht</button>
+<button data-tab="clubs">Clubs</button>
+<button data-tab="players">Spieler</button>
+<button data-tab="games">Spielplan</button>
+<button data-tab="leagues">Ligen</button>
+<button data-tab="users">Mitglieder</button>
+<button data-tab="requests">Clubanträge</button>
+<button data-tab="transfers">Transferfenster</button>
+<button data-tab="invitations" id="inviteNav" class="hidden">Liga-Leitung einladen</button>
 </nav>
-  
 
-<div id="status" class="muted" role="status"></div>
-<section class="panel" data-section="overview"><h2>Ligaverwaltung</h2><p>Willkommen im geschützten Administrationsbereich. Hier verwaltest du deine Swiss NHL League.</p><p class="muted">Die Bereiche zeigen nur Daten, die deine Supabase-Richtlinien für dein Admin-Konto freigeben. Für NHL-27-Statistiken ist eine separate Datenanbindung nötig.</p></section>
-<section class="panel hidden" data-section="clubs"><h2>Clubs</h2><div id="clubsTable"></div></section>
-<section class="panel hidden" data-section="players"><h2>Spieler</h2><div id="playersTable"></div></section>
-<section class="panel hidden" data-section="games"><h2>Spielplan und Resultate</h2><div id="gamesTable"></div></section>
-<section class="panel hidden" data-section="leagues"><h2>Liga-Formate</h2><div class="grid"><div class="metric"><strong>1vs1</strong>Einzel</div><div class="metric"><strong>3vs3</strong>Dreier</div><div class="metric"><strong>6vs6</strong>Sechser</div></div><p class="muted">Liga- und Tabellenbearbeitung folgt nach Einrichtung der Datenbanktabellen.</p></section>
-<section class="panel hidden" data-section="users"><h2>Mitglieder</h2><p>Benutzerrollen werden sicher in Supabase verwaltet, nicht über frei veränderbare Browserdaten.</p><div id="usersTable"></div></section>
+<p id="status" role="status" class="muted"></p>
+
+<section class="panel" data-section="overview">
+<h2>Ligaverwaltung</h2>
+<p>Willkommen im geschützten Administrationsbereich der Swiss NHL League.</p>
+<p class="muted">Hier verwaltest du Clubs, Spieler, Spiele, Ligen und Transferfenster.</p>
+<h3>Aktuelles Transferfenster</h3>
+<div id="overviewTransferStatus">Lade Transferstatus...</div>
+</section>
+
+<section class="panel hidden" data-section="clubs">
+<h2>Clubs</h2>
+<button id="addClub">+ Club hinzufügen</button>
+<div class="table-wrap" id="clubsTable"></div>
+</section>
+
+<section class="panel hidden" data-section="players">
+<h2>Spieler</h2>
+<div class="table-wrap" id="playersTable"></div>
+</section>
+
+<section class="panel hidden" data-section="games">
+<h2>Spielplan und Resultate</h2>
+<div class="table-wrap" id="gamesTable"></div>
+</section>
+
+<section class="panel hidden" data-section="leagues">
+<h2>Liga-Formate</h2>
+<div class="grid">
+<div class="metric"><strong>1vs1</strong>Einzel</div>
+<div class="metric"><strong>3vs3</strong>Dreier</div>
+<div class="metric"><strong>6vs6</strong>Sechser</div>
+</div>
+<p class="muted">Liga- und Tabellenbearbeitung wird separat ergänzt.</p>
+</section>
+
+<section class="panel hidden" data-section="users">
+<h2>Mitglieder</h2>
+<p class="muted">Benutzerrollen werden in Supabase verwaltet.</p>
+<div id="usersTable"></div>
+</section>
+
 <section class="panel hidden" data-section="requests">
-  <h2>Clubanträge</h2>
-  <div id="requestsTable">Lade Clubanträge...</div>
-</section></div></main><footer>© Swiss NHL League | EST. 2022</footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
-// Diese zwei Werte aus deiner bestehenden login.html übernehmen (NUR Publishable Key).
-const SUPABASE_URL="https://avvsnfgdmamhabcyngds.supabase.co";
-const SUPABASE_KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
-const $=id=>document.getElementById(id);let client;
-function deny(reason){$('loading').classList.add('hidden');$('dashboard').classList.add('hidden');$('denied').classList.remove('hidden');$('denyReason').textContent=reason}
-function safe(value){return String(value??'–').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+<h2>Clubanträge</h2>
+<div class="table-wrap" id="requestsTable">
+Lade Clubanträge...
+</div>
+</section>
+
+<section class="panel hidden" data-section="transfers">
+<h2>Transferfenster verwalten</h2>
+<p class="muted">
+Die Liga-Leitung legt fest, wann Transfers automatisch
+geöffnet und geschlossen werden.
+</p>
+
+<div class="notice">
+<h3>Aktueller Status</h3>
+<p id="transferStatus">Lade Status...</p>
+<p id="transferPeriod" class="muted"></p>
+</div>
+
+<form id="transferForm">
+<div class="calendar-grid">
+<div class="calendar-box">
+<h3>Öffnung</h3>
+<label for="transferStartDate">Startdatum</label>
+<input id="transferStartDate" type="date" required>
+<label for="transferStartTime">Startzeit</label>
+<input id="transferStartTime" type="time" value="00:00" required>
+</div>
+
+<div class="calendar-box">
+<h3>Schliessung</h3>
+<label for="transferEndDate">Enddatum</label>
+<input id="transferEndDate" type="date" required>
+<label for="transferEndTime">Endzeit</label>
+<input id="transferEndTime" type="time" value="23:59" required>
+</div>
+</div>
+
+<p class="muted small">
+Alle Termine gelten nach Schweizer Zeit (Europe/Zurich).
+Das Transferfenster schliesst exakt zum angegebenen Zeitpunkt.
+</p>
+
+<button id="saveTransfer" type="submit">
+Transferfenster planen
+</button>
+</form>
+
+<p id="transferMessage" role="status"></p>
+
+<div class="notice">
+<strong>Automatische Steuerung</strong>
+<p>Vor dem Startzeitpunkt: geschlossen.</p>
+<p>Während des Zeitraums: geöffnet.</p>
+<p>Ab dem Endzeitpunkt: geschlossen.</p>
+<p class="muted small">
+Die Transferfunktionen müssen die Datenbank-Zeitprüfung
+verwenden. Erst dann werden Transferabschlüsse verbindlich gesperrt.
+</p>
+</div>
+
+<button id="refreshTransfer" class="info">
+Status aktualisieren
+</button>
+</section>
+
+<section class="panel hidden" data-section="invitations">
+<h2>Liga-Leitung einladen</h2>
+<p class="muted">
+Testbetrieb: Einladungen werden erstellt, aber nicht
+automatisch per E-Mail versendet.
+</p>
+<form id="inviteForm">
+<label for="inviteEmail">E-Mail-Adresse</label>
+<input id="inviteEmail" type="email" maxlength="254" required>
+<label for="inviteRole">Administratorrolle</label>
+<select id="inviteRole">
+<option value="league_admin">Liga-Leitung</option>
+<option value="moderator">Moderator</option>
+<option value="stats_manager">Statistikverwaltung</option>
+</select>
+<button id="inviteSubmit" type="submit">
+Einladung erstellen
+</button>
+</form>
+<p id="inviteResult" role="status"></p>
+<div id="inviteSecret" class="hidden">
+<p>Einladung erstellt. Noch keine E-Mail versendet.</p>
+<p class="muted">Der Einladungstoken ist geheim.</p>
+<button id="copyToken">Einladungstoken kopieren</button>
+</div>
+</section>
+
+</div>
+</main>
+
+<footer>© Swiss NHL League | EST. 2022</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+
+const SUPABASE_URL =
+"https://avvsnfgdmamhabcyngds.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+const $ = id => document.getElementById(id);
+let client;
+let currentUser = null;
+let adminRole = null;
+let invitationToken = null;
+
+const TZ = "Europe/Zurich";
+
+function deny(reason) {
+  $("loading").classList.add("hidden");
+  $("dashboard").classList.add("hidden");
+  $("denied").classList.remove("hidden");
+  $("denyReason").textContent = reason;
+}
+
+function showTab(tab) {
+  document.querySelectorAll("[data-tab]").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === tab);
+  });
+  document.querySelectorAll("[data-section]").forEach(s => {
+    s.classList.toggle("hidden", s.dataset.section !== tab);
+  });
+  if (tab === "transfers") loadTransferStatus();
+}
+
+document.querySelectorAll("[data-tab]").forEach(b => {
+  b.onclick = () => showTab(b.dataset.tab);
+});
 
 async function loadTable(name, target, count) {
   const el = $(target);
-  const { data, error } = await client
-    .from(name)
-    .select("*");
+  const { data, error } = await client.from(name).select("*");
 
   if (error) {
     el.textContent = error.message;
     return;
   }
 
-  if (count) {
-    $(count).textContent = data.length;
-  }
-
+  if (count) $(count).textContent = data.length;
   if (!data.length) {
     el.textContent = "Noch keine Einträge.";
     return;
@@ -61,8 +293,7 @@ async function loadTable(name, target, count) {
   if (name === "clubs") cols.push("Aktionen");
 
   const table = document.createElement("table");
-  const thead = table.createTHead();
-  const header = thead.insertRow();
+  const header = table.createTHead().insertRow();
 
   cols.forEach(col => {
     const th = document.createElement("th");
@@ -73,10 +304,9 @@ async function loadTable(name, target, count) {
   const tbody = table.createTBody();
 
   data.forEach(item => {
-    const tr = tbody.insertRow();
-
+    const row = tbody.insertRow();
     cols.forEach(col => {
-      const td = tr.insertCell();
+      const cell = row.insertCell();
 
       if (col === "Aktionen") {
         const edit = document.createElement("button");
@@ -84,46 +314,36 @@ async function loadTable(name, target, count) {
         edit.onclick = () => editClub(item.id, item.name);
 
         const del = document.createElement("button");
+        del.className = "danger";
         del.textContent = "Löschen";
         del.onclick = () => deleteClub(item.id);
 
-const logoButton = document.createElement("button");
-logoButton.textContent = "Logo hochladen";
-logoButton.onclick = () => uploadClubLogo(item.id);
+        const logo = document.createElement("button");
+        logo.textContent = "Logo hochladen";
+        logo.onclick = () => uploadClubLogo(item.id);
 
-td.append(edit, " ", del, " ", logoButton);
- } else if (col === "logo_url" && item[col]) {
-  const img = document.createElement("img");
-  img.src = item[col];
-  img.alt = "Clublogo";
-  img.style.width = "60px";
-  img.style.height = "60px";
-  img.style.objectFit = "contain";
-  td.appendChild(img);
-} else {
-  td.textContent = String(item[col] ?? "—");
-}
+        cell.append(edit, " ", del, " ", logo);
+      } else if (col === "logo_url" && item[col]) {
+        const img = document.createElement("img");
+        img.src = item[col];
+        img.alt = "Clublogo";
+        img.style.width = "60px";
+        img.style.height = "60px";
+        img.style.objectFit = "contain";
+        cell.appendChild(img);
+      } else {
+        cell.textContent = String(item[col] ?? "—");
+      }
     });
   });
 
   el.replaceChildren(table);
 }
 
-async function init(){if(SUPABASE_URL==='DEINE_SUPABASE_URL'||SUPABASE_KEY==='DEIN_PUBLISHABLE_KEY'){deny('Bitte zuerst Supabase-URL und Publishable Key in admin.html eintragen.');return}if(!window.supabase){deny('Supabase-Bibliothek konnte nicht geladen werden.');return}client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const {data:{user},error}=await client.auth.getUser();if(error||!user){deny('Bitte zuerst einloggen.');return}
-// Admin-Recht wird serverseitig über die geschützte admin_users-Tabelle geprüft.
-const {data:admin,error:adminError}=await client.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(adminError||!admin){deny('Dein Konto hat keine Admin-Berechtigung. Richte zuerst die admin_users-Tabelle und ihre RLS-Regeln ein.');return}
-$('loading').classList.add('hidden');$('dashboard').classList.remove('hidden');$('who').textContent=user.email||'Angemeldeter Administrator';
-$('logout').onclick=async()=>{await client.auth.signOut();location.href='login.html'};
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-section]').forEach(s=>s.classList.toggle('hidden',s.dataset.section!==b.dataset.tab))});
-await Promise.all([loadTable('clubs','clubsTable','clubsCount'),loadTable('player_profiles','playersTable','playersCount'),loadTable('games','gamesTable','gamesCount'),loadClubRequests()]);$('usersCount').textContent='–';$('usersTable').textContent='Mitgliederverwaltung wird im nächsten Schritt mit einer gesicherten Admin-Funktion ergänzt.'}
-init().catch(e=>deny('Fehler beim Laden: '+e.message));
-
 async function loadClubRequests() {
-  const el = document.getElementById("requestsTable");
-
-  const { data, error } = await client
-    .from("club_requests")
-    .select("id, user_id, club_name, status, created_at")
+  const el = $("requestsTable");
+  const { data, error } = await client.from("club_requests")
+    .select("id,user_id,club_name,status,created_at")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -131,7 +351,7 @@ async function loadClubRequests() {
     return;
   }
 
-  if (!data || data.length === 0) {
+  if (!data?.length) {
     el.textContent = "Noch keine Clubanträge vorhanden.";
     return;
   }
@@ -147,72 +367,49 @@ async function loadClubRequests() {
 
   data.forEach(request => {
     const row = table.insertRow();
-
-    [
+    const values = [
       request.club_name,
       request.status,
       new Date(request.created_at).toLocaleDateString("de-CH")
-    ].forEach(value => {
-      const cell = row.insertCell();
-      cell.textContent = value;
+    ];
+    values.forEach(value => {
+      row.insertCell().textContent = value ?? "—";
     });
   });
 
   el.replaceChildren(table);
 }
-  
-  async function addClub() {
+
+async function addClub() {
   const name = prompt("Name des neuen Clubs:");
-  if (!name || !name.trim()) return;
-
-  const { error } = await client
-    .from("clubs")
+  if (!name?.trim()) return;
+  const { error } = await client.from("clubs")
     .insert({ name: name.trim() });
-
-  if (error) {
-    alert("Fehler: " + error.message);
-    return;
-  }
-
-  alert("Club erfolgreich erstellt!");
+  if (error) return alert("Fehler: " + error.message);
+  alert("Club erstellt.");
   location.reload();
 }
 
-const clubSection = document.querySelector(
-  '[data-section="clubs"]'
-);
-
-if (clubSection) {
-  const button = document.createElement("button");
-  button.textContent = "+ Club hinzufügen";
-  button.onclick = addClub;
-  clubSection.prepend(button);
-}
 async function editClub(id, currentName) {
   const name = prompt("Neuer Clubname:", currentName);
-  if (!name || !name.trim()) return;
-
+  if (!name?.trim()) return;
   const { error } = await client.from("clubs")
     .update({ name: name.trim() }).eq("id", id);
-
   if (error) return alert("Fehler: " + error.message);
-  alert("Club aktualisiert!");
+  alert("Club aktualisiert.");
   location.reload();
 }
 
 async function deleteClub(id) {
   if (!confirm("Club wirklich löschen?")) return;
-
   const { error } = await client.from("clubs")
     .delete().eq("id", id);
-
   if (error) return alert("Fehler: " + error.message);
-  alert("Club gelöscht!");
+  alert("Club gelöscht.");
   location.reload();
 }
 
-
-async function uploadClubLogo(clubId) {alert("Club-ID: " + clubId);
+async function uploadClubLogo(clubId) {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/png,image/jpeg";
@@ -220,19 +417,16 @@ async function uploadClubLogo(clubId) {alert("Club-ID: " + clubId);
   input.onchange = async () => {
     const file = input.files?.[0];
     if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Das Logo darf maximal 2 MB gross sein.");
+    if (file.size > 2 * 1024 * 1024 ||
+        !["image/png","image/jpeg"].includes(file.type)) {
+      alert("Nur PNG/JPEG bis 2 MB erlaubt.");
       return;
     }
 
-    const { data: sessionData, error: sessionError } =
-      await client.auth.getSession();
-
-    const token = sessionData?.session?.access_token;
-
-    if (sessionError || !token) {
-      alert("Bitte zuerst anmelden.");
+    const { data, error } = await client.auth.getSession();
+    const token = data?.session?.access_token;
+    if (error || !token) {
+      alert("Bitte erneut anmelden.");
       return;
     }
 
@@ -242,318 +436,368 @@ async function uploadClubLogo(clubId) {alert("Club-ID: " + clubId);
 
     try {
       const response = await fetch(
-        "https://avvsnfgdmamhabcyngds.supabase.co/functions/v1/upload-club-logo",
+        SUPABASE_URL + "/functions/v1/upload-club-logo",
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: form,
+          headers: { Authorization: "Bearer " + token },
+          body: form
         }
       );
-
       const result = await response.json();
-
       if (!response.ok) {
-        if (result.error === "NO_ACTIVE_SEASON") {
-          alert("Noch keine aktive Saison festgelegt.");
-        } else {
-          alert("Logo-Upload fehlgeschlagen: " + result.error);
-        }
+        alert("Logo-Upload fehlgeschlagen: " +
+          (result.reason || result.error || "Unbekannt"));
         return;
       }
-
       alert("Clublogo erfolgreich hochgeladen!");
       location.reload();
-
     } catch (error) {
       alert("Verbindungsfehler beim Logo-Upload.");
-      console.error(error);
     }
   };
 
   input.click();
 }
 
+// Schweizer Datums- und Zeitdarstellung
+function swissDisplay(value) {
+  if (!value) return "Nicht festgelegt";
+  return new Intl.DateTimeFormat("de-CH", {
+    timeZone: TZ,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(value));
+}
 
+// Umrechnung Schweizer Lokalzeit in UTC.
+// Berücksichtigt Sommer- und Winterzeit.
+function swissToISO(date, time) {
+  if (!date || !time) throw Error("Datum und Uhrzeit fehlen.");
 
-/* Swiss NHL League – Admin-Einladungen */
-(function () {
-  const nav = document.querySelector("#nav");
-  const dashboard = document.querySelector("#dashboard");
+  const [y, m, d] = date.split("-").map(Number);
+  const [h, min] = time.split(":").map(Number);
+  const guess = Date.UTC(y, m - 1, d, h, min);
 
-  if (!nav || !dashboard) return;
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  });
 
-  const inviteButton = document.createElement("button");
-  inviteButton.type = "button";
-  inviteButton.textContent = "Liga-Leitung einladen";
-  inviteButton.style.display = "none";
-
-  const panel = document.createElement("section");
-  panel.className = "panel hidden";
-  panel.id = "snhl-admin-invitations";
-
-  panel.innerHTML = `
-    <h2>Liga-Leitung einladen</h2>
-    <p class="muted">
-      Testbetrieb ohne E-Mail-Versand.
-      Einladungen sind 48 Stunden gültig.
-    </p>
-
-    <form id="snhl-invite-form">
-      <label for="snhl-invite-email">
-        E-Mail-Adresse
-      </label>
-      <input
-        id="snhl-invite-email"
-        type="email"
-        autocomplete="off"
-        maxlength="254"
-        required
-        placeholder="name@beispiel.ch"
-      >
-
-      <label for="snhl-invite-role">
-        Administratorrolle
-      </label>
-      <select id="snhl-invite-role">
-        <option value="league_admin">
-          Liga-Leitung
-        </option>
-        <option value="moderator">
-          Moderator
-        </option>
-        <option value="stats_manager">
-          Statistikverwaltung
-        </option>
-      </select>
-
-      <button id="snhl-invite-submit"
-              type="submit">
-        Einladung erstellen
-      </button>
-    </form>
-
-    <p id="snhl-invite-result"
-       role="status"
-       aria-live="polite"></p>
-
-    <div id="snhl-invite-secret"
-         class="hidden">
-      <p>
-        Einladung erstellt.
-        Noch keine E-Mail versendet.
-      </p>
-      <p class="muted">
-        Der folgende Token ist geheim.
-        Nur an die eingeladene Person
-        weitergeben. Nicht als Screenshot
-        oder in öffentlichen Chats teilen.
-      </p>
-      <button id="snhl-copy-token"
-              type="button">
-        Einladungstoken kopieren
-      </button>
-    </div>
-  `;
-
-  nav.appendChild(inviteButton);
-  dashboard.appendChild(panel);
-
-  const form = panel.querySelector(
-    "#snhl-invite-form"
-  );
-  const emailInput = panel.querySelector(
-    "#snhl-invite-email"
-  );
-  const roleInput = panel.querySelector(
-    "#snhl-invite-role"
-  );
-  const submitButton = panel.querySelector(
-    "#snhl-invite-submit"
-  );
-  const result = panel.querySelector(
-    "#snhl-invite-result"
-  );
-  const secretBox = panel.querySelector(
-    "#snhl-invite-secret"
-  );
-  const copyButton = panel.querySelector(
-    "#snhl-copy-token"
-  );
-
-  let invitationToken = null;
-
-  async function initializeInvitations() {
-    const { data: authData, error: authError } =
-      await client.auth.getUser();
-
-    if (authError || !authData?.user) return;
-
-    const { data: admin, error } = await client
-      .from("admin_users")
-      .select("admin_role")
-      .eq("user_id", authData.user.id)
-      .maybeSingle();
-
-    if (error || admin?.admin_role !== "owner") {
-      return;
-    }
-
-    inviteButton.style.display = "";
-
-    inviteButton.addEventListener("click", () => {
-      dashboard.querySelectorAll(
-        "[data-section]"
-      ).forEach(section => {
-        section.classList.add("hidden");
-      });
-
-      panel.classList.remove("hidden");
-
-      document.querySelectorAll(
-        "#nav button"
-      ).forEach(button => {
-        button.classList.remove("active");
-      });
-
-      inviteButton.classList.add("active");
-    });
+  function parts(ms) {
+    const p = Object.fromEntries(
+      formatter.formatToParts(new Date(ms))
+        .filter(x => x.type !== "literal")
+        .map(x => [x.type, Number(x.value)])
+    );
+    return Date.UTC(
+      p.year, p.month - 1, p.day, p.hour, p.minute
+    );
   }
 
-  form.addEventListener("submit", async event => {
-    event.preventDefault();
+  let timestamp = guess;
+  for (let i = 0; i < 4; i++) {
+    timestamp += guess - parts(timestamp);
+  }
 
-    const email = emailInput.value
-      .trim()
-      .toLowerCase();
+  if (parts(timestamp) !== guess) {
+    throw Error("Diese Schweizer Uhrzeit existiert wegen der Zeitumstellung nicht.");
+  }
 
-    const role = roleInput.value;
+  // Mehrdeutige Uhrzeit bei Winterzeitumstellung ablehnen.
+  if (parts(timestamp - 3600000) === guess ||
+      parts(timestamp + 3600000) === guess) {
+    throw Error("Diese Uhrzeit ist wegen der Zeitumstellung doppeldeutig. Bitte eine andere Uhrzeit wählen.");
+  }
 
-    if (!emailInput.checkValidity()) {
-      emailInput.reportValidity();
-      return;
+  return new Date(timestamp).toISOString();
+}
+
+async function loadTransferStatus() {
+  const el = $("transferStatus");
+  el.textContent = "Lade Transferstatus...";
+
+  const { data, error } = await client.rpc(
+    "snhl_transfer_window_status"
+  );
+
+  if (error) {
+    el.textContent = "Fehler: " + error.message;
+    return;
+  }
+
+  let label = "Kein Transferfenster geplant";
+  let css = "status-closed";
+
+  if (data?.status === "scheduled") {
+    label = "Geplant – noch geschlossen";
+    css = "status-planned";
+  } else if (data?.is_open === true) {
+    label = "GEÖFFNET";
+    css = "status-open";
+  } else if (data?.status === "closed") {
+    label = "GESCHLOSSEN";
+  }
+
+  el.textContent = label;
+  el.className = css;
+  $("overviewTransferStatus").textContent = label;
+
+  if (data?.opens_at && data?.closes_at) {
+    const period =
+      "Öffnung: " + swissDisplay(data.opens_at) +
+      " Uhr | Schliessung: " +
+      swissDisplay(data.closes_at) + " Uhr";
+    $("transferPeriod").textContent = period;
+
+    // Vorhandene Planung im Formular anzeigen.
+    const start = new Date(data.opens_at);
+    const end = new Date(data.closes_at);
+
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: TZ,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+    });
+
+    function values(d) {
+      const p = Object.fromEntries(
+        fmt.formatToParts(d)
+          .filter(x => x.type !== "literal")
+          .map(x => [x.type, x.value])
+      );
+      return {
+        date: `${p.year}-${p.month}-${p.day}`,
+        time: `${p.hour}:${p.minute}`
+      };
     }
 
-    if (![
-      "league_admin",
-      "moderator",
-      "stats_manager"
-    ].includes(role)) {
-      result.textContent = "Ungültige Rolle.";
-      return;
-    }
+    const a = values(start);
+    const b = values(end);
+    $("transferStartDate").value = a.date;
+    $("transferStartTime").value = a.time;
+    $("transferEndDate").value = b.date;
+    $("transferEndTime").value = b.time;
+  } else {
+    $("transferPeriod").textContent =
+      "Noch kein Zeitraum gespeichert.";
+  }
+}
 
-    const confirmed = confirm(
-      "Wirklich eine Admin-Einladung für " +
-      email +
-      " mit der Rolle " +
-      role +
-      " erstellen?\n\n" +
-      "Dies erstellt einen echten " +
-      "Einladungsdatensatz. " +
-      "Es wird keine E-Mail verschickt."
+$("transferForm").onsubmit = async event => {
+  event.preventDefault();
+
+  const button = $("saveTransfer");
+  const result = $("transferMessage");
+
+  try {
+    const start = swissToISO(
+      $("transferStartDate").value,
+      $("transferStartTime").value
+    );
+    const end = swissToISO(
+      $("transferEndDate").value,
+      $("transferEndTime").value
     );
 
-    if (!confirmed) return;
-
-    submitButton.disabled = true;
-    result.textContent = "Einladung wird erstellt...";
-    secretBox.classList.add("hidden");
-    invitationToken = null;
-
-    try {
-      const { data: sessionData, error: sessionError } =
-        await client.auth.getSession();
-
-      const token =
-        sessionData?.session?.access_token;
-
-      if (sessionError || !token) {
-        result.textContent =
-          "Bitte erneut anmelden.";
-        return;
-      }
-
-      const response = await fetch(
-        SUPABASE_URL +
-        "/functions/v1/send-admin-invitation",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token,
-            "apikey": SUPABASE_KEY
-          },
-          body: JSON.stringify({
-            email: email,
-            role: role
-          })
-        }
-      );
-
-      const responseData =
-        await response.json();
-
-      if (!response.ok) {
-        result.textContent =
-          "Fehler (HTTP " +
-          response.status +
-          "): " +
-          (responseData.error ||
-           "Einladung fehlgeschlagen");
-        return;
-      }
-
-      if (
-        responseData.status !== "created" ||
-        !responseData.invitation_token
-      ) {
-        result.textContent =
-          "Unerwartete Serverantwort.";
-        return;
-      }
-
-      invitationToken =
-        responseData.invitation_token;
-
-      result.textContent =
-        "Einladung erfolgreich erstellt.";
-
-      secretBox.classList.remove("hidden");
-      form.reset();
-
-    } catch (error) {
-      result.textContent =
-        "Verbindungsfehler. Bitte vor " +
-        "einem erneuten Versuch den " +
-        "Einladungsstatus prüfen.";
-    } finally {
-      submitButton.disabled = false;
+    if (new Date(end) <= new Date(start)) {
+      throw Error("Das Enddatum muss nach dem Startdatum liegen.");
     }
-  });
 
-  copyButton.addEventListener("click", async () => {
-    if (!invitationToken) return;
+    if (!confirm(
+      "Transferfenster verbindlich planen?\n\n" +
+      "Öffnung: " + swissDisplay(start) + " Uhr\n" +
+      "Schliessung: " + swissDisplay(end) + " Uhr"
+    )) return;
 
-    try {
-      await navigator.clipboard.writeText(
-        invitationToken
-      );
-      result.textContent =
-        "Geheimer Einladungstoken kopiert.";
-    } catch {
-      result.textContent =
-        "Kopieren nicht möglich.";
-    }
-  });
+    button.disabled = true;
+    result.textContent = "Transferfenster wird gespeichert...";
 
-  initializeInvitations().catch(error => {
-    console.error(
-      "Einladungsverwaltung konnte " +
-      "nicht initialisiert werden."
+    const { data, error } = await client.rpc(
+      "snhl_schedule_transfer_window",
+      {
+        p_opens_at: start,
+        p_closes_at: end
+      }
     );
-  });
-})();
 
-</script></body></html>
+    if (error) throw error;
+    if (!data?.success) throw Error("Speichern nicht bestätigt.");
+
+    result.textContent = "Transferfenster erfolgreich geplant!";
+    await loadTransferStatus();
+  } catch (error) {
+    result.textContent = "Fehler: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+};
+
+$("refreshTransfer").onclick = loadTransferStatus;
+
+// Admin-Einladungen
+$("inviteForm").onsubmit = async event => {
+  event.preventDefault();
+
+  const email = $("inviteEmail").value.trim().toLowerCase();
+  const role = $("inviteRole").value;
+  const result = $("inviteResult");
+  const button = $("inviteSubmit");
+
+  if (!$("inviteEmail").checkValidity()) {
+    $("inviteEmail").reportValidity();
+    return;
+  }
+
+  if (!["league_admin","moderator","stats_manager"].includes(role)) {
+    result.textContent = "Ungültige Rolle.";
+    return;
+  }
+
+  if (!confirm(
+    "Einladung für " + email + " erstellen?\n" +
+    "Es wird noch keine E-Mail versendet."
+  )) return;
+
+  button.disabled = true;
+  $("inviteSecret").classList.add("hidden");
+  invitationToken = null;
+  result.textContent = "Einladung wird erstellt...";
+
+  try {
+    const { data, error } = await client.auth.getSession();
+    const token = data?.session?.access_token;
+    if (error || !token) throw Error("Bitte erneut anmelden.");
+
+    const response = await fetch(
+      SUPABASE_URL + "/functions/v1/send-admin-invitation",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token,
+          "apikey": SUPABASE_KEY
+        },
+        body: JSON.stringify({ email, role })
+      }
+    );
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw Error(payload.error || "Einladung fehlgeschlagen.");
+    }
+    if (payload.status !== "created" ||
+        !payload.invitation_token) {
+      throw Error("Unerwartete Serverantwort.");
+    }
+
+    invitationToken = payload.invitation_token;
+    $("inviteSecret").classList.remove("hidden");
+    $("inviteForm").reset();
+    result.textContent = "Einladung erfolgreich erstellt.";
+  } catch (error) {
+    result.textContent = "Fehler: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+};
+
+$("copyToken").onclick = async () => {
+  if (!invitationToken) return;
+  try {
+    await navigator.clipboard.writeText(invitationToken);
+    $("inviteResult").textContent = "Einladungstoken kopiert.";
+  } catch {
+    $("inviteResult").textContent = "Kopieren nicht möglich.";
+  }
+};
+
+async function init() {
+  if (!window.supabase) {
+    deny("Supabase konnte nicht geladen werden.");
+    return;
+  }
+
+  client = window.supabase.createClient(
+    SUPABASE_URL, SUPABASE_KEY
+  );
+
+  const { data: { user }, error } = await client.auth.getUser();
+  if (error || !user) {
+    deny("Bitte zuerst einloggen.");
+    return;
+  }
+
+  const { data: admin, error: adminError } = await client
+    .from("admin_users")
+    .select("admin_role")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (adminError || !admin) {
+    deny("Dein Konto hat keine Admin-Berechtigung.");
+    return;
+  }
+
+  currentUser = user;
+  adminRole = admin.admin_role;
+
+  $("who").textContent =
+    (user.email || "Administrator") + " · " + adminRole;
+
+  // Zusätzliche Anzeigeprüfung.
+  // Die Datenbank prüft die tatsächliche Berechtigung.
+  const isLeagueController =
+    user.email?.toLowerCase() ===
+      "swiss_nhl_league@gmx.ch" &&
+    ["owner","league_admin"].includes(adminRole);
+
+  if (!isLeagueController) {
+    document.querySelector(
+      '[data-tab="transfers"]'
+    ).classList.add("hidden");
+
+    $("transferForm").classList.add("hidden");
+  }
+
+  if (adminRole === "owner") {
+    $("inviteNav").classList.remove("hidden");
+  }
+
+  $("logout").onclick = async () => {
+    await client.auth.signOut();
+    location.href = "login.html";
+  };
+
+  $("addClub").onclick = addClub;
+
+  $("loading").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+
+  await Promise.all([
+    loadTable("clubs","clubsTable","clubsCount"),
+    loadTable("player_profiles","playersTable","playersCount"),
+    loadTable("games","gamesTable","gamesCount"),
+    loadClubRequests(),
+    loadTransferStatus()
+  ]);
+
+  $("usersCount").textContent = "–";
+  $("usersTable").textContent =
+    "Mitgliederverwaltung wird über eine gesicherte Admin-Funktion ergänzt.";
+}
+
+init().catch(error => {
+  deny("Fehler beim Laden: " + error.message);
+});
+</script>
+</body>
+</html>
+
