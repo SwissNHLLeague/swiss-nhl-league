@@ -4,35 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mein Club | Swiss NHL League</title>
-
-<style>.matchup {
-  display: grid;
-  grid-template-columns: minmax(0,1fr) 40px minmax(0,1fr);
-  align-items: center;
-  gap: 10px;
-  margin: 22px 0;
-  text-align: center;
-}
-.match-club {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.match-logo {
-  width: 100%;
-  max-width: 100px;
-  height: 100px;
-  object-fit: contain;
-}
-.match-vs {
-  font-size: 22px;
-  color: #397cf4;
-}
-</style>
+<title>Clubverwaltung | Swiss NHL League</title>
 <style>
 :root{color-scheme:dark;--bg:#07101d;--panel:#142139;--card:#203351;--blue:#397cf4;--line:#365477}
 *{box-sizing:border-box}
@@ -47,20 +19,25 @@ h2{margin-top:0}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .card{background:var(--card);border-radius:12px;padding:18px}
 .number{font-size:30px;font-weight:bold}
-nav{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px 0}
+nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0}
 button{background:var(--blue);color:white;border:0;border-radius:9px;padding:13px;font-weight:bold;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
 nav button{background:var(--card);text-align:left}
 nav button.active{background:var(--blue)}
-.game-meta{color:#b6c5da;line-height:1.6}.game-state{font-weight:bold}.game-state.ok{color:#77dba7}.game-state.wait{color:#ffcd70}.game-item{overflow-wrap:anywhere}.game-item button{margin-top:8px}
-.hidden{display:none}
+.hidden{display:none!important}
 .muted{color:#aebed4}
-.logo{width:100px;height:100px;object-fit:contain}
-.item{border-top:1px solid var(--line);padding:15px 0}
+.logo{width:110px;height:110px;object-fit:contain}
+.item{border-top:1px solid var(--line);padding:15px 0;overflow-wrap:anywhere}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .danger{background:#a53648}
-.notice{padding:12px;background:#263b58;border-radius:8px;margin-top:12px}
+.notice{padding:12px;background:#263b58;border-radius:8px;margin:12px 0}
+input{max-width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid var(--line);background:var(--card);color:white}
+input[type=email]{width:100%}
 footer{text-align:center;color:#95a7c1;padding:25px}
+.matchup{display:grid;grid-template-columns:minmax(0,1fr) 35px minmax(0,1fr);align-items:center;gap:8px;margin:20px 0;text-align:center}
+.match-club{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0;overflow-wrap:anywhere}
+.match-logo{width:100%;max-width:100px;height:100px;object-fit:contain}
+.match-vs{color:var(--blue);font-size:20px}
 </style>
 </head>
 <body>
@@ -71,17 +48,17 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 
 <main>
 <div id="loading" class="panel">Prüfe Anmeldung...</div>
-
 <div id="denied" class="panel hidden">
 <h2>Zugriff nicht erlaubt</h2>
-<p id="deniedMessage">Bitte melde dich als Clubinhaber an.</p>
+<p id="deniedMessage"></p>
 <a href="login.html">Zur Anmeldung</a>
 </div>
 
 <div id="dashboard" class="hidden">
 <section class="panel">
-<h2>Clubinhaber-Dashboard</h2>
+<h2>Clubverwaltung</h2>
 <p id="account" class="muted"></p>
+<p id="accountRole"></p>
 <button id="logout">Abmelden</button>
 </section>
 
@@ -90,7 +67,7 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 <div class="card"><div class="number">15</div>Maximaler Kader</div>
 </div>
 
-<nav id="navigation">
+<nav>
 <button data-tab="overview" class="active">Übersicht</button>
 <button data-tab="roster">Kader</button>
 <button data-tab="games">Meine Spiele</button>
@@ -109,17 +86,16 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 <p class="muted">Mindestens 7 und maximal 15 aktive Spieler.</p>
 </section>
 
-<section class="panel hidden" data-section="games">
-<h2>Meine Spiele</h2>
-<p class="muted">Beide Clubs müssen spätestens 2 Stunden vor Anspiel bestätigen.</p>
-<button type="button" id="refreshGames">Spiele aktualisieren</button>
-<div id="gamesList" aria-live="polite">Lade Spiele...</div>
-</section>
-
 <section class="panel hidden" data-section="roster">
 <h2>Mein Kader</h2>
 <div id="rosterList">Lade Spieler...</div>
+</section>
 
+<section class="panel hidden" data-section="games">
+<h2>Meine Spiele</h2>
+<p class="muted">Beide Clubs müssen spätestens 2 Stunden vor Anspiel bestätigen.</p>
+<button id="refreshGames" type="button">Spiele aktualisieren</button>
+<div id="gamesList">Lade Spiele...</div>
 </section>
 
 <section class="panel hidden" data-section="requests">
@@ -137,672 +113,419 @@ footer{text-align:center;color:#95a7c1;padding:25px}
 <section class="panel hidden" data-section="logo">
 <h2>Clublogo</h2>
 <input type="file" id="clubLogoFile" accept="image/png,image/jpeg">
-<button type="button" onclick="uploadOwnerLogo()">Logo hochladen</button>
-
-<p>Maximal 2 eigene Logo-Uploads pro Saison.</p>
+<button type="button" id="uploadLogoButton">Logo hochladen</button>
+<p>Maximal 2 eigene Logoänderungen pro Saison.</p>
 <p>Danach kann nur die Ligaleitung das Logo ändern.</p>
 </section>
 
 <section class="panel hidden" data-section="gm">
-  <h2>GM-Verwaltung</h2>
-
-  <p class="muted">
-    Als Clubinhaber kannst du einen registrierten
-    Benutzer als General Manager ernennen oder
-    einen bestehenden GM entfernen.
-  </p>
-
-  <h3>Aktueller General Manager</h3>
-  <div id="gmList" aria-live="polite">
-    Lade GM...
-  </div>
-
-  <h3>GM ernennen</h3>
-  <label for="gmUserId">Benutzer-ID (UUID)</label>
-  <input
-    id="gmUserId"
-    type="text"
-    placeholder="Benutzer-ID eingeben"
-    autocomplete="off"
-    style="width:100%;padding:12px;margin:10px 0;
-           border-radius:8px;border:1px solid #365477;
-           background:#203351;color:white"
-  >
-
-  <button type="button" id="assignGmButton">
-    GM ernennen
-  </button>
-
-  <p id="gmStatus" role="status" class="muted"></p>
+<h2>GM-Verwaltung</h2>
+<p class="muted">Maximal 2 General Managers pro Club. Nur der Clubinhaber darf GMs ernennen und entfernen.</p>
+<h3>General Managers</h3>
+<p id="gmSlots">0 von 2 GM-Plätzen belegt</p>
+<div id="gmList">Lade General Managers...</div>
+<div id="gmOwnerControls">
+<h3>GM ernennen</h3>
+<label for="gmEmail">E-Mail-Adresse des registrierten Benutzers</label>
+<input id="gmEmail" type="email" placeholder="beispiel@email.ch" autocomplete="off">
+<button type="button" id="assignGmButton">GM ernennen</button>
+</div>
+<p id="gmStatus" role="status" class="muted"></p>
 </section>
 </div>
 </main>
 
 <footer>© Swiss NHL League | EST. 2022</footer>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL =
-  "https://avvsnfgdmamhabcyngds.supabase.co";
-
+"use strict";
+const SUPABASE_URL="https://avvsnfgdmamhabcyngds.supabase.co";
 const SUPABASE_KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+let currentClub=null,currentUser=null,isClubOwner=false;
+let gmBusy=false,gamesBusy=false,logoBusy=false;
 
-const client = window.supabase.createClient(
-  SUPABASE_URL,SUPABASE_KEY
-);
-
-const $ = id => document.getElementById(id);
-let currentClub = null;
-
-function deny(message){
+function message(text){$("status").textContent=text}
+function deny(text){
   $("loading").classList.add("hidden");
   $("dashboard").classList.add("hidden");
   $("denied").classList.remove("hidden");
-  $("deniedMessage").textContent = message;
+  $("deniedMessage").textContent=text;
 }
-
 function showTab(tab){
-  document.querySelectorAll("[data-tab]").forEach(b=>{
-    b.classList.toggle("active",b.dataset.tab===tab);
-  });
-  document.querySelectorAll("[data-section]").forEach(s=>{
-    s.classList.toggle("hidden",s.dataset.section!==tab);
-  });
+  document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  document.querySelectorAll("[data-section]").forEach(s=>s.classList.toggle("hidden",s.dataset.section!==tab));
+  if(tab==="gm")loadGms();
+  if(tab==="games")loadGames();
 }
-
 document.querySelectorAll("[data-tab]").forEach(b=>{
   b.onclick=()=>showTab(b.dataset.tab);
 });
 
-function showError(error){
-  $("status").textContent="Fehler: "+error.message;
+async function init(){
+  const {data:{user},error:authError}=await client.auth.getUser();
+  if(authError||!user){deny("Bitte zuerst einloggen.");return}
+  currentUser=user;
+
+  const {data:owned,error:ownerError}=await client.from("clubs")
+    .select("id,name,logo_url,owner_id")
+    .eq("owner_id",user.id).limit(1);
+  if(ownerError){deny("Clubprüfung fehlgeschlagen: "+ownerError.message);return}
+
+  if(owned?.length){
+    currentClub=owned[0];
+    isClubOwner=true;
+  }else{
+    const {data:managed,error:managerError}=await client.from("club_managers")
+      .select("club_id").eq("user_id",user.id).eq("role","gm").limit(1);
+    if(managerError){deny("GM-Zuordnung konnte nicht geprüft werden: "+managerError.message);return}
+    if(!managed?.length){deny("Deinem Konto ist noch kein Club zugeordnet.");return}
+
+    const {data:club,error:clubError}=await client.from("clubs")
+      .select("id,name,logo_url,owner_id")
+      .eq("id",managed[0].club_id).single();
+    if(clubError||!club){deny("Club konnte nicht geladen werden.");return}
+    currentClub=club;
+  }
+
+  $("account").textContent=user.email||"";
+  $("accountRole").textContent=isClubOwner?"Clubinhaber":"General Manager";
+  $("clubName").textContent=currentClub.name;
+  $("gmOwnerControls").classList.toggle("hidden",!isClubOwner);
+
+  if(currentClub.logo_url){
+    $("clubLogo").src=currentClub.logo_url;
+    $("clubLogo").classList.remove("hidden");
+  }
+  $("loading").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+  await Promise.all([loadRoster(),loadRequests(),loadGames()]);
 }
 
 async function loadRoster(){
-  const {data,error}=await client
-    .from("club_players")
+  const list=$("rosterList");
+  const {data,error}=await client.from("club_players")
     .select("user_id,is_active,joined_at")
-    .eq("club_id",currentClub.id)
-    .eq("is_active",true);
-
-  if(error){
-    showError(error);
-    $("rosterList").textContent="Kader konnte nicht geladen werden.";
-    return;
-  }
-
+    .eq("club_id",currentClub.id).eq("is_active",true);
+  if(error){list.textContent="Kader konnte nicht geladen werden: "+error.message;return}
   const players=data||[];
   $("playerCount").textContent=players.length;
-
-  $("rosterStatus").textContent=
-    players.length<7
-      ? "Es fehlen "+(7-players.length)+" Spieler zum Mindestkader."
-      : players.length>=15
-        ? "Kader vollständig belegt."
-        : "Mindestkader erreicht.";
-
-  const list=$("rosterList");
+  $("rosterStatus").textContent=players.length<7
+    ?`Es fehlen ${7-players.length} Spieler zum Mindestkader.`
+    :players.length>=15?"Kader vollständig belegt.":"Mindestkader erreicht.";
   list.replaceChildren();
+  if(!players.length){list.textContent="Noch keine aktiven Spieler.";return}
 
-  if(!players.length){
-    list.textContent="Noch keine aktiven Spieler.";
-    return;
+  const {data:profiles,error:profileError}=await client.from("player_profiles")
+    .select("user_id,first_name,last_name,psn_id,position,jersey_number,platform,xbox_gamertag")
+    .in("user_id",players.map(p=>p.user_id));
+  if(profileError){list.textContent="Spielerprofile konnten nicht geladen werden: "+profileError.message;return}
+  const map=new Map((profiles||[]).map(p=>[p.user_id,p]));
+
+  for(const player of players){
+    const profile=map.get(player.user_id);
+    const div=document.createElement("div");
+    div.className="item";
+    const name=document.createElement("strong");
+    const playerName=profile
+      ?[profile.first_name,profile.last_name].filter(Boolean).join(" ")||"Spieler"
+      :"Spielerprofil fehlt";
+    name.textContent=(profile?.jersey_number==null?"":"#"+profile.jersey_number+" · ")+playerName;
+    div.appendChild(name);
+
+    if(profile){
+      const info=document.createElement("p");
+      const platform=profile.platform||"PS5";
+      info.textContent="Plattform: "+platform+" | "+
+        (platform==="Xbox"?"Gamertag: ":"PSN: ")+
+        (platform==="Xbox"?profile.xbox_gamertag||"Nicht angegeben":profile.psn_id||"Nicht angegeben")+
+        " | Position: "+(profile.position||"Nicht angegeben");
+      div.appendChild(info);
+    }
+
+    const remove=document.createElement("button");
+    remove.type="button";
+    remove.className="danger";
+    remove.textContent="Spieler entfernen";
+    remove.onclick=async()=>{
+      if(!confirm(playerName+" wirklich aus dem Club entfernen?"))return;
+      remove.disabled=true;
+      const {error:e}=await client.rpc("release_club_player",{p_user_id:player.user_id});
+      if(e){message("Fehler: "+e.message);remove.disabled=false;return}
+      message("Spieler erfolgreich entfernt.");
+      await loadRoster();
+    };
+    div.appendChild(remove);
+    list.appendChild(div);
   }
-
- 
-const userIds = players.map(player => player.user_id);
-
-const { data: profiles, error: profileError } =
-  await client
-    .from("player_profiles")
-   
-.select("user_id,first_name,last_name,psn_id,position,jersey_number,platform,xbox_gamertag")
-
-    .in("user_id", userIds);
-
-if (profileError) {
-  showError(profileError);
-  list.textContent = "Spielerprofile konnten nicht geladen werden.";
-  return;
-}
-
-const profileMap = new Map(
-  (profiles || []).map(profile => [profile.user_id, profile])
-);
-
-players.forEach((player, index) => {
-  const profile = profileMap.get(player.user_id);
-  const div = document.createElement("div");
-  div.className = "item";
-
-  if (profile) {
-    const name = document.createElement("strong");
-    name.textContent =
-      (profile.jersey_number == null
-        ? ""
-        : "#" + profile.jersey_number + " · ") +
-      profile.first_name + " " + profile.last_name;
-
-  
-      
-const details = document.createElement("p");
-
-const platform = profile.platform || "PS5";
-
-const gamerName = platform === "Xbox"
-  ? (profile.xbox_gamertag || "Nicht angegeben")
-  : (profile.psn_id || "Nicht angegeben");
-
-details.textContent =
-  "Plattform: " + platform +
-  " | " +
-  (platform === "Xbox" ? "Gamertag: " : "PSN: ") +
-  gamerName +
-  " | Position: " +
-  (profile.position || "Nicht angegeben");
-
-
-    div.append(name, details);
-  } else {
-    div.textContent = "Spieler " + (index + 1) +
-      " · Profil noch nicht vorhanden";
-  }
-
-
-const removeButton = document.createElement("button");
-
-removeButton.textContent = "Spieler entfernen";
-removeButton.type = "button";
-removeButton.style.background = "#a33545";
-removeButton.style.marginTop = "12px";
-
-removeButton.onclick = async () => {
-  const playerName = profile
-    ? profile.first_name + " " + profile.last_name
-    : "diesen Spieler";
-
-  if (!confirm(
-    "Möchtest du " + playerName +
-    " wirklich aus deinem Club entfernen?"
-  )) return;
-
-  removeButton.disabled = true;
-
-  const { error } = await client.rpc(
-    "release_club_player",
-    { p_user_id: player.user_id }
-  );
-
-  if (error) {
-    showError(error);
-    removeButton.disabled = false;
-    return;
-  }
-
-  alert("Spieler erfolgreich entfernt.");
-  await loadRoster();
-};
-
-div.appendChild(removeButton);
-  list.appendChild(div);
-});
-
 }
 
 async function loadRequests(){
   const list=$("requestList");
   list.textContent="Lade Spieleranfragen...";
-
-  const {data,error}=await client
-    .from("player_requests")
+  const {data,error}=await client.from("player_requests")
     .select("id,user_id,status,created_at")
-    .eq("club_id",currentClub.id)
-    .eq("status","pending")
+    .eq("club_id",currentClub.id).eq("status","pending")
     .order("created_at",{ascending:true});
-
-  if(error){
-    list.textContent="Fehler: "+error.message;
-    return;
-  }
-
+  if(error){list.textContent="Fehler: "+error.message;return}
   list.replaceChildren();
+  if(!data?.length){list.textContent="Keine offenen Spieleranfragen.";return}
 
-  if(!data||!data.length){
-    list.textContent="Keine offenen Spieleranfragen.";
-    return;
-  }
-
-  data.forEach(request=>{
+  for(const request of data){
     const div=document.createElement("div");
     div.className="item";
-
     const label=document.createElement("p");
     label.textContent="Spieler-ID: "+request.user_id;
-
     const actions=document.createElement("div");
     actions.className="actions";
-
-    const accept=document.createElement("button");
-    accept.textContent="Annehmen";
-
-    const reject=document.createElement("button");
-    reject.textContent="Ablehnen";
-    reject.className="danger";
-
-    accept.onclick=()=>reviewRequest(request.id,true);
-    reject.onclick=()=>reviewRequest(request.id,false);
-
-    actions.append(accept,reject);
+    for(const approve of [true,false]){
+      const btn=document.createElement("button");
+      btn.type="button";
+      btn.textContent=approve?"Annehmen":"Ablehnen";
+      if(!approve)btn.className="danger";
+      btn.onclick=()=>reviewRequest(request.id,approve);
+      actions.appendChild(btn);
+    }
     div.append(label,actions);
     list.appendChild(div);
-  });
+  }
 }
 
 async function reviewRequest(id,approve){
-  const message=approve
-    ? "Spieler wirklich aufnehmen?"
-    : "Spieleranfrage wirklich ablehnen?";
-
-  if(!confirm(message))return;
-
-  $("status").textContent="Anfrage wird bearbeitet...";
-
-  const {data,error}=await client.rpc(
-    "review_player_request",
-    {
-      p_request_id:id,
-      p_approve:approve
-    }
-  );
-
-  if(error){
-    showError(error);
-    return;
-  }
-
-  $("status").textContent=data||"Anfrage bearbeitet.";
-  await loadRequests();
-  await loadRoster();
+  if(!confirm(approve?"Spieler wirklich aufnehmen?":"Spieleranfrage wirklich ablehnen?"))return;
+  message("Anfrage wird bearbeitet...");
+  const {data,error}=await client.rpc("review_player_request",{
+    p_request_id:id,p_approve:approve
+  });
+  if(error){message("Fehler: "+error.message);return}
+  message(typeof data==="string"?data:"Anfrage bearbeitet.");
+  await Promise.all([loadRequests(),loadRoster()]);
 }
 
-// Spielbestätigungen: Nur eigene Spiele anzeigen; die Datenbank prüft die Rechte.
-let gamesBusy = false;
-const formatGameTime = value => new Intl.DateTimeFormat('de-CH', {
-  timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric',
-  hour: '2-digit', minute: '2-digit'
+const formatGameTime=value=>new Intl.DateTimeFormat("de-CH",{
+  timeZone:"Europe/Zurich",day:"2-digit",month:"2-digit",year:"numeric",
+  hour:"2-digit",minute:"2-digit"
 }).format(new Date(value));
 
 async function loadGames(){
-  if (!currentClub || gamesBusy) return;
-  const list = $('gamesList');
-  list.textContent = 'Lade Spiele...';
-  const {data, error} = await client.from('games').select(
-    'id,home_club_id,away_club_id,scheduled_at,status,game_mode,home_confirmed_at,away_confirmed_at'
-  ).or(`home_club_id.eq.${currentClub.id},away_club_id.eq.${currentClub.id}`)
-   .order('scheduled_at', {ascending:true}).limit(100);
-  if (error){ list.textContent = 'Spiele konnten nicht geladen werden: ' + error.message; return; }
+  if(!currentClub||gamesBusy)return;
+  const list=$("gamesList");
+  list.textContent="Lade Spiele...";
+  const {data,error}=await client.from("games")
+    .select("id,home_club_id,away_club_id,scheduled_at,status,game_mode,home_confirmed_at,away_confirmed_at")
+    .or(`home_club_id.eq.${currentClub.id},away_club_id.eq.${currentClub.id}`)
+    .order("scheduled_at",{ascending:true}).limit(100);
+  if(error){list.textContent="Spiele konnten nicht geladen werden: "+error.message;return}
   list.replaceChildren();
-  if (!data?.length){ list.textContent = 'Noch keine Spiele für deinen Club vorhanden.'; return; }
+  if(!data?.length){list.textContent="Noch keine Spiele für deinen Club vorhanden.";return}
 
-  const clubIds = [...new Set(data.flatMap(g=>[g.home_club_id,g.away_club_id]))];
-  const {data:clubs, error:clubError} = await client.from('clubs').select('id,name,logo_url').in('id',clubIds);
-  const clubMap = new Map((clubs||[]).map(c=>[c.id,c]));
-  if (clubError) $('status').textContent = 'Clubnamen konnten nicht vollständig geladen werden.';
+  const ids=[...new Set(data.flatMap(g=>[g.home_club_id,g.away_club_id]))];
+  const {data:clubs}=await client.from("clubs")
+    .select("id,name,logo_url").in("id",ids);
+  const map=new Map((clubs||[]).map(c=>[c.id,c]));
 
-  for (const game of data){
-    const isHome = game.home_club_id === currentClub.id;
-    const mine = isHome ? game.home_confirmed_at : game.away_confirmed_at;
-    const other = isHome ? game.away_confirmed_at : game.home_confirmed_at;
-    const allowedStatus = ['scheduled','confirmed'].includes(game.status);
-    const validTime = game.scheduled_at && !Number.isNaN(new Date(game.scheduled_at).getTime());
-    const inTime = validTime && new Date(game.scheduled_at).getTime() - Date.now() >= 2*60*60*1000;
-    const item = document.createElement('div'); item.className = 'item game-item';
-    
-const home = clubMap.get(game.home_club_id);
-const away = clubMap.get(game.away_club_id);
+  for(const game of data){
+    const home=map.get(game.home_club_id);
+    const away=map.get(game.away_club_id);
+    const isHome=game.home_club_id===currentClub.id;
+    const mine=isHome?game.home_confirmed_at:game.away_confirmed_at;
+    const other=isHome?game.away_confirmed_at:game.home_confirmed_at;
+    const valid=game.scheduled_at&&!Number.isNaN(new Date(game.scheduled_at).getTime());
+    const inTime=valid&&new Date(game.scheduled_at).getTime()-Date.now()>=7200000;
+    const allowed=["scheduled","confirmed"].includes(game.status);
 
-const matchup = document.createElement('div');
-matchup.className = 'matchup';
+    const item=document.createElement("div");
+    item.className="item";
+    const matchup=document.createElement("div");
+    matchup.className="matchup";
 
-function createClubDisplay(club, fallback) {
-  const box = document.createElement('div');
-  box.className = 'match-club';
+    function clubDisplay(club,fallback){
+      const box=document.createElement("div");
+      box.className="match-club";
+      if(club?.logo_url){
+        const img=document.createElement("img");
+        img.src=club.logo_url;
+        img.alt="Clublogo";
+        img.className="match-logo";
+        img.loading="lazy";
+        box.appendChild(img);
+      }
+      const name=document.createElement("strong");
+      name.textContent=club?.name||fallback;
+      box.appendChild(name);
+      return box;
+    }
+    const vs=document.createElement("strong");
+    vs.className="match-vs";
+    vs.textContent="VS";
+    matchup.append(clubDisplay(home,"Heimclub"),vs,clubDisplay(away,"Auswärtsclub"));
 
-  if (club?.logo_url) {
-    const img = document.createElement('img');
-    img.src = club.logo_url;
-    img.alt = 'Clublogo';
-    img.className = 'match-logo';
-    img.loading = 'lazy';
-    box.appendChild(img);
-  }
+    const meta=document.createElement("p");
+    meta.textContent="Spielbeginn: "+(valid?formatGameTime(game.scheduled_at):"Nicht festgelegt")+
+      " (Schweiz) · Modus: "+(game.game_mode||"–")+" · Status: "+(game.status||"–");
+    const state=document.createElement("p");
+    state.textContent="Dein Club: "+(mine?"Bestätigt":"Offen")+
+      " · Gegner: "+(other?"Bestätigt":"Offen");
+    item.append(matchup,meta,state);
 
-  const name = document.createElement('strong');
-  name.textContent = club?.name || fallback;
-  box.appendChild(name);
-
-  return box;
-}
-
-const vs = document.createElement('strong');
-vs.className = 'match-vs';
-vs.textContent = 'VS';
-
-matchup.append(
-  createClubDisplay(home, 'Heimclub'),
-  vs,
-  createClubDisplay(away, 'Auswärtsclub')
-);
-
-const meta = document.createElement('p');
-meta.textContent =
-  `Spielbeginn: ${
-    validTime
-      ? formatGameTime(game.scheduled_at)
-      : 'Nicht festgelegt'
-  } (Schweiz) · Modus: ${
-    game.game_mode || '–'
-  } · Status: ${game.status || '–'}`;
-
-const state = document.createElement('p');
-state.textContent =
-  `Dein Club: ${mine ? 'Bestätigt' : 'Offen'}` +
-  ` · Gegner: ${other ? 'Bestätigt' : 'Offen'}`;
-
-item.append(matchup, meta, state);
-
-    if (!mine && allowedStatus){
-      const button = document.createElement('button'); button.type='button';
-      button.textContent = inTime ? 'Spieltermin bestätigen' : 'Bestätigungsfrist abgelaufen';
-      button.disabled = !inTime;
-      button.onclick = async()=>{
-        if (gamesBusy || !confirm('Diesen Spieltermin verbindlich bestätigen?')) return;
-        gamesBusy=true; button.disabled=true; $('status').textContent='Bestätigung wird geprüft...';
-        try {
-          const {error:rpcError} = await client.rpc('club_confirm_game',{p_game_id:game.id});
-          if (rpcError) throw rpcError;
-          $('status').textContent='Spielbestätigung gespeichert.';
-        } catch(e){ $('status').textContent='Bestätigung fehlgeschlagen: '+e.message; }
-        finally {gamesBusy=false; await loadGames();}
+    if(!mine&&allowed){
+      const button=document.createElement("button");
+      button.type="button";
+      button.textContent=inTime?"Spieltermin bestätigen":"Bestätigungsfrist abgelaufen";
+      button.disabled=!inTime;
+      button.onclick=async()=>{
+        if(gamesBusy||!confirm("Diesen Spieltermin verbindlich bestätigen?"))return;
+        gamesBusy=true;
+        button.disabled=true;
+        message("Bestätigung wird geprüft...");
+        try{
+          const {error:e}=await client.rpc("club_confirm_game",{p_game_id:game.id});
+          if(e)throw e;
+          message("Spielbestätigung gespeichert.");
+        }catch(e){message("Bestätigung fehlgeschlagen: "+e.message)}
+        finally{gamesBusy=false;await loadGames()}
       };
       item.appendChild(button);
     }
     list.appendChild(item);
   }
 }
-$('refreshGames').onclick = loadGames;
 
-/* Swiss NHL League
-   Schritt 416.36L.98MU
-   GM-Verwaltung
-*/
+function gmMessage(text){$("gmStatus").textContent=text}
 
-let gmBusy = false;
-
-function gmMessage(message) {
-  $("gmStatus").textContent = message;
-}
-
-async function loadGms() {
-  if (!currentClub?.id) return;
-
-  const list = $("gmList");
-  list.textContent = "Lade GM...";
-
-  const { data, error } = await client.rpc(
-    "snhl_list_club_gms",
-    { p_club_id: currentClub.id }
-  );
-
-  if (error) {
-    list.textContent =
-      "GM konnte nicht geladen werden: " +
-      error.message;
+async function loadGms(){
+  if(!currentClub?.id)return;
+  const list=$("gmList");
+  list.textContent="Lade General Managers...";
+  const {data,error}=await client.rpc("snhl_list_club_gms",{
+    p_club_id:currentClub.id
+  });
+  if(error){
+    list.textContent="GM-Liste konnte nicht geladen werden: "+error.message;
     return;
   }
-
+  const gms=data||[];
   list.replaceChildren();
+  $("gmSlots").textContent=gms.length+" von 2 GM-Plätzen belegt";
+  $("gmOwnerControls").classList.toggle("hidden",!isClubOwner);
+  $("assignGmButton").disabled=!isClubOwner||gms.length>=2;
 
-  if (!data?.length) {
-    list.textContent =
-      "Für diesen Club ist noch kein GM eingetragen.";
+  if(!gms.length){
+    list.textContent="Noch keine General Managers eingetragen.";
     return;
   }
 
-  for (const gm of data) {
-    const item = document.createElement("div");
-    item.className = "item";
+  for(const gm of gms){
+    const item=document.createElement("div");
+    item.className="item";
+    const label=document.createElement("p");
+    label.textContent="General Manager · Benutzer-ID: "+gm.user_id;
+    item.appendChild(label);
 
-    const label = document.createElement("p");
-    label.textContent =
-      "General Manager · Benutzer-ID: " +
-      gm.user_id;
-
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "danger";
-    remove.textContent = "GM entfernen";
-
-    remove.onclick = async () => {
-      if (gmBusy) return;
-
-      if (!confirm(
-        "Diesen General Manager wirklich entfernen?"
-      )) return;
-
-      gmBusy = true;
-      remove.disabled = true;
-
-      try {
-        const { error: removeError } =
-          await client.rpc(
-            "snhl_remove_club_gm",
-            {
-              p_club_id: currentClub.id,
-              p_user_id: gm.user_id
-            }
-          );
-
-        if (removeError) throw removeError;
-
-        gmMessage("GM erfolgreich entfernt.");
-        await loadGms();
-      } catch (err) {
-        gmMessage("Fehler: " + err.message);
-      } finally {
-        gmBusy = false;
-        remove.disabled = false;
-      }
-    };
-
-    item.append(label, remove);
+    if(isClubOwner){
+      const remove=document.createElement("button");
+      remove.type="button";
+      remove.className="danger";
+      remove.textContent="GM entfernen";
+      remove.onclick=async()=>{
+        if(gmBusy||!confirm("Diesen General Manager wirklich entfernen?"))return;
+        gmBusy=true;
+        remove.disabled=true;
+        try{
+          const {error:e}=await client.rpc("snhl_remove_club_gm",{
+            p_club_id:currentClub.id,p_user_id:gm.user_id
+          });
+          if(e)throw e;
+          gmMessage("GM erfolgreich entfernt.");
+          await loadGms();
+        }catch(e){gmMessage("Fehler: "+e.message)}
+        finally{gmBusy=false;remove.disabled=false}
+      };
+      item.appendChild(remove);
+    }
     list.appendChild(item);
   }
 }
 
-$("assignGmButton").onclick = async () => {
-  if (gmBusy || !currentClub?.id) return;
-
-  const userId = $("gmUserId").value.trim();
-
-  const uuidPattern =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-  if (!uuidPattern.test(userId)) {
-    gmMessage("Bitte eine gültige Benutzer-ID eingeben.");
+$("assignGmButton").onclick=async()=>{
+  if(gmBusy||!currentClub?.id||!isClubOwner)return;
+  const email=$("gmEmail").value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    gmMessage("Bitte eine gültige E-Mail-Adresse eingeben.");
     return;
   }
-
-  if (!confirm(
-    "Diesen Benutzer als General Manager ernennen?"
-  )) return;
-
-  gmBusy = true;
-  $("assignGmButton").disabled = true;
-
-  try {
-    const { error } = await client.rpc(
-      "snhl_assign_club_gm",
-      {
-        p_club_id: currentClub.id,
-        p_user_id: userId
-      }
-    );
-
-    if (error) throw error;
-
-    $("gmUserId").value = "";
-    gmMessage("General Manager erfolgreich ernannt.");
+  if(!confirm(email+" als General Manager ernennen?"))return;
+  gmBusy=true;
+  $("assignGmButton").disabled=true;
+  gmMessage("GM wird ernannt...");
+  try{
+    const {error}=await client.rpc("snhl_assign_club_gm_by_email",{
+      p_club_id:currentClub.id,p_email:email
+    });
+    if(error)throw error;
+    $("gmEmail").value="";
+    gmMessage("GM erfolgreich ernannt.");
     await loadGms();
-  } catch (err) {
-    gmMessage("Fehler: " + err.message);
-  } finally {
-    gmBusy = false;
-    $("assignGmButton").disabled = false;
+  }catch(e){gmMessage("Fehler: "+e.message)}
+  finally{
+    gmBusy=false;
+    if(isClubOwner)await loadGms();
   }
 };
 
-document.querySelector(
-  '[data-tab="gm"]'
-).addEventListener("click", loadGms);
-
-async function init(){
-  if(SUPABASE_KEY==="DEIN_PUBLISHABLE_KEY"){
-    deny("Bitte zuerst den Supabase Publishable Key eintragen.");
+async function uploadOwnerLogo(){
+  if(logoBusy||!currentClub?.id)return;
+  const file=$("clubLogoFile").files[0];
+  if(!file){alert("Bitte zuerst ein Logo auswählen.");return}
+  if(!["image/png","image/jpeg"].includes(file.type)||
+     file.size<8||file.size>2*1024*1024){
+    alert("Nur PNG/JPEG bis 2 MB erlaubt.");
     return;
   }
-
-  const {data:{user},error:authError}=
-    await client.auth.getUser();
-
-  if(authError||!user){
-    deny("Bitte zuerst einloggen.");
-    return;
+  const {data,error}=await client.auth.getSession();
+  const token=data?.session?.access_token;
+  if(error||!token){alert("Bitte erneut anmelden.");return}
+  const form=new FormData();
+  form.append("club_id",currentClub.id);
+  form.append("file",file);
+  logoBusy=true;
+  $("uploadLogoButton").disabled=true;
+  try{
+    const response=await fetch(SUPABASE_URL+"/functions/v1/upload-club-logo",{
+      method:"POST",
+      headers:{Authorization:"Bearer "+token},
+      body:form
+    });
+    const result=await response.json();
+    if(!response.ok){
+      const reason=result.reason||result.error||"Unbekannter Fehler";
+      if(reason.includes("LIMIT_REACHED")){
+        alert("Upload-Limit erreicht!\n\nDu hast deine 2 erlaubten Clublogo-Uploads für diese Saison bereits verwendet.\n\nBitte kontaktiere die Ligaleitung.");
+      }else{
+        alert("Logo-Upload fehlgeschlagen: "+reason);
+      }
+      return;
+    }
+    alert(result.already_current?"Dieses Logo ist bereits aktuell.":"Clublogo erfolgreich hochgeladen!");
+    location.reload();
+  }catch(e){
+    console.error(e);
+    alert("Verbindungsfehler beim Logo-Upload.");
+  }finally{
+    logoBusy=false;
+    $("uploadLogoButton").disabled=false;
   }
-
-  const {data:clubs,error}=await client
-    .from("clubs")
-    .select("id,name,logo_url,owner_id")
-    .eq("owner_id",user.id)
-    .limit(1);
-
-  if(error){
-    deny("Club konnte nicht geladen werden: "+error.message);
-    return;
-  }
-
-  if(!clubs||!clubs.length){
-    deny("Deinem Konto ist noch kein Club zugeordnet.");
-    return;
-  }
-
-  currentClub=clubs[0];
-  $("account").textContent=user.email||"";
-  $("clubName").textContent=currentClub.name;
-
-  if(currentClub.logo_url){
-    $("clubLogo").src=currentClub.logo_url;
-    $("clubLogo").classList.remove("hidden");
-  }
-
-  $("loading").classList.add("hidden");
-  $("dashboard").classList.remove("hidden");
-
-  await Promise.all([loadRoster(),loadRequests(),loadGames()]);
 }
 
+$("uploadLogoButton").onclick=uploadOwnerLogo;
+$("refreshGames").onclick=loadGames;
 $("logout").onclick=async()=>{
   await client.auth.signOut();
   location.href="login.html";
 };
-
-init().catch(error=>deny(error.message));
-
-async function uploadOwnerLogo() {
-  const file = document.getElementById("clubLogoFile").files[0];
-
-  if (!file) {
-    alert("Bitte zuerst ein Logo auswählen.");
-    return;
-  }
-
-  if (!["image/png", "image/jpeg"].includes(file.type) ||
-      file.size > 2 * 1024 * 1024) {
-    alert("Nur PNG/JPEG bis 2 MB erlaubt.");
-    return;
-  }
-
-  if (!currentClub?.id) {
-    alert("Kein eigener Club gefunden.");
-    return;
-  }
-
-  const { data, error } = await client.auth.getSession();
-  const token = data?.session?.access_token;
-
-  if (error || !token) {
-    alert("Bitte erneut anmelden.");
-    return;
-  }
-
-  const form = new FormData();
-  form.append("club_id", currentClub.id);
-  form.append("file", file);
-
-  try {
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/upload-club-logo`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: form
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      
-
-
-
-if (result.error === "FINALIZE_FAILED") {
-  if (result.reason === "LIMIT_REACHED") {
-    alert(
-      "Upload-Limit erreicht!\n\n" +
-      "Du hast deine 2 erlaubten Clublogo-Uploads " +
-      "für diese Saison bereits verwendet.\n\n" +
-      "Für weitere Änderungen kontaktiere " +
-      "bitte die Ligaleitung."
-    );
-  } else {
-    alert(
-      "Logo-Upload fehlgeschlagen.\n" +
-      "Fehlergrund: " +
-      (result.reason || "Unbekannter Fehler")
-    );
-  }
-} else {
-  alert(
-    "Logo-Upload fehlgeschlagen: " +
-    (result.error || "Unbekannter Fehler")
-  );
-}
-
-
-
-      return;
-    }
-
-    alert("Clublogo erfolgreich hochgeladen!");
-    location.reload();
-  } catch (err) {
-    alert("Verbindungsfehler beim Logo-Upload.");
-    console.error(err);
-  }
-}
+init().catch(e=>deny(e.message));
 </script>
 </body>
 </html>
+
