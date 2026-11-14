@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Transfer-Sicherheitstest</title>
+<style>
+body{
+ background:#07101d;
+ color:white;
+ font-family:Arial,sans-serif;
+ margin:0;
+ padding:24px;
+}
+main{max-width:600px;margin:auto}
+.card{
+ background:#142139;
+ border:1px solid #365477;
+ border-radius:15px;
+ padding:22px;
+}
+button{
+ background:#397cf4;
+ color:white;
+ border:0;
+ border-radius:9px;
+ padding:15px;
+ font-weight:bold;
+ width:100%;
+ margin:15px 0;
+}
+button:disabled{opacity:.5}
+#result{
+ background:#203351;
+ padding:15px;
+ border-radius:9px;
+ overflow-wrap:anywhere;
+ white-space:pre-wrap;
+}
+a{color:#8dbaff}
+</style>
+</head>
+<body>
+<main>
+<h1>Swiss NHL League</h1>
+<div class="card">
+<h2>Transfer-Sicherheitstest</h2>
+<p id="account">Prüfe Anmeldung...</p>
+<p>Dieser Test verwendet eine ungültige Transfer-ID.</p>
+<p>Es wird kein Spieler verschoben.</p>
+<button id="test" disabled>
+Berechtigung testen
+</button>
+<div id="result">Noch kein Test ausgeführt.</div>
+<p><a href="login.html">Zur Anmeldung</a></p>
+</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const url="https://avvsnfgdmamhabcyngds.supabase.co";
+const key="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+const client=window.supabase.createClient(url,key);
+const button=document.getElementById("test");
+const result=document.getElementById("result");
+const account=document.getElementById("account");
+
+async function init(){
+ const {data:{user},error}=await client.auth.getUser();
+ if(error||!user){
+  account.textContent="Nicht angemeldet.";
+  return;
+ }
+ account.textContent="Angemeldet: "+user.email;
+ button.disabled=false;
+}
+
+button.onclick=async()=>{
+ button.disabled=true;
+ result.textContent="Prüfung läuft...";
+
+ try{
+  const {data:{session},error}=await client.auth.getSession();
+  if(error||!session)throw Error("LOGIN_REQUIRED");
+
+  const response=await fetch(
+   url+"/functions/v1/complete-club-transfer",
+   {
+    method:"POST",
+    headers:{
+     "Content-Type":"application/json",
+     "apikey":key,
+     "Authorization":"Bearer "+session.access_token
+    },
+    body:JSON.stringify({
+     request_id:"00000000-0000-0000-0000-000000000000"
+    })
+   }
+  );
+
+  const data=await response.json();
+
+  result.textContent=
+   "HTTP: "+response.status+"\n"+
+   JSON.stringify(data,null,2);
+
+ }catch(error){
+  result.textContent="Fehler: "+error.message;
+ }finally{
+  button.disabled=false;
+ }
+};
+
+init();
+</script>
+</body>
+</html>
