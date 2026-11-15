@@ -257,11 +257,10 @@ async function init(){
     currentClub=owned[0];
     isClubOwner=true;
   }else{
-    const {data:managed,error:managerError}=
-      await client.from("club_managers")
-      .select("club_id")
-      .eq("user_id",user.id)
-      .eq("role","gm").limit(1);
+  
+const {data:managed,error:managerError}=
+  await client.rpc("snhl_my_managed_club");
+
 
     if(managerError){
       deny("GM-Zuordnung konnte nicht geprüft werden: "+managerError.message);
