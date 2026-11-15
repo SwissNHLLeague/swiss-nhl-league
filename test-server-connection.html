@@ -1,0 +1,244 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swiss NHL League – Serververbindung</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 24px;
+  background: #07101f;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  text-align: center;
+  padding: 28px 0;
+  border-bottom: 3px solid #477def;
+}
+
+h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+h1 span { color: #477def; }
+
+main {
+  max-width: 600px;
+  margin: 45px auto;
+  padding: 25px;
+  background: #152139;
+  border: 1px solid #405779;
+  border-radius: 16px;
+}
+
+h2 { margin-top: 0; }
+
+button {
+  width: 100%;
+  padding: 17px;
+  background: #477def;
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: bold;
+}
+
+button:disabled { opacity: 0.5; }
+
+pre {
+  background: #243451;
+  padding: 18px;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+a { color: #91b8ff; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>SWISS <span>NHL</span> LEAGUE</h1>
+  <p>NHL 27 | PLAYSTATION 5</p>
+</header>
+
+<main>
+  <h2>Server-Verbindungstest</h2>
+
+  <p id="account">Anmeldung wird geprüft...</p>
+
+  <button id="test" disabled>
+    Serververbindung testen
+  </button>
+
+  <pre id="result">Bereit zur Prüfung.</pre>
+
+  <p>
+    <a href="login.html">Zur Anmeldung</a>
+  </p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+"use strict";
+
+const url =
+  "https://avvsnfgdmamhabcyngds.supabase.co";
+
+const account =
+  document.getElementById("account");
+
+const button =
+  document.getElementById("test");
+
+const result =
+  document.getElementById("result");
+
+let client = null;
+let publicKey = null;
+
+async function loadExistingPublicKey() {
+  const response = await fetch(
+    "./transfer-security-test.html?config=" +
+      Date.now(),
+    { cache: "no-store" }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Bestehende Testseite nicht erreichbar"
+    );
+  }
+
+  const html = await response.text();
+
+  // Liest den öffentlichen Schlüssel aus
+  // der bestehenden Testseite.
+  const match = html.match(
+    /\b(?:const|let|var)\s+key\s*=\s*["']([^"']+)["']/
+  );
+
+  if (!match) {
+    throw new Error(
+      "Öffentlicher Schlüssel nicht gefunden"
+    );
+  }
+
+  const key = match[1];
+
+  if (
+    key.startsWith("sb_secret_") ||
+    key.includes("SERVICE_ROLE") ||
+    key.includes("HIER_")
+  ) {
+    throw new Error(
+      "Kein gültiger öffentlicher Schlüssel"
+    );
+  }
+
+  return key;
+}
+
+async function init() {
+  try {
+    publicKey = await loadExistingPublicKey();
+
+    client = supabase.createClient(
+      url,
+      publicKey
+    );
+
+    const {
+      data: { user },
+      error
+    } = await client.auth.getUser();
+
+    if (error || !user) {
+      account.textContent =
+        "Nicht angemeldet";
+
+      result.textContent =
+        "Bitte zuerst anmelden.";
+      return;
+    }
+
+    account.textContent =
+      "Angemeldet: " + user.email;
+
+    button.disabled = false;
+
+  } catch (error) {
+    account.textContent =
+      "Konfiguration nicht bereit";
+
+    result.textContent =
+      "Fehler: " + error.message;
+  }
+}
+
+button.onclick = async function () {
+  button.disabled = true;
+
+  result.textContent =
+    "Serververbindung wird geprüft...";
+
+  try {
+    const {
+      data: { session },
+      error
+    } = await client.auth.getSession();
+
+    if (error || !session) {
+      throw new Error("LOGIN_REQUIRED");
+    }
+
+    const response = await fetch(
+      url +
+        "/functions/v1/test-server-connection",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+          "apikey": publicKey,
+          "Authorization":
+            "Bearer " +
+            session.access_token
+        },
+        body: JSON.stringify({})
+      }
+    );
+
+    const data = await response.json();
+
+    result.textContent =
+      "HTTP: " + response.status +
+      "\n" +
+      JSON.stringify(data, null, 2);
+
+  } catch (error) {
+    result.textContent =
+      "Fehler: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+};
+
+init();
+</script>
+
+</body>
+</html>
