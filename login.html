@@ -7,35 +7,71 @@
 <title>Login | Swiss NHL League</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#07101d;color:white;font-family:Arial,sans-serif}
-header{padding:24px;text-align:center;background:#11243e;border-bottom:2px solid #087cff}
+body{
+  margin:0;background:#07101d;color:white;
+  font-family:Arial,sans-serif
+}
+header{
+  padding:24px;text-align:center;
+  background:#11243e;border-bottom:2px solid #087cff
+}
 h1{margin:0;font-size:27px}
 h1 span{color:#1683ff}
-header p{font-size:12px;letter-spacing:3px;color:#b6c8dd}
-main{max-width:430px;margin:45px auto;padding:20px}
-.panel{background:#101d30;border:1px solid #294c72;border-radius:14px;padding:25px}
+header p{
+  font-size:12px;letter-spacing:3px;color:#b6c8dd
+}
+main{max-width:460px;margin:45px auto;padding:20px}
+.panel{
+  background:#101d30;border:1px solid #294c72;
+  border-radius:14px;padding:25px
+}
 h2{text-align:center;margin-top:0}
 .tabs{display:flex;gap:10px;margin-bottom:25px}
 button{cursor:pointer;font:inherit}
-.tab{flex:1;padding:12px;background:#192b43;color:white;border:1px solid #34516e;border-radius:7px}
-.tab.active,.submit{background:#087cff;color:white;border:0}
+.tab{
+  flex:1;padding:12px;background:#192b43;
+  color:white;border:1px solid #34516e;border-radius:7px
+}
+.tab.active,.submit{
+  background:#087cff;color:white;border:0
+}
 label{display:block;margin:16px 0 7px}
-input,select{width:100%;padding:13px;border-radius:7px;border:1px solid #46617d;background:#071321;color:white;font-size:16px}
-.submit{width:100%;padding:14px;border-radius:7px;margin-top:22px;font-weight:bold}
+input,select{
+  width:100%;padding:13px;border-radius:7px;
+  border:1px solid #46617d;background:#071321;
+  color:white;font-size:16px
+}
+.submit{
+  width:100%;padding:14px;border-radius:7px;
+  margin-top:22px;font-weight:bold
+}
 .submit:disabled{opacity:.6}
-#message{margin-top:20px;line-height:1.5;text-align:center;overflow-wrap:anywhere}
+#message{
+  margin-top:20px;line-height:1.5;
+  text-align:center;overflow-wrap:anywhere
+}
 #sessionArea{display:none;text-align:center}
 #sessionEmail{overflow-wrap:anywhere;color:#b6c8dd}
-#logoutBtn{background:#192b43;color:white;border:1px solid #46617d;border-radius:7px;padding:13px;width:100%;margin-top:15px}
+#logoutBtn{
+  background:#192b43;color:white;
+  border:1px solid #46617d;border-radius:7px;
+  padding:13px;width:100%;margin-top:15px
+}
+.hint{color:#b6c8dd;font-size:13px;line-height:1.5}
 a{color:#65adff}
-footer{text-align:center;padding:20px;font-size:12px;color:#8ba3bc}
+footer{
+  text-align:center;padding:20px;
+  font-size:12px;color:#8ba3bc
+}
 </style>
 </head>
 <body>
+
 <header>
 <h1>SWISS <span>NHL</span> LEAGUE</h1>
-<p>NHL 27 | PLAYSTATION 5</p>
+<p>NHL 27 | PLAYSTATION 5 & XBOX</p>
 </header>
+
 <main>
 <div class="panel">
 <h2 id="heading">Login</h2>
@@ -43,52 +79,93 @@ footer{text-align:center;padding:20px;font-size:12px;color:#8ba3bc}
 <div id="sessionArea">
   <p>Du bist angemeldet als:</p>
   <p id="sessionEmail"></p>
-  <button id="logoutBtn" type="button">Abmelden</button>
+  <button id="logoutBtn" type="button">
+    Abmelden
+  </button>
 </div>
 
 <div id="authArea">
 <div class="tabs">
-<button class="tab active" id="loginTab" type="button">Login</button>
-<button class="tab" id="registerTab" type="button">Registrieren</button>
+  <button class="tab active" id="loginTab"
+    type="button">Login</button>
+  <button class="tab" id="registerTab"
+    type="button">Registrieren</button>
 </div>
 
 <form id="authForm">
+
 <div id="nameFields" style="display:none">
-<label for="firstName">Vorname</label>
-<input id="firstName" type="text" autocomplete="given-name">
-<label for="lastName">Nachname</label>
-<input id="lastName" type="text" autocomplete="family-name">
+  <label for="firstName">Vorname *</label>
+  <input id="firstName" type="text"
+    maxlength="100" autocomplete="given-name">
+
+  <label for="lastName">Nachname *</label>
+  <input id="lastName" type="text"
+    maxlength="100" autocomplete="family-name">
 </div>
 
-<label for="email">E-Mail-Adresse</label>
-<input id="email" type="email" autocomplete="email" required>
+<label for="email">E-Mail-Adresse *</label>
+<input id="email" type="email"
+  autocomplete="email" required>
 
-<label for="password">Passwort</label>
-<input id="password" type="password" minlength="12" autocomplete="current-password" required>
+<label for="password">Passwort *</label>
+<input id="password" type="password"
+  minlength="12" autocomplete="current-password"
+  required>
 
-<div id="platformFields" style="display:none">
-<label for="platform">Gaming-Plattform</label>
-<select id="platform">
-<option value="PS5">PlayStation 5</option>
-<option value="Xbox">Xbox Series X/S</option>
-</select>
-<label for="gamerId" id="gamerLabel">PSN-Online-ID</label>
-<input id="gamerId" type="text" placeholder="Deine PSN-ID">
+<div id="playerFields" style="display:none">
+
+  <label for="jerseyNumber">Trikotnummer *</label>
+  <input id="jerseyNumber" type="number"
+    min="1" max="99" step="1"
+    placeholder="1 bis 99">
+
+  <label for="position">Spielerposition *</label>
+  <select id="position">
+    <option value="">Position auswählen</option>
+    <option value="Torhüter">Torhüter</option>
+    <option value="Verteidiger">Verteidiger</option>
+    <option value="Stürmer">Stürmer</option>
+  </select>
+
+  <label for="platform">Gaming-Plattform *</label>
+  <select id="platform">
+    <option value="PS5">PlayStation 5</option>
+    <option value="Xbox">Xbox Series X/S</option>
+  </select>
+
+  <label for="gamerId" id="gamerLabel">
+    PSN-Online-ID *
+  </label>
+  <input id="gamerId" type="text"
+    maxlength="100" placeholder="Deine PSN-ID">
+
+  <p class="hint">
+    Die Spielerkennung deiner gewählten Plattform
+    ist Pflicht. Die andere Plattform musst du
+    nicht angeben.
+  </p>
 </div>
 
-<button class="submit" id="submitBtn" type="submit">Einloggen</button>
+<button class="submit" id="submitBtn"
+  type="submit">Einloggen</button>
 </form>
 
-<p id="forgotArea" style="text-align:center;margin-top:18px">
-<a href="#" id="forgotLink">Passwort vergessen?</a>
+<p id="forgotArea"
+  style="text-align:center;margin-top:18px">
+  <a href="#" id="forgotLink">
+    Passwort vergessen?
+  </a>
 </p>
 </div>
 
-<div id="message" role="status" aria-live="polite"></div>
+<div id="message" role="status"
+  aria-live="polite"></div>
 
 <p style="text-align:center;margin-top:25px">
-<a href="./">Zurück zur Startseite</a>
+  <a href="./">Zurück zur Startseite</a>
 </p>
+
 </div>
 </main>
 
@@ -96,8 +173,11 @@ footer{text-align:center;padding:20px;font-size:12px;color:#8ba3bc}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+"use strict";
+
 const SUPABASE_URL =
   "https://avvsnfgdmamhabcyngds.supabase.co";
+
 const SUPABASE_KEY =
   "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
 
@@ -105,10 +185,10 @@ const client = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY,
   {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true
     }
   }
 );
@@ -119,7 +199,7 @@ const $ = id => document.getElementById(id);
 const message = $("message");
 const submitBtn = $("submitBtn");
 
-function showSession(user) {
+function showSession(user){
   const loggedIn = Boolean(user);
 
   $("sessionArea").style.display =
@@ -135,43 +215,49 @@ function showSession(user) {
     loggedIn ? "Mein Konto" :
     mode === "login" ? "Login" : "Registrieren";
 
-  if (loggedIn) {
+  if(loggedIn){
     $("password").value = "";
   }
 }
 
-async function checkSession() {
-  try {
-    const { data, error } =
+async function checkSession(){
+  try{
+    const {data,error} =
       await client.auth.getUser();
 
-    if (error) {
+    if(error){
       showSession(null);
       return;
     }
 
     showSession(data.user);
-  } catch (error) {
+  }catch(error){
     showSession(null);
     message.textContent =
       "Sitzung konnte nicht geprüft werden.";
   }
 }
 
-function setMode(next) {
+function setMode(next){
   mode = next;
-
   const registering = next === "register";
 
   $("nameFields").style.display =
     registering ? "block" : "none";
 
-  $("platformFields").style.display =
+  $("playerFields").style.display =
     registering ? "block" : "none";
 
-  $("firstName").required = registering;
-  $("lastName").required = registering;
-  $("gamerId").required = registering;
+  for(const id of [
+    "firstName",
+    "lastName",
+    "jerseyNumber",
+    "position",
+    "platform",
+    "gamerId"
+  ]){
+    $(id).required = registering;
+  }
 
   $("heading").textContent =
     registering ? "Registrieren" : "Login";
@@ -183,11 +269,11 @@ function setMode(next) {
     registering ? "new-password" : "current-password";
 
   $("loginTab").classList.toggle(
-    "active", !registering
+    "active",!registering
   );
 
   $("registerTab").classList.toggle(
-    "active", registering
+    "active",registering
   );
 
   $("forgotArea").style.display =
@@ -196,55 +282,66 @@ function setMode(next) {
   message.textContent = "";
 }
 
-$("platform").addEventListener("change", () => {
+$("platform").addEventListener("change",()=>{
   const xbox = $("platform").value === "Xbox";
 
   $("gamerLabel").textContent =
-    xbox ? "Xbox-Gamertag" : "PSN-Online-ID";
+    xbox ? "Xbox-Gamertag *" : "PSN-Online-ID *";
 
   $("gamerId").placeholder =
     xbox ? "Dein Xbox-Gamertag" : "Deine PSN-ID";
+
+  $("gamerId").value = "";
 });
 
 $("loginTab").onclick = () => setMode("login");
 $("registerTab").onclick = () => setMode("register");
 
-$("forgotLink").addEventListener("click", async event => {
+$("forgotLink").addEventListener(
+  "click",async event=>{
+    event.preventDefault();
+
+    const email = $("email").value.trim();
+
+    if(!email){
+      message.textContent =
+        "Bitte zuerst deine E-Mail-Adresse eingeben.";
+      $("email").focus();
+      return;
+    }
+
+    message.textContent =
+      "Wiederherstellungs-E-Mail wird angefordert ...";
+
+    try{
+      const {error} =
+        await client.auth.resetPasswordForEmail(
+          email,
+          {
+            redirectTo:new URL(
+              "reset-password.html",
+              window.location.href
+            ).href
+          }
+        );
+
+      if(error)throw error;
+
+      message.textContent =
+        "Falls ein Konto existiert, erhältst du " +
+        "eine E-Mail. Bitte auch Spam prüfen.";
+    }catch(error){
+      message.textContent =
+        "Passwort-Zurücksetzen konnte nicht " +
+        "gestartet werden.";
+    }
+  }
+);
+
+$("authForm").onsubmit = async event=>{
   event.preventDefault();
 
-  const email = $("email").value.trim();
-
-  if (!email) {
-    message.textContent =
-      "Bitte zuerst deine E-Mail-Adresse eingeben.";
-    $("email").focus();
-    return;
-  }
-
-  message.textContent =
-    "Wiederherstellungs-E-Mail wird angefordert ...";
-
-  try {
-    const { error } =
-      await client.auth.resetPasswordForEmail(email, {
-        redirectTo: new URL(
-          "reset-password.html",
-          window.location.href
-        ).href
-      });
-
-    if (error) throw error;
-
-    message.textContent =
-      "Falls ein Konto existiert, erhältst du eine E-Mail. Bitte auch den Spam-Ordner prüfen.";
-  } catch (error) {
-    message.textContent =
-      "Passwort-Zurücksetzen konnte nicht gestartet werden.";
-  }
-});
-
-$("authForm").onsubmit = async event => {
-  event.preventDefault();
+  if(submitBtn.disabled)return;
 
   submitBtn.disabled = true;
   message.textContent = "Bitte warten ...";
@@ -252,53 +349,88 @@ $("authForm").onsubmit = async event => {
   const email = $("email").value.trim();
   const password = $("password").value;
 
-  try {
+  try{
     let result;
 
-    if (mode === "register") {
+    if(mode === "register"){
       const firstName = $("firstName").value.trim();
       const lastName = $("lastName").value.trim();
       const platform = $("platform").value;
       const gamerId = $("gamerId").value.trim();
+      const position = $("position").value;
+      const jerseyText = $("jerseyNumber").value.trim();
+      const jerseyNumber = Number(jerseyText);
 
-      if (!firstName || !lastName || !gamerId) {
+      if(!firstName || !lastName || !gamerId){
         throw new Error(
-          "Bitte alle Registrierungsfelder ausfüllen."
+          "Bitte alle Pflichtfelder ausfüllen."
+        );
+      }
+
+      if(!["PS5","Xbox"].includes(platform)){
+        throw new Error(
+          "Bitte eine gültige Plattform auswählen."
+        );
+      }
+
+      if(![
+        "Torhüter","Verteidiger","Stürmer"
+      ].includes(position)){
+        throw new Error(
+          "Bitte eine gültige Position auswählen."
+        );
+      }
+
+      if(
+        !/^[0-9]{1,2}$/.test(jerseyText) ||
+        !Number.isInteger(jerseyNumber) ||
+        jerseyNumber < 1 ||
+        jerseyNumber > 99
+      ){
+        throw new Error(
+          "Trikotnummer muss zwischen 1 und 99 liegen."
         );
       }
 
       result = await client.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: window.location.href,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            platform,
-            gamer_id: gamerId
+        options:{
+          emailRedirectTo:window.location.href,
+          data:{
+            first_name:firstName,
+            last_name:lastName,
+            jersey_number:jerseyNumber,
+            position:position,
+            platform:platform,
+            gamer_id:gamerId
           }
         }
       });
-    } else {
+
+    }else{
       result = await client.auth.signInWithPassword({
         email,
         password
       });
     }
 
-    if (result.error) throw result.error;
+    if(result.error)throw result.error;
 
-    if (mode === "register") {
+    if(mode === "register"){
       message.textContent =
-        "Registrierung eingereicht. Prüfe deine E-Mails zur Bestätigung.";
+        "Registrierung eingereicht. " +
+        "Bitte bestätige deine E-Mail-Adresse.";
 
-      if (result.data?.session) {
+      if(result.data?.session){
         showSession(result.data.user);
       }
-    } else {
-      if (!result.data?.user ||
-          !result.data?.session) {
+
+    }else{
+      if(
+        !result.data?.user ||
+        !result.data?.session
+      ){
         throw new Error(
           "Keine gültige Sitzung erhalten."
         );
@@ -308,34 +440,38 @@ $("authForm").onsubmit = async event => {
       message.textContent =
         "Erfolgreich eingeloggt!";
     }
-  } catch (error) {
+
+  }catch(error){
     message.textContent =
       error.message || "Ein Fehler ist aufgetreten.";
-  } finally {
+
+  }finally{
     $("password").value = "";
     submitBtn.disabled = false;
   }
 };
 
-$("logoutBtn").onclick = async () => {
+$("logoutBtn").onclick = async()=>{
   $("logoutBtn").disabled = true;
 
-  try {
-    const { error } = await client.auth.signOut();
-    if (error) throw error;
+  try{
+    const {error} = await client.auth.signOut();
+    if(error)throw error;
 
     showSession(null);
     message.textContent =
       "Erfolgreich abgemeldet.";
-  } catch (error) {
+
+  }catch(error){
     message.textContent =
       "Abmeldung fehlgeschlagen. Bitte erneut versuchen.";
-  } finally {
+
+  }finally{
     $("logoutBtn").disabled = false;
   }
 };
 
-client.auth.onAuthStateChange((_event, session) => {
+client.auth.onAuthStateChange((_event,session)=>{
   showSession(session?.user || null);
 });
 
@@ -343,4 +479,5 @@ checkSession();
 </script>
 </body>
 </html>
+
 
