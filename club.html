@@ -419,28 +419,78 @@ async function loadRequests(){
     return;
   }
 
-  for(const request of data){
-    const div=document.createElement("div");
-    div.className="item";
-    const label=document.createElement("p");
-    label.textContent="Spieler-ID: "+request.user_id;
+  
+  const userIds = [...new Set(
+    data.map(r => r.user_id)
+  )];
 
-    const actions=document.createElement("div");
-    actions.className="actions";
+  const {data: profiles, error: profileError} =
+    await client.from("player_profiles")
+      .select(
+        "user_id,first_name,last_name," +
+        "jersey_number,position,platform," +
+        "psn_id,xbox_gamertag"
+      )
+      .in("user_id", userIds);
 
-    for(const approve of [true,false]){
-      const btn=document.createElement("button");
-      btn.type="button";
-      btn.textContent=approve?"Annehmen":"Ablehnen";
-      if(!approve)btn.className="danger";
-      btn.onclick=()=>reviewRequest(request.id,approve);
+  const profileMap = new Map(
+    (profiles || []).map(p => [p.user_id, p])
+  );
+
+  if (profileError) {
+    message("Spielerprofile: " + profileError.message);
+  }
+
+  for (const request of data) {
+    const p = profileMap.get(request.user_id);
+    const div = document.createElement("div");
+    div.className = "item";
+
+    const label = document.createElement("p");
+
+    if (p) {
+      const name = [
+        p.first_name,
+        p.last_name
+      ].filter(Boolean).join(" ");
+
+      const number = p.jersey_number != null
+        ? "#" + p.jersey_number + " · "
+        : "";
+
+      label.textContent =
+        number + (name || "Spieler") +
+        " | Position: " + (p.position || "–") +
+        " | Plattform: " + (p.platform || "–") +
+        " | PSN: " + (p.psn_id || "–") +
+        " | Xbox: " + (p.xbox_gamertag || "–");
+    } else {
+      label.textContent =
+        "Spieler-ID: " + request.user_id;
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    for (const approve of [true, false]) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = approve
+        ? "Annehmen"
+        : "Ablehnen";
+
+      if (!approve) btn.className = "danger";
+
+      btn.onclick = () =>
+        reviewRequest(request.id, approve);
+
       actions.appendChild(btn);
     }
 
-    div.append(label,actions);
+    div.append(label, actions);
     list.appendChild(div);
   }
-}
+
 
 async function reviewRequest(id,approve){
   if(!confirm(
