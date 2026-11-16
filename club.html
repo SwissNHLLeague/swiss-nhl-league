@@ -233,6 +233,9 @@ document.querySelectorAll("[data-tab]").forEach(b=>{
 });
 
 async function init(){
+  
+$("loading").textContent = "Schritt A: Supabase-Anmeldung wird geprüft...";
+
   const {data:{user},error:authError}=
     await client.auth.getUser();
 
@@ -242,6 +245,8 @@ async function init(){
   }
 
   currentUser=user;
+
+$("loading").textContent = "Schritt B: Clubzuordnung wird geprüft...";
 
   const {data:owned,error:ownerError}=
     await client.from("clubs")
