@@ -8,55 +8,160 @@
 <style>
 :root{
  color-scheme:dark;
- --bg:#07101d;--panel:#111f35;
- --card:#203451;--line:#304c70;
- --blue:#357cf5;--muted:#aabbd1
+ --bg:#07101d;
+ --panel:#111f35;
+ --card:#203451;
+ --line:#304c70;
+ --blue:#357cf5;
+ --muted:#aabbd1;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:white;font-family:Arial,sans-serif}
-header{background:#172540;border-bottom:3px solid var(--blue);padding:24px 16px;text-align:center}
-header h1{margin:0;font-size:clamp(23px,5vw,38px)}
+body{
+ margin:0;background:var(--bg);
+ color:white;font-family:Arial,sans-serif;
+}
+header{
+ background:#172540;
+ border-bottom:3px solid var(--blue);
+ padding:24px 16px;text-align:center;
+}
+header h1{
+ margin:0;font-size:clamp(23px,5vw,38px);
+}
 header h1 span{color:var(--blue)}
-header p{letter-spacing:3px;color:var(--muted);font-size:12px}
-main{max-width:1100px;margin:30px auto;padding:0 18px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+header p{
+ letter-spacing:3px;color:var(--muted);
+ font-size:12px;
+}
+main{
+ max-width:1100px;
+ margin:30px auto;padding:0 18px;
+}
+.panel{
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:14px;
+ padding:22px;margin-bottom:18px;
+}
 .hidden{display:none!important}
 .muted{color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.metric{background:#1c304e;border-radius:10px;padding:18px}
-.metric strong{display:block;font-size:29px;margin-bottom:6px}
-.nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0}
-button{border:0;border-radius:9px;padding:13px 15px;background:var(--blue);color:white;font-weight:bold;cursor:pointer;font-size:14px}
-button:disabled{opacity:.5;cursor:not-allowed}
-.nav button{background:var(--card);text-align:left}
+.grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:12px;
+}
+.metric{
+ background:#1c304e;
+ border-radius:10px;padding:18px;
+}
+.metric strong{
+ display:block;font-size:29px;
+ margin-bottom:6px;
+}
+.nav{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px;margin:20px 0;
+}
+button{
+ border:0;border-radius:9px;
+ padding:13px 15px;
+ background:var(--blue);
+ color:white;font-weight:bold;
+ cursor:pointer;font-size:14px;
+}
+button:disabled{
+ opacity:.5;cursor:not-allowed;
+}
+.nav button{
+ background:var(--card);
+ text-align:left;
+}
 .nav button.active{background:var(--blue)}
-input,select{width:100%;padding:12px;background:#071321;border:1px solid #45617f;border-radius:8px;color:white;margin:6px 0 14px}
+input,select{
+ width:100%;padding:12px;
+ background:#071321;
+ border:1px solid #45617f;
+ border-radius:8px;color:white;
+ margin:6px 0 14px;
+}
 label{display:block;margin-top:10px}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-th,td{text-align:left;border-bottom:1px solid #31465f;padding:10px;overflow-wrap:anywhere}
+.table-wrap{
+ width:100%;
+ max-width:100%;
+ overflow-x:auto;
+ -webkit-overflow-scrolling:touch;
+}
+.table-wrap table{
+ width:max-content;
+ min-width:100%;
+ table-layout:auto;
+}
+table{border-collapse:collapse}
+th,td{
+ text-align:left;
+ border-bottom:1px solid #31465f;
+ padding:10px;
+}
+.table-wrap th,
+.table-wrap td{
+ min-width:130px;
+ white-space:nowrap;
+ overflow-wrap:normal;
+ word-break:normal;
+}
 section h2{margin-top:0}
-.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.actions{
+ display:flex;gap:10px;
+ flex-wrap:wrap;align-items:center;
+}
 .danger{background:#a82f45}
 .info{background:#244368}
-.notice{background:#203451;padding:14px;border-radius:10px;margin:15px 0}
-.item{border-top:1px solid var(--line);padding:16px 0;overflow-wrap:anywhere}
-.calendar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px}
-.calendar-box{background:#1c304e;padding:16px;border-radius:12px}
+.notice{
+ background:#203451;
+ padding:14px;border-radius:10px;
+ margin:15px 0;
+}
+.item{
+ border-top:1px solid var(--line);
+ padding:16px 0;
+ overflow-wrap:anywhere;
+}
+.calendar-grid{
+ display:grid;
+ grid-template-columns:repeat(
+  auto-fit,minmax(210px,1fr)
+ );
+ gap:18px;
+}
+.calendar-box{
+ background:#1c304e;
+ padding:16px;border-radius:12px;
+}
 .status-open{color:#76e0a2}
 .status-closed{color:#ffb1b1}
 .status-planned{color:#ffda87}
-footer{text-align:center;color:var(--muted);padding:25px}
+footer{
+ text-align:center;
+ color:var(--muted);
+ padding:25px;
+}
 a{color:#80b2ff}
 </style>
 </head>
 <body>
+
 <header>
 <h1>SWISS <span>NHL</span> LEAGUE</h1>
-<p>ADMINISTRATION · NHL 27 · PS5</p>
+<p>ADMINISTRATION · NHL 27 · PS5 & XBOX</p>
 </header>
+
 <main>
-<div id="loading" class="panel">Prüfe Anmeldung und Admin-Berechtigung...</div>
+
+<div id="loading" class="panel">
+Prüfe Anmeldung und Admin-Berechtigung...
+</div>
+
 <div id="denied" class="panel hidden">
 <h2>Zugriff nicht erlaubt</h2>
 <p id="denyReason"></p>
@@ -64,25 +169,42 @@ a{color:#80b2ff}
 </div>
 
 <div id="dashboard" class="hidden">
+
 <section class="panel">
 <div class="actions" style="justify-content:space-between">
 <div>
 <h2>Admin-Dashboard</h2>
 <p id="who" class="muted"></p>
 </div>
-<button id="logout" class="danger">Abmelden</button>
+<button id="logout" class="danger">
+Abmelden
+</button>
 </div>
 </section>
 
 <div class="grid">
-<div class="metric"><strong id="clubsCount">–</strong>Clubs</div>
-<div class="metric"><strong id="playersCount">–</strong>Spieler</div>
-<div class="metric"><strong id="gamesCount">–</strong>Spiele</div>
-<div class="metric"><strong id="usersCount">–</strong>Mitglieder</div>
+<div class="metric">
+<strong id="clubsCount">–</strong>
+Clubs
+</div>
+<div class="metric">
+<strong id="playersCount">–</strong>
+Spieler
+</div>
+<div class="metric">
+<strong id="gamesCount">–</strong>
+Spiele
+</div>
+<div class="metric">
+<strong id="usersCount">–</strong>
+Mitglieder
+</div>
 </div>
 
 <nav class="nav" id="nav">
-<button data-tab="overview" class="active">Übersicht</button>
+<button data-tab="overview" class="active">
+Übersicht
+</button>
 <button data-tab="clubs">Clubs</button>
 <button data-tab="players">Spieler</button>
 <button data-tab="games">Spielplan</button>
@@ -91,17 +213,26 @@ a{color:#80b2ff}
 <button data-tab="requests">Clubanträge</button>
 <button data-tab="transfers">Transferfenster</button>
 <button data-tab="approvals">Transferfreigaben</button>
-<button data-tab="gaming" id="gamingNav" class="hidden">Gaming-ID-Anträge</button>
-<button data-tab="invitations" id="inviteNav" class="hidden">Liga-Leitung einladen</button>
+<button data-tab="gaming" id="gamingNav" class="hidden">
+Gaming-ID-Anträge
+</button>
+<button data-tab="invitations" id="inviteNav" class="hidden">
+Liga-Leitung einladen
+</button>
 </nav>
 
 <p id="status" role="status" class="muted"></p>
 
 <section class="panel" data-section="overview">
 <h2>Ligaverwaltung</h2>
-<p>Willkommen im Administrationsbereich der Swiss NHL League.</p>
+<p>
+Willkommen im Administrationsbereich
+der Swiss NHL League.
+</p>
 <h3>Transferfenster</h3>
-<p id="overviewTransferStatus">Lade Status...</p>
+<p id="overviewTransferStatus">
+Lade Status...
+</p>
 </section>
 
 <section class="panel hidden" data-section="clubs">
@@ -127,23 +258,33 @@ a{color:#80b2ff}
 <div class="metric"><strong>3vs3</strong>Dreier</div>
 <div class="metric"><strong>6vs6</strong>Sechser</div>
 </div>
-<p class="muted">Liga- und Tabellenbearbeitung wird separat ergänzt.</p>
+<p class="muted">
+Liga- und Tabellenbearbeitung wird separat ergänzt.
+</p>
 </section>
 
 <section class="panel hidden" data-section="users">
 <h2>Mitglieder</h2>
-<p class="muted">Benutzerrollen werden sicher in Supabase verwaltet.</p>
+<p class="muted">
+Benutzerrollen werden sicher in Supabase verwaltet.
+</p>
 <div id="usersTable"></div>
 </section>
 
 <section class="panel hidden" data-section="requests">
 <h2>Clubanträge</h2>
-<div id="requestsTable" class="table-wrap">Lade Clubanträge...</div>
+<div id="requestsTable" class="table-wrap">
+Lade Clubanträge...
+</div>
 </section>
 
 <section class="panel hidden" data-section="transfers">
 <h2>Transferfenster verwalten</h2>
-<p class="muted">Die Liga-Leitung plant die automatische Öffnung und Schliessung.</p>
+<p class="muted">
+Die Liga-Leitung plant die automatische
+Öffnung und Schliessung.
+</p>
+
 <div class="notice">
 <h3>Aktueller Status</h3>
 <p id="transferStatus">Lade Status...</p>
@@ -152,560 +293,971 @@ a{color:#80b2ff}
 
 <form id="transferForm">
 <div class="calendar-grid">
+
 <div class="calendar-box">
 <h3>Öffnung</h3>
 <label for="transferStartDate">Startdatum</label>
 <input id="transferStartDate" type="date" required>
 <label for="transferStartTime">Startzeit</label>
-<input id="transferStartTime" type="time" value="00:00" required>
+<input id="transferStartTime" type="time"
+ value="00:00" required>
 </div>
+
 <div class="calendar-box">
 <h3>Schliessung</h3>
 <label for="transferEndDate">Enddatum</label>
 <input id="transferEndDate" type="date" required>
 <label for="transferEndTime">Endzeit</label>
-<input id="transferEndTime" type="time" value="23:59" required>
+<input id="transferEndTime" type="time"
+ value="23:59" required>
 </div>
+
 </div>
-<p class="muted">Alle Zeiten gelten für die Schweiz (Europe/Zurich).</p>
-<button id="saveTransfer" type="submit">Transferfenster planen</button>
+<p class="muted">
+Alle Zeiten gelten für die Schweiz (Europe/Zurich).
+</p>
+<button id="saveTransfer" type="submit">
+Transferfenster planen
+</button>
 </form>
+
 <p id="transferMessage" role="status"></p>
-<button id="refreshTransfer" class="info">Status aktualisieren</button>
+<button id="refreshTransfer" class="info">
+Status aktualisieren
+</button>
 </section>
 
 <section class="panel hidden" data-section="approvals">
 <h2>Transferfreigaben</h2>
-<p class="muted">Hier prüft die Liga-Leitung die Transferanträge und Zustimmungen der Clubs.</p>
+<p class="muted">
+Hier prüft die Liga-Leitung die Transferanträge
+und Zustimmungen der Clubs.
+</p>
 <div class="notice">
 <strong>Transferfenster</strong>
 <p id="approvalWindowStatus">Lade Status...</p>
 </div>
 <div class="notice">
 <strong>Sicherheitsmodus</strong>
-<p>Der tatsächliche Spielerwechsel ist in diesem Dashboard vorerst deaktiviert. Die Freigabe allein verschiebt keinen Spieler.</p>
+<p>
+Der tatsächliche Spielerwechsel ist in diesem
+Dashboard vorerst deaktiviert.
+Die Freigabe allein verschiebt keinen Spieler.
+</p>
 </div>
-<button id="refreshApprovals">Transferanträge aktualisieren</button>
+<button id="refreshApprovals">
+Transferanträge aktualisieren
+</button>
 <p id="approvalMessage" role="status"></p>
-<div id="approvalList">Lade Transferanträge...</div>
+<div id="approvalList">
+Lade Transferanträge...
+</div>
 </section>
 
 <section class="panel hidden" data-section="gaming">
 <h2>Gaming-ID-Anträge</h2>
-<p class="muted">Anträge für PSN-Online-IDs und Xbox-Gamertags.</p>
+
+<p class="muted">
+Hier verwaltet die offizielle Liga-Leitung
+Änderungsanträge für PSN-Online-IDs
+und Xbox-Gamertags.
+</p>
+
 <div class="notice">
-<strong>Sicherheitsmodus</strong>
-<p>Genehmigungen und Ablehnungen sind bis zum Abschluss der Sicherheitsprüfung deaktiviert.</p>
+<strong>Sicherheitsprüfung</strong>
+<p>
+Genehmigungen ändern die Gaming-ID sofort.
+Die bisherige Gaming-ID wird archiviert.
+Ablehnungen verändern die Gaming-ID nicht.
+</p>
+<p>
+Bitte während der Testphase ausschliesslich
+Testanträge bearbeiten.
+</p>
 </div>
-<button id="refreshGaming" type="button">Anträge aktualisieren</button>
+
+<button id="refreshGaming" type="button">
+Anträge aktualisieren
+</button>
+
 <p id="gamingAdminMessage" role="status"></p>
-<div id="gamingAdminList">Lade Gaming-ID-Anträge...</div>
+
+<div id="gamingAdminList">
+Lade Gaming-ID-Anträge...
+</div>
 </section>
 
 <section class="panel hidden" data-section="invitations">
 <h2>Liga-Leitung einladen</h2>
-<p class="muted">Testbetrieb ohne automatischen E-Mail-Versand.</p>
+<p class="muted">
+Testbetrieb ohne automatischen E-Mail-Versand.
+</p>
+
 <form id="inviteForm">
 <label for="inviteEmail">E-Mail-Adresse</label>
-<input id="inviteEmail" type="email" maxlength="254" required>
+<input id="inviteEmail" type="email"
+ maxlength="254" required>
+
 <label for="inviteRole">Administratorrolle</label>
 <select id="inviteRole">
 <option value="league_admin">Liga-Leitung</option>
 <option value="moderator">Moderator</option>
 <option value="stats_manager">Statistikverwaltung</option>
 </select>
-<button id="inviteSubmit" type="submit">Einladung erstellen</button>
+
+<button id="inviteSubmit" type="submit">
+Einladung erstellen
+</button>
 </form>
+
 <p id="inviteResult" role="status"></p>
+
 <div id="inviteSecret" class="hidden">
 <p>Einladung erstellt. Noch keine E-Mail versendet.</p>
-<p class="muted">Der Einladungstoken ist geheim.</p>
-<button id="copyToken">Einladungstoken kopieren</button>
+<p class="muted">
+Der Einladungstoken ist geheim.
+</p>
+<button id="copyToken">
+Einladungstoken kopieren
+</button>
 </div>
 </section>
+
 </div>
 </main>
+
 <footer>© Swiss NHL League | EST. 2022</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 
-const SUPABASE_URL="https://avvsnfgdmamhabcyngds.supabase.co";
-const SUPABASE_KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
-const $=id=>document.getElementById(id);
-const TZ="Europe/Zurich";
-let client,currentUser,adminRole;
-let invitationToken=null;
-let approvalBusy=false;
-let isLeagueController=false;
+const SUPABASE_URL =
+ "https://avvsnfgdmamhabcyngds.supabase.co";
+
+const SUPABASE_KEY =
+ "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
+
+const $ = id => document.getElementById(id);
+const TZ = "Europe/Zurich";
+
+let client;
+let currentUser;
+let adminRole;
+let invitationToken = null;
+let approvalBusy = false;
+let gamingDecisionBusy = false;
+let isLeagueController = false;
 
 function deny(reason){
  $("loading").classList.add("hidden");
  $("dashboard").classList.add("hidden");
  $("denied").classList.remove("hidden");
- $("denyReason").textContent=reason;
+ $("denyReason").textContent = reason;
 }
 
 function showTab(tab){
- document.querySelectorAll("[data-tab]").forEach(b=>
-  b.classList.toggle("active",b.dataset.tab===tab));
- document.querySelectorAll("[data-section]").forEach(s=>
-  s.classList.toggle("hidden",s.dataset.section!==tab));
- if(tab==="transfers")loadTransferStatus();
- if(tab==="approvals")loadApprovals();
- if(tab==="gaming")loadAdminGamingRequests();
+ document.querySelectorAll("[data-tab]").forEach(b=>{
+  b.classList.toggle(
+   "active",
+   b.dataset.tab === tab
+  );
+ });
+
+ document.querySelectorAll("[data-section]").forEach(s=>{
+  s.classList.toggle(
+   "hidden",
+   s.dataset.section !== tab
+  );
+ });
+
+ if(tab === "transfers"){
+  loadTransferStatus().catch(()=>{});
+ }
+
+ if(tab === "approvals"){
+  loadApprovals();
+ }
+
+ if(tab === "gaming"){
+  loadAdminGamingRequests();
+ }
 }
 
 document.querySelectorAll("[data-tab]").forEach(b=>{
- b.onclick=()=>showTab(b.dataset.tab);
+ b.onclick = ()=>showTab(b.dataset.tab);
 });
 
+// TABELLEN
+
 async function loadTable(name,target,count){
- const el=$(target);
- const {data,error}=await client.from(name).select("*");
- if(error){el.textContent=error.message;return}
- if(count)$(count).textContent=data.length;
- if(!data.length){el.textContent="Noch keine Einträge.";return}
- const cols=Object.keys(data[0]);
- if(name==="clubs")cols.push("Aktionen");
- const table=document.createElement("table");
- const header=table.createTHead().insertRow();
+ const el = $(target);
+ const {data,error} = await client
+  .from(name)
+  .select("*");
+
+ if(error){
+  el.textContent = error.message;
+  return;
+ }
+
+ if(count){
+  $(count).textContent = data.length;
+ }
+
+ if(!data.length){
+  el.textContent = "Noch keine Einträge.";
+  return;
+ }
+
+ const cols = Object.keys(data[0]);
+
+ if(name === "clubs"){
+  cols.push("Aktionen");
+ }
+
+ const table = document.createElement("table");
+ const header = table.createTHead().insertRow();
+
  cols.forEach(col=>{
-  const th=document.createElement("th");
-  th.textContent=col;header.appendChild(th);
+  const th = document.createElement("th");
+  th.textContent = col;
+  header.appendChild(th);
  });
- const tbody=table.createTBody();
+
+ const tbody = table.createTBody();
+
  data.forEach(item=>{
-  const row=tbody.insertRow();
+  const row = tbody.insertRow();
+
   cols.forEach(col=>{
-   const cell=row.insertCell();
-   if(col==="Aktionen"){
-    const edit=document.createElement("button");
-    edit.textContent="Bearbeiten";
-    edit.onclick=()=>editClub(item.id,item.name);
-    const del=document.createElement("button");
-    del.className="danger";del.textContent="Löschen";
-    del.onclick=()=>deleteClub(item.id);
-    const logo=document.createElement("button");
-    logo.textContent="Logo hochladen";
-    logo.onclick=()=>uploadClubLogo(item.id);
+   const cell = row.insertCell();
+
+   if(col === "Aktionen"){
+    const edit = document.createElement("button");
+    edit.textContent = "Bearbeiten";
+    edit.onclick = ()=>editClub(item.id,item.name);
+
+    const del = document.createElement("button");
+    del.className = "danger";
+    del.textContent = "Löschen";
+    del.onclick = ()=>deleteClub(item.id);
+
+    const logo = document.createElement("button");
+    logo.textContent = "Logo hochladen";
+    logo.onclick = ()=>uploadClubLogo(item.id);
+
     cell.append(edit," ",del," ",logo);
-   }else if(col==="logo_url"&&item[col]){
-    const img=document.createElement("img");
-    img.src=item[col];img.alt="Clublogo";
-    img.style.width="60px";img.style.height="60px";
-    img.style.objectFit="contain";cell.appendChild(img);
-   }else cell.textContent=String(item[col]??"—");
+
+   }else if(col === "logo_url" && item[col]){
+    const img = document.createElement("img");
+    img.src = item[col];
+    img.alt = "Clublogo";
+    img.style.width = "60px";
+    img.style.height = "60px";
+    img.style.objectFit = "contain";
+    cell.appendChild(img);
+
+   }else{
+    cell.textContent = String(item[col] ?? "—");
+   }
   });
  });
+
  el.replaceChildren(table);
 }
+
+// CLUBANTRAEGE
 
 async function loadClubRequests(){
- const el=$("requestsTable");
- const {data,error}=await client.from("club_requests")
+ const el = $("requestsTable");
+
+ const {data,error} = await client
+  .from("club_requests")
   .select("id,user_id,club_name,status,created_at")
   .order("created_at",{ascending:false});
- if(error){el.textContent="Fehler: "+error.message;return}
- if(!data?.length){el.textContent="Noch keine Clubanträge.";return}
- const table=document.createElement("table");
- const head=table.insertRow();
+
+ if(error){
+  el.textContent = "Fehler: " + error.message;
+  return;
+ }
+
+ if(!data?.length){
+  el.textContent = "Noch keine Clubanträge.";
+  return;
+ }
+
+ const table = document.createElement("table");
+ const head = table.insertRow();
+
  ["Clubname","Status","Erstellt am"].forEach(n=>{
-  const th=document.createElement("th");th.textContent=n;head.appendChild(th);
+  const th = document.createElement("th");
+  th.textContent = n;
+  head.appendChild(th);
  });
+
  data.forEach(r=>{
-  const row=table.insertRow();
-  [r.club_name,r.status,new Date(r.created_at).toLocaleDateString("de-CH")]
-   .forEach(v=>row.insertCell().textContent=v??"—");
+  const row = table.insertRow();
+
+  [
+   r.club_name,
+   r.status,
+   new Date(r.created_at).toLocaleDateString("de-CH")
+  ].forEach(v=>{
+   row.insertCell().textContent = v ?? "—";
+  });
  });
+
  el.replaceChildren(table);
 }
 
+// CLUBVERWALTUNG
+
 async function addClub(){
- const name=prompt("Name des neuen Clubs:");
+ const name = prompt("Name des neuen Clubs:");
  if(!name?.trim())return;
- const {error}=await client.from("clubs").insert({name:name.trim()});
- if(error)return alert("Fehler: "+error.message);
- alert("Club erstellt.");location.reload();
+
+ const {error} = await client
+  .from("clubs")
+  .insert({name:name.trim()});
+
+ if(error){
+  alert("Fehler: " + error.message);
+  return;
+ }
+
+ alert("Club erstellt.");
+ location.reload();
 }
 
 async function editClub(id,currentName){
- const name=prompt("Neuer Clubname:",currentName);
+ const name = prompt("Neuer Clubname:",currentName);
  if(!name?.trim())return;
- const {error}=await client.from("clubs")
-  .update({name:name.trim()}).eq("id",id);
- if(error)return alert("Fehler: "+error.message);
- alert("Club aktualisiert.");location.reload();
+
+ const {error} = await client
+  .from("clubs")
+  .update({name:name.trim()})
+  .eq("id",id);
+
+ if(error){
+  alert("Fehler: " + error.message);
+  return;
+ }
+
+ alert("Club aktualisiert.");
+ location.reload();
 }
 
 async function deleteClub(id){
  if(!confirm("Club wirklich löschen?"))return;
- const {error}=await client.from("clubs").delete().eq("id",id);
- if(error)return alert("Fehler: "+error.message);
- alert("Club gelöscht.");location.reload();
+
+ const {error} = await client
+  .from("clubs")
+  .delete()
+  .eq("id",id);
+
+ if(error){
+  alert("Fehler: " + error.message);
+  return;
+ }
+
+ alert("Club gelöscht.");
+ location.reload();
 }
 
 async function uploadClubLogo(clubId){
- const input=document.createElement("input");
- input.type="file";input.accept="image/png,image/jpeg";
- input.onchange=async()=>{
-  const file=input.files?.[0];if(!file)return;
-  if(file.size>2097152||!["image/png","image/jpeg"].includes(file.type)){
-   alert("Nur PNG/JPEG bis 2 MB erlaubt.");return;
+ const input = document.createElement("input");
+ input.type = "file";
+ input.accept = "image/png,image/jpeg";
+
+ input.onchange = async()=>{
+  const file = input.files?.[0];
+  if(!file)return;
+
+  if(
+   file.size > 2097152 ||
+   !["image/png","image/jpeg"].includes(file.type)
+  ){
+   alert("Nur PNG/JPEG bis 2 MB erlaubt.");
+   return;
   }
-  const {data,error}=await client.auth.getSession();
-  const token=data?.session?.access_token;
-  if(error||!token){alert("Bitte erneut anmelden.");return}
-  const form=new FormData();
-  form.append("club_id",clubId);form.append("file",file);
+
+  const {data,error} = await client.auth.getSession();
+  const token = data?.session?.access_token;
+
+  if(error || !token){
+   alert("Bitte erneut anmelden.");
+   return;
+  }
+
+  const form = new FormData();
+  form.append("club_id",clubId);
+  form.append("file",file);
+
   try{
-   const response=await fetch(SUPABASE_URL+"/functions/v1/upload-club-logo",{
-    method:"POST",headers:{Authorization:"Bearer "+token},body:form
-   });
-   const result=await response.json();
-   if(!response.ok)throw Error(result.reason||result.error||"Upload fehlgeschlagen");
+   const response = await fetch(
+    SUPABASE_URL + "/functions/v1/upload-club-logo",
+    {
+     method:"POST",
+     headers:{
+      Authorization:"Bearer " + token
+     },
+     body:form
+    }
+   );
+
+   const result = await response.json();
+
+   if(!response.ok){
+    throw Error(
+     result.reason ||
+     result.error ||
+     "Upload fehlgeschlagen"
+    );
+   }
+
    alert("Clublogo erfolgreich hochgeladen!");
    location.reload();
-  }catch(e){alert("Fehler: "+e.message)}
+
+  }catch(e){
+   alert("Fehler: " + e.message);
+  }
  };
+
  input.click();
 }
 
+// SCHWEIZER ZEIT
+
 function swissDisplay(value){
  if(!value)return "Nicht festgelegt";
+
  return new Intl.DateTimeFormat("de-CH",{
-  timeZone:TZ,day:"2-digit",month:"2-digit",
-  year:"numeric",hour:"2-digit",minute:"2-digit"
+  timeZone:TZ,
+  day:"2-digit",
+  month:"2-digit",
+  year:"numeric",
+  hour:"2-digit",
+  minute:"2-digit"
  }).format(new Date(value));
 }
 
 function swissParts(date){
- const formatter=new Intl.DateTimeFormat("en-GB",{
-  timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",
-  hour:"2-digit",minute:"2-digit",hourCycle:"h23"
+ const formatter = new Intl.DateTimeFormat("en-GB",{
+  timeZone:TZ,
+  year:"numeric",
+  month:"2-digit",
+  day:"2-digit",
+  hour:"2-digit",
+  minute:"2-digit",
+  hourCycle:"h23"
  });
- return Object.fromEntries(formatter.formatToParts(date)
-  .filter(p=>p.type!=="literal").map(p=>[p.type,Number(p.value)]));
+
+ return Object.fromEntries(
+  formatter.formatToParts(date)
+   .filter(p=>p.type !== "literal")
+   .map(p=>[p.type,Number(p.value)])
+ );
 }
 
 function swissToISO(date,time){
- if(!date||!time)throw Error("Datum und Uhrzeit fehlen.");
- const [y,m,d]=date.split("-").map(Number);
- const [h,minute]=time.split(":").map(Number);
- const desired=Date.UTC(y,m-1,d,h,minute);
- function local(ms){
-  const p=swissParts(new Date(ms));
-  return Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute);
+ if(!date || !time){
+  throw Error("Datum und Uhrzeit fehlen.");
  }
- let stamp=desired;
- for(let i=0;i<4;i++)stamp+=desired-local(stamp);
- if(local(stamp)!==desired)
-  throw Error("Diese Uhrzeit existiert wegen der Zeitumstellung nicht.");
- if(local(stamp-3600000)===desired||local(stamp+3600000)===desired)
-  throw Error("Diese Uhrzeit ist wegen der Winterzeitumstellung doppeldeutig.");
+
+ const [y,m,d] = date.split("-").map(Number);
+ const [h,minute] = time.split(":").map(Number);
+
+ const desired = Date.UTC(y,m-1,d,h,minute);
+
+ function local(ms){
+  const p = swissParts(new Date(ms));
+
+  return Date.UTC(
+   p.year,p.month-1,p.day,p.hour,p.minute
+  );
+ }
+
+ let stamp = desired;
+
+ for(let i=0;i<4;i++){
+  stamp += desired-local(stamp);
+ }
+
+ if(local(stamp)!==desired){
+  throw Error(
+   "Diese Uhrzeit existiert wegen der Zeitumstellung nicht."
+  );
+ }
+
+ if(
+  local(stamp-3600000)===desired ||
+  local(stamp+3600000)===desired
+ ){
+  throw Error(
+   "Diese Uhrzeit ist wegen der Winterzeitumstellung doppeldeutig."
+  );
+ }
+
  return new Date(stamp).toISOString();
 }
 
 function swissInputValues(value){
- const p=swissParts(new Date(value));
- const pad=n=>String(n).padStart(2,"0");
+ const p = swissParts(new Date(value));
+ const pad = n=>String(n).padStart(2,"0");
+
  return {
   date:`${p.year}-${pad(p.month)}-${pad(p.day)}`,
   time:`${pad(p.hour)}:${pad(p.minute)}`
  };
 }
 
+// TRANSFERFENSTER
+
 async function getTransferStatus(){
- const {data,error}=await client.rpc("snhl_transfer_window_status");
+ const {data,error} = await client.rpc(
+  "snhl_transfer_window_status"
+ );
+
  if(error)throw error;
  return data;
 }
 
 async function loadTransferStatus(){
  try{
-  const data=await getTransferStatus();
-  const label=data?.is_open?"GEÖFFNET":
-   data?.status==="scheduled"?"Geplant – noch geschlossen":
-   data?.status==="closed"?"GESCHLOSSEN":"Kein Transferfenster geplant";
-  $("transferStatus").textContent=label;
-  $("transferStatus").className=data?.is_open?"status-open":
-   data?.status==="scheduled"?"status-planned":"status-closed";
-  $("overviewTransferStatus").textContent=label;
-  $("transferPeriod").textContent=data?.opens_at&&data?.closes_at
-   ?"Öffnung: "+swissDisplay(data.opens_at)+" Uhr | Schliessung: "+
-    swissDisplay(data.closes_at)+" Uhr"
-   :"Noch kein Zeitraum gespeichert.";
-  if(data?.opens_at&&data?.closes_at){
-   const a=swissInputValues(data.opens_at);
-   const b=swissInputValues(data.closes_at);
-   $("transferStartDate").value=a.date;
-   $("transferStartTime").value=a.time;
-   $("transferEndDate").value=b.date;
-   $("transferEndTime").value=b.time;
+  const data = await getTransferStatus();
+
+  const label = data?.is_open
+   ? "GEÖFFNET"
+   : data?.status === "scheduled"
+    ? "Geplant – noch geschlossen"
+    : data?.status === "closed"
+     ? "GESCHLOSSEN"
+     : "Kein Transferfenster geplant";
+
+  $("transferStatus").textContent = label;
+
+  $("transferStatus").className = data?.is_open
+   ? "status-open"
+   : data?.status === "scheduled"
+    ? "status-planned"
+    : "status-closed";
+
+  $("overviewTransferStatus").textContent = label;
+
+  $("transferPeriod").textContent =
+   data?.opens_at && data?.closes_at
+    ? "Öffnung: " +
+      swissDisplay(data.opens_at) +
+      " Uhr | Schliessung: " +
+      swissDisplay(data.closes_at) + " Uhr"
+    : "Noch kein Zeitraum gespeichert.";
+
+  if(data?.opens_at && data?.closes_at){
+   const a = swissInputValues(data.opens_at);
+   const b = swissInputValues(data.closes_at);
+
+   $("transferStartDate").value = a.date;
+   $("transferStartTime").value = a.time;
+   $("transferEndDate").value = b.date;
+   $("transferEndTime").value = b.time;
   }
+
   return data;
+
  }catch(e){
-  $("transferStatus").textContent="Fehler: "+e.message;
+  $("transferStatus").textContent =
+   "Fehler: " + e.message;
   throw e;
  }
 }
 
-$("transferForm").onsubmit=async event=>{
+$("transferForm").onsubmit = async event=>{
  event.preventDefault();
  if(!isLeagueController)return;
- const button=$("saveTransfer");
- const result=$("transferMessage");
+
+ const button = $("saveTransfer");
+ const result = $("transferMessage");
+
  try{
-  const start=swissToISO($("transferStartDate").value,$("transferStartTime").value);
-  const end=swissToISO($("transferEndDate").value,$("transferEndTime").value);
-  if(new Date(end)<=new Date(start))throw Error("Enddatum muss nach Startdatum liegen.");
-  if(!confirm("Transferfenster planen?\nÖffnung: "+
-   swissDisplay(start)+" Uhr\nSchliessung: "+swissDisplay(end)+" Uhr"))return;
-  button.disabled=true;
-  result.textContent="Speichere...";
-  const {data,error}=await client.rpc("snhl_schedule_transfer_window",{
-   p_opens_at:start,p_closes_at:end
-  });
+  const start = swissToISO(
+   $("transferStartDate").value,
+   $("transferStartTime").value
+  );
+
+  const end = swissToISO(
+   $("transferEndDate").value,
+   $("transferEndTime").value
+  );
+
+  if(new Date(end)<=new Date(start)){
+   throw Error("Enddatum muss nach Startdatum liegen.");
+  }
+
+  if(!confirm(
+   "Transferfenster planen?\nÖffnung: " +
+   swissDisplay(start) +
+   " Uhr\nSchliessung: " +
+   swissDisplay(end) + " Uhr"
+  ))return;
+
+  button.disabled = true;
+  result.textContent = "Speichere...";
+
+  const {data,error} = await client.rpc(
+   "snhl_schedule_transfer_window",
+   {
+    p_opens_at:start,
+    p_closes_at:end
+   }
+  );
+
   if(error)throw error;
-  if(!data?.success)throw Error("Speichern nicht bestätigt.");
-  result.textContent="Transferfenster erfolgreich geplant!";
+  if(!data?.success){
+   throw Error("Speichern nicht bestätigt.");
+  }
+
+  result.textContent =
+   "Transferfenster erfolgreich geplant!";
+
   await loadTransferStatus();
- }catch(e){result.textContent="Fehler: "+e.message}
- finally{button.disabled=false}
+
+ }catch(e){
+  result.textContent = "Fehler: " + e.message;
+ }finally{
+  button.disabled = false;
+ }
 };
 
-$("refreshTransfer").onclick=()=>loadTransferStatus().catch(()=>{});
+$("refreshTransfer").onclick = ()=>
+ loadTransferStatus().catch(()=>{});
 
 // TRANSFERFREIGABEN
 
 async function loadApprovals(){
- const list=$("approvalList");
- const result=$("approvalMessage");
- list.textContent="Lade Transferanträge...";
- result.textContent="";
+ const list = $("approvalList");
+ const result = $("approvalMessage");
+
+ list.textContent = "Lade Transferanträge...";
+ result.textContent = "";
+
  if(!isLeagueController){
-  list.textContent="Nur die offizielle Liga-Leitung hat Zugriff.";
+  list.textContent =
+   "Nur die offizielle Liga-Leitung hat Zugriff.";
   return;
- }
- let windowOpen=false;
- try{
-  const status=await getTransferStatus();
-  windowOpen=status?.is_open===true;
-  $("approvalWindowStatus").textContent=windowOpen
-   ?"GEÖFFNET"
-   :status?.status==="scheduled"
-    ?"Geplant – noch geschlossen"
-    :"GESCHLOSSEN";
- }catch(e){
-  $("approvalWindowStatus").textContent="Status nicht verfügbar: "+e.message;
  }
 
- const {data,error}=await client.rpc("snhl_list_transfers");
+ let windowOpen = false;
+
+ try{
+  const status = await getTransferStatus();
+  windowOpen = status?.is_open === true;
+
+  $("approvalWindowStatus").textContent =
+   windowOpen
+    ? "GEÖFFNET"
+    : status?.status === "scheduled"
+     ? "Geplant – noch geschlossen"
+     : "GESCHLOSSEN";
+
+ }catch(e){
+  $("approvalWindowStatus").textContent =
+   "Status nicht verfügbar: " + e.message;
+ }
+
+ const {data,error} = await client.rpc(
+  "snhl_list_transfers"
+ );
+
  if(error){
-  list.textContent="Fehler: "+error.message;
+  list.textContent = "Fehler: " + error.message;
   return;
  }
+
  list.replaceChildren();
+
  if(!data?.length){
-  list.textContent="Keine Transferanträge vorhanden.";
+  list.textContent = "Keine Transferanträge vorhanden.";
   return;
  }
 
  for(const tr of data){
-  const item=document.createElement("div");
-  item.className="item";
-  const heading=document.createElement("h3");
-  heading.textContent=(tr.from_club_name||"Alter Club")+
-   " → "+(tr.to_club_name||"Neuer Club");
+  const item = document.createElement("div");
+  item.className = "item";
 
-  const player=document.createElement("p");
-  player.textContent="Spieler-ID: "+tr.player_id;
-  const state=document.createElement("p");
-  state.textContent="Status: "+(tr.transfer_status||"–")+
-   (tr.completed?" · Abgeschlossen":"");
+  const heading = document.createElement("h3");
+  heading.textContent =
+   (tr.from_club_name || "Alter Club") +
+   " → " +
+   (tr.to_club_name || "Neuer Club");
 
-  const approvals=document.createElement("p");
-  approvals.textContent=
-   "Alter Club: "+(tr.old_club_approved?"Ja":"Offen")+
-   " | Neuer Club: "+(tr.new_club_approved?"Ja":"Offen")+
-   " | Liga: "+(tr.league_approved?"Ja":"Offen");
+  const player = document.createElement("p");
+  player.textContent = "Spieler-ID: " + tr.player_id;
+
+  const state = document.createElement("p");
+  state.textContent =
+   "Status: " + (tr.transfer_status || "–") +
+   (tr.completed ? " · Abgeschlossen" : "");
+
+  const approvals = document.createElement("p");
+  approvals.textContent =
+   "Alter Club: " +
+   (tr.old_club_approved ? "Ja" : "Offen") +
+   " | Neuer Club: " +
+   (tr.new_club_approved ? "Ja" : "Offen") +
+   " | Liga: " +
+   (tr.league_approved ? "Ja" : "Offen");
 
   item.append(heading,player,state,approvals);
 
-  const eligible=windowOpen&&!tr.completed&&
-   tr.transfer_status==="pending"&&
-   tr.old_club_approved===true&&
-   tr.new_club_approved===true&&
-   tr.league_approved!==true;
+  const eligible =
+   windowOpen &&
+   !tr.completed &&
+   tr.transfer_status === "pending" &&
+   tr.old_club_approved === true &&
+   tr.new_club_approved === true &&
+   tr.league_approved !== true;
 
   if(eligible){
-   const button=document.createElement("button");
-   button.textContent="Liga-Freigabe erteilen";
-   button.onclick=()=>approveTransfer(tr.request_id);
+   const button = document.createElement("button");
+   button.textContent = "Liga-Freigabe erteilen";
+   button.onclick = ()=>approveTransfer(tr.request_id);
    item.appendChild(button);
   }
 
-  if(tr.league_approved&&!tr.completed){
-   const note=document.createElement("p");
-   note.className="muted";
-   note.textContent="Liga-Freigabe vorhanden. Spielerwechsel noch nicht abgeschlossen.";
+  if(tr.league_approved && !tr.completed){
+   const note = document.createElement("p");
+   note.className = "muted";
+   note.textContent =
+    "Liga-Freigabe vorhanden. Spielerwechsel noch nicht abgeschlossen.";
    item.appendChild(note);
   }
+
   list.appendChild(item);
  }
 }
 
 async function approveTransfer(id){
- if(approvalBusy||!isLeagueController)return;
+ if(approvalBusy || !isLeagueController)return;
+
  if(!confirm(
-  "Transfer durch die Liga-Leitung freigeben?\n\n"+
+  "Transfer durch die Liga-Leitung freigeben?\n\n" +
   "Die Freigabe verschiebt den Spieler noch nicht."
  ))return;
 
- approvalBusy=true;
- $("approvalMessage").textContent="Freigabe wird geprüft...";
+ approvalBusy = true;
+ $("approvalMessage").textContent =
+  "Freigabe wird geprüft...";
+
  try{
-  const {data,error}=await client.rpc(
+  const {data,error} = await client.rpc(
    "snhl_league_approve_transfer",
    {p_request_id:id}
   );
+
   if(error)throw error;
-  if(!data?.success)throw Error("Freigabe nicht bestätigt.");
-  $("approvalMessage").textContent="Liga-Freigabe gespeichert. Spieler noch nicht verschoben.";
+
+  if(!data?.success){
+   throw Error("Freigabe nicht bestätigt.");
+  }
+
+  $("approvalMessage").textContent =
+   "Liga-Freigabe gespeichert. Spieler noch nicht verschoben.";
+
  }catch(e){
-  $("approvalMessage").textContent="Fehler: "+e.message;
+  $("approvalMessage").textContent =
+   "Fehler: " + e.message;
  }finally{
-  approvalBusy=false;
+  approvalBusy = false;
   await loadApprovals();
  }
 }
-$("refreshApprovals").onclick=loadApprovals;
+
+$("refreshApprovals").onclick = loadApprovals;
 
 // LIGA-LEITUNG EINLADEN
 
-$("inviteForm").onsubmit=async event=>{
+$("inviteForm").onsubmit = async event=>{
  event.preventDefault();
- if(adminRole!=="owner")return;
- const email=$("inviteEmail").value.trim().toLowerCase();
- const role=$("inviteRole").value;
- const result=$("inviteResult");
- const button=$("inviteSubmit");
+ if(adminRole !== "owner")return;
+
+ const email = $("inviteEmail").value.trim().toLowerCase();
+ const role = $("inviteRole").value;
+ const result = $("inviteResult");
+ const button = $("inviteSubmit");
+
  if(!$("inviteEmail").checkValidity()){
-  $("inviteEmail").reportValidity();return;
+  $("inviteEmail").reportValidity();
+  return;
  }
- if(!["league_admin","moderator","stats_manager"].includes(role))return;
- if(!confirm("Einladung für "+email+" erstellen?\nEs wird noch keine E-Mail versendet."))return;
- button.disabled=true;
+
+ if(![
+  "league_admin",
+  "moderator",
+  "stats_manager"
+ ].includes(role))return;
+
+ if(!confirm(
+  "Einladung für " + email +
+  " erstellen?\nEs wird noch keine E-Mail versendet."
+ ))return;
+
+ button.disabled = true;
  $("inviteSecret").classList.add("hidden");
- invitationToken=null;
- result.textContent="Einladung wird erstellt...";
+ invitationToken = null;
+ result.textContent = "Einladung wird erstellt...";
+
  try{
-  const {data,error}=await client.auth.getSession();
-  const token=data?.session?.access_token;
-  if(error||!token)throw Error("Bitte erneut anmelden.");
-  const response=await fetch(SUPABASE_URL+"/functions/v1/send-admin-invitation",{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "Authorization":"Bearer "+token,
-    "apikey":SUPABASE_KEY
-   },
-   body:JSON.stringify({email,role})
-  });
-  const payload=await response.json();
-  if(!response.ok)throw Error(payload.error||"Einladung fehlgeschlagen.");
-  if(payload.status!=="created"||!payload.invitation_token)
+  const {data,error} = await client.auth.getSession();
+  const token = data?.session?.access_token;
+
+  if(error || !token){
+   throw Error("Bitte erneut anmelden.");
+  }
+
+  const response = await fetch(
+   SUPABASE_URL + "/functions/v1/send-admin-invitation",
+   {
+    method:"POST",
+    headers:{
+     "Content-Type":"application/json",
+     "Authorization":"Bearer " + token,
+     "apikey":SUPABASE_KEY
+    },
+    body:JSON.stringify({email,role})
+   }
+  );
+
+  const payload = await response.json();
+
+  if(!response.ok){
+   throw Error(payload.error || "Einladung fehlgeschlagen.");
+  }
+
+  if(
+   payload.status !== "created" ||
+   !payload.invitation_token
+  ){
    throw Error("Unerwartete Serverantwort.");
-  invitationToken=payload.invitation_token;
+  }
+
+  invitationToken = payload.invitation_token;
   $("inviteSecret").classList.remove("hidden");
   $("inviteForm").reset();
-  result.textContent="Einladung erfolgreich erstellt.";
- }catch(e){result.textContent="Fehler: "+e.message}
- finally{button.disabled=false}
+  result.textContent = "Einladung erfolgreich erstellt.";
+
+ }catch(e){
+  result.textContent = "Fehler: " + e.message;
+ }finally{
+  button.disabled = false;
+ }
 };
-$("copyToken").onclick=async()=>{
+
+$("copyToken").onclick = async()=>{
  if(!invitationToken)return;
+
  try{
   await navigator.clipboard.writeText(invitationToken);
-  $("inviteResult").textContent="Einladungstoken kopiert.";
+  $("inviteResult").textContent =
+   "Einladungstoken kopiert.";
  }catch{
-  $("inviteResult").textContent="Kopieren nicht möglich.";
+  $("inviteResult").textContent =
+   "Kopieren nicht möglich.";
  }
 };
 
 // GAMING-ID-ANTRAEGE
-// Nur Anzeige. Keine Freigabe im Testbetrieb.
 
 async function loadAdminGamingRequests(){
- const list=$("gamingAdminList");
- const result=$("gamingAdminMessage");
+ const list = $("gamingAdminList");
+ const result = $("gamingAdminMessage");
 
  if(!isLeagueController){
-  list.textContent="Nur die Liga-Leitung hat Zugriff.";
+  list.textContent =
+   "Nur die Liga-Leitung hat Zugriff.";
   return;
  }
 
- list.textContent="Lade Gaming-ID-Anträge...";
- result.textContent="";
+ list.textContent = "Lade Gaming-ID-Anträge...";
+ result.textContent = "";
 
- const {data,error}=await client.rpc(
+ const {data,error} = await client.rpc(
   "snhl_admin_gaming_id_requests"
  );
 
  if(error){
-  list.textContent="Fehler: "+error.message;
+  list.textContent = "Fehler: " + error.message;
   return;
  }
 
  list.replaceChildren();
 
  if(!data?.length){
-  list.textContent="Keine Gaming-ID-Anträge vorhanden.";
+  list.textContent =
+   "Keine Gaming-ID-Anträge vorhanden.";
   return;
  }
 
- const labels={
+ const labels = {
   pending:"Offen",
   approved:"Genehmigt",
   rejected:"Abgelehnt"
  };
 
  for(const request of data){
-  const item=document.createElement("div");
-  item.className="item";
+  const item = document.createElement("div");
+  item.className = "item";
 
-  const lines=[
-   ["h3",request.platform==="PS5"
-     ?"PSN-ID-Änderung"
-     :"Xbox-Gamertag-Änderung"],
-   ["p","Spieler-ID: "+request.user_id],
-   ["p","Bisherige ID: "+
-     (request.old_gaming_id||"Keine")],
-   ["p","Beantragte ID: "+request.new_gaming_id],
-   ["p","Begründung: "+request.reason],
-   ["p","Status: "+
-     (labels[request.status]||request.status)]
+  const lines = [
+   [
+    "h3",
+    request.platform === "PS5"
+     ? "PSN-ID-Änderung"
+     : "Xbox-Gamertag-Änderung"
+   ],
+   ["p","Spieler-ID: " + request.user_id],
+   [
+    "p",
+    "Bisherige ID: " +
+    (request.old_gaming_id || "Keine")
+   ],
+   [
+    "p",
+    "Beantragte ID: " + request.new_gaming_id
+   ],
+   [
+    "p",
+    "Begründung: " + request.reason
+   ],
+   [
+    "p",
+    "Status: " +
+    (labels[request.status] || request.status)
+   ]
   ];
 
   for(const [tag,value] of lines){
-   const node=document.createElement(tag);
-   node.textContent=value;
+   const node = document.createElement(tag);
+   node.textContent = value;
    item.appendChild(node);
   }
 
-  if(request.status==="pending"){
-   const actions=document.createElement("div");
-   actions.className="actions";
+  if(request.status === "pending"){
+   const actions = document.createElement("div");
+   actions.className = "actions";
 
-   const approve=document.createElement("button");
-   approve.textContent="Genehmigen";
-   approve.disabled=true;
+   const approve = document.createElement("button");
+   approve.textContent = "Genehmigen";
+   approve.disabled = gamingDecisionBusy;
+   approve.onclick = ()=>
+    reviewGamingRequest(request,true);
 
-   const reject=document.createElement("button");
-   reject.textContent="Ablehnen";
-   reject.className="danger";
-   reject.disabled=true;
+   const reject = document.createElement("button");
+   reject.textContent = "Ablehnen";
+   reject.className = "danger";
+   reject.disabled = gamingDecisionBusy;
+   reject.onclick = ()=>
+    reviewGamingRequest(request,false);
 
    actions.append(approve,reject);
    item.appendChild(actions);
@@ -715,43 +1267,131 @@ async function loadAdminGamingRequests(){
  }
 }
 
-$("refreshGaming").onclick=loadAdminGamingRequests;
+// GAMING-ID GENEHMIGEN ODER ABLEHNEN
+
+async function reviewGamingRequest(request,approve){
+ if(
+  !isLeagueController ||
+  gamingDecisionBusy ||
+  request.status !== "pending"
+ ){
+  return;
+ }
+
+ const action = approve
+  ? "GENEHMIGEN"
+  : "ABLEHNEN";
+
+ const question =
+  action + "?\n\n" +
+  "Plattform: " + request.platform + "\n" +
+  "Bisherige ID: " +
+  (request.old_gaming_id || "Keine") + "\n" +
+  "Neue ID: " + request.new_gaming_id + "\n\n" +
+  "Diese Entscheidung wird sofort in der Datenbank gespeichert.";
+
+ if(!confirm(question))return;
+
+ gamingDecisionBusy = true;
+
+ $("gamingAdminMessage").textContent =
+  "Entscheidung wird gespeichert...";
+
+ document.querySelectorAll(
+  "#gamingAdminList button"
+ ).forEach(button=>{
+  button.disabled = true;
+ });
+
+ try{
+  const {error} = await client.rpc(
+   "snhl_review_gaming_id_change",
+   {
+    p_request_id:request.id,
+    p_approve:approve
+   }
+  );
+
+  if(error)throw error;
+
+  await loadAdminGamingRequests();
+
+  $("gamingAdminMessage").textContent =
+   approve
+    ? "Antrag genehmigt. Die neue Gaming-ID wurde gespeichert."
+    : "Antrag abgelehnt. Die bisherige Gaming-ID bleibt erhalten.";
+
+ }catch(e){
+  await loadAdminGamingRequests();
+
+  $("gamingAdminMessage").textContent =
+   "Fehler: " + e.message;
+
+ }finally{
+  gamingDecisionBusy = false;
+ }
+}
+
+$("refreshGaming").onclick =
+ loadAdminGamingRequests;
 
 // INITIALISIERUNG
 
 async function init(){
  if(!window.supabase){
-  deny("Supabase konnte nicht geladen werden.");return;
+  deny("Supabase konnte nicht geladen werden.");
+  return;
  }
- client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
- const {data:{user},error}=await client.auth.getUser();
- if(error||!user){deny("Bitte zuerst einloggen.");return}
 
- const {data:admin,error:adminError}=await client
+ client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+ );
+
+ const {data:{user},error} =
+  await client.auth.getUser();
+
+ if(error || !user){
+  deny("Bitte zuerst einloggen.");
+  return;
+ }
+
+ const {data:admin,error:adminError} = await client
   .from("admin_users")
   .select("admin_role")
   .eq("user_id",user.id)
   .maybeSingle();
 
- if(adminError||!admin){
-  deny("Dein Konto hat keine Admin-Berechtigung.");return;
+ if(adminError || !admin){
+  deny("Dein Konto hat keine Admin-Berechtigung.");
+  return;
  }
 
- currentUser=user;
- adminRole=admin.admin_role;
- $("who").textContent=(user.email||"Administrator")+" · "+adminRole;
+ currentUser = user;
+ adminRole = admin.admin_role;
 
- isLeagueController=
-  user.email?.toLowerCase()==="swiss_nhl_league@gmx.ch"&&
+ $("who").textContent =
+  (user.email || "Administrator") +
+  " · " + adminRole;
+
+ isLeagueController =
+  user.email?.toLowerCase() ===
+   "swiss_nhl_league@gmx.ch" &&
   ["owner","league_admin"].includes(adminRole);
 
  if(!isLeagueController){
-  document.querySelector('[data-tab="transfers"]').classList.add("hidden");
-  document.querySelector('[data-tab="approvals"]').classList.add("hidden");
+  document.querySelector(
+   '[data-tab="transfers"]'
+  ).classList.add("hidden");
+
+  document.querySelector(
+   '[data-tab="approvals"]'
+  ).classList.add("hidden");
+
   $("transferForm").classList.add("hidden");
  }
 
- if(adminRole==="owner"){
+ if(adminRole === "owner"){
   $("inviteNav").classList.remove("hidden");
  }
 
@@ -759,32 +1399,42 @@ async function init(){
   $("gamingNav").classList.remove("hidden");
  }
 
- $("logout").onclick=async()=>{
+ $("logout").onclick = async()=>{
   await client.auth.signOut();
-  location.href="login.html";
+  location.href = "login.html";
  };
 
- $("addClub").onclick=addClub;
+ $("addClub").onclick = addClub;
+
  $("loading").classList.add("hidden");
  $("dashboard").classList.remove("hidden");
 
  await Promise.allSettled([
   loadTable("clubs","clubsTable","clubsCount"),
-  loadTable("player_profiles","playersTable","playersCount"),
+  loadTable(
+   "player_profiles",
+   "playersTable",
+   "playersCount"
+  ),
   loadTable("games","gamesTable","gamesCount"),
   loadClubRequests(),
   loadTransferStatus()
  ]);
 
- $("usersCount").textContent="–";
- $("usersTable").textContent=
+ $("usersCount").textContent = "–";
+
+ $("usersTable").textContent =
   "Mitgliederverwaltung wird mit einer gesicherten Admin-Funktion ergänzt.";
 }
 
-init().catch(e=>deny("Fehler beim Laden: "+e.message));
+init().catch(e=>{
+ deny("Fehler beim Laden: " + e.message);
+});
+
 </script>
 </body>
 </html>
+
 
 
 
