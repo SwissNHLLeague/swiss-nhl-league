@@ -35,10 +35,10 @@ main{max-width:700px;margin:35px auto;padding:15px}
 }
 h2{margin-top:0}
 label{display:block;margin:18px 0 8px}
-input,select,button{
+input,select,textarea,button{
   font:inherit;padding:14px;border-radius:9px;
 }
-input,select{
+input,select,textarea{
   width:100%;background:#071827;
   color:white;border:1px solid var(--line);
 }
@@ -47,6 +47,9 @@ button{
   border:0;cursor:pointer;font-weight:bold;
 }
 button:disabled{opacity:.5;cursor:not-allowed}
+input:disabled,select:disabled{opacity:.75}
+textarea{min-height:100px;resize:vertical}
+.small{font-size:13px}
 .primary{width:100%;margin-top:20px}
 .hidden{display:none!important}
 .muted{color:#b6c5da;line-height:1.5}
@@ -122,24 +125,61 @@ Spielerprofil wird geprüft...
 <select id="platform" required>
   <option value="PS5">PlayStation 5</option>
   <option value="Xbox">Xbox Series X/S</option>
+  <option value="PS5+Xbox">PS5 + Xbox</option>
 </select>
-
-<label id="gamerLabel" for="gamerId">
-PSN-Online-ID *
-</label>
-<input id="gamerId" type="text"
-  maxlength="100" required>
-
-<p class="muted">
-Die Spielerkennung der gewählten Plattform ist Pflicht.
+<p class="muted small" id="platformHint">
+Bei bestehenden Profilen sind Plattformwechsel noch nicht freigegeben.
 </p>
 
-<button id="saveProfile" class="primary"
-  type="submit">
+<div id="psnField">
+<label for="psnId">PSN-Online-ID *</label>
+<input id="psnId" type="text" maxlength="100" autocomplete="off">
+</div>
+
+<div id="xboxField">
+<label for="xboxId">Xbox-Gamertag *</label>
+<input id="xboxId" type="text" maxlength="100" autocomplete="off">
+</div>
+
+<p class="muted">
+Bereits hinterlegte Gaming-IDs sind geschützt.
+Änderungen beantragst du unten.
+</p>
+
+<button id="saveProfile" class="primary" type="submit">
 Spielerprofil speichern
 </button>
-
 </form>
+</section>
+
+<section class="panel">
+<h2>Gaming-ID-Änderung beantragen</h2>
+<p class="muted">
+Deine bisherige Kennung bleibt gültig, bis die Liga-Leitung
+deinen Antrag genehmigt. Auch eine fehlende Gaming-ID
+kannst du hier nachtragen lassen.
+</p>
+
+<form id="gamingRequestForm">
+<label for="gamingPlatform">Kennung</label>
+<select id="gamingPlatform" required>
+<option value="PS5">PSN-Online-ID</option>
+<option value="Xbox">Xbox-Gamertag</option>
+</select>
+
+<label for="newGamingId">Neue Gaming-ID *</label>
+<input id="newGamingId" maxlength="100" required autocomplete="off">
+
+<label for="gamingReason">Begründung *</label>
+<textarea id="gamingReason" maxlength="1000" required></textarea>
+
+<button id="sendGamingRequest" class="primary" type="submit">
+Änderung beantragen
+</button>
+</form>
+
+<h2 style="margin-top:30px">Meine Gaming-ID-Anträge</h2>
+<div id="gamingRequests" aria-live="polite">Lade Anträge...</div>
 </section>
 
 <section class="panel">
@@ -149,7 +189,6 @@ Spielerprofil speichern
 
 <section class="panel">
 <h2>Club beitreten</h2>
-
 <p class="muted">
 Wähle einen Club aus. Der Clubinhaber oder ein
 berechtigter General Manager muss deine Anfrage
@@ -165,8 +204,7 @@ Clubbeitritt wird geprüft...
 <option value="">Clubs werden geladen...</option>
 </select>
 
-<button id="apply" class="primary"
-  type="button" disabled>
+<button id="apply" class="primary" type="button" disabled>
 Beitrittsanfrage senden
 </button>
 </section>
@@ -207,6 +245,8 @@ let profileBusy = false;
 let requestBusy = false;
 let membershipReady = false;
 let requestsReady = false;
+let storedProfile = null;
+let gamingRequestBusy = false;
 
 function message(text){
   $("message").textContent = text;
@@ -216,25 +256,24 @@ function fail(error){
   message("Fehler: " + (error?.message || "Unbekannt"));
 }
 
-function updatePlatformLabel(){
-  const xbox = $("platform").value === "Xbox";
-  $("gamerLabel").textContent =
-    xbox ? "Xbox-Gamertag *" : "PSN-Online-ID *";
-  $("gamerId").placeholder =
-    xbox ? "Dein Xbox-Gamertag" : "Deine PSN-ID";
+function updatePlatformFields(){
+  const platform = $("platform").value;
+  $("psnField").classList.toggle("hidden", platform === "Xbox");
+  $("xboxField").classList.toggle("hidden", platform === "PS5");
+  $("psnId").required = platform !== "Xbox";
+  $("xboxId").required = platform !== "PS5";
 }
 
 $("platform").addEventListener("change",()=>{
-  $("gamerId").value = "";
+  updatePlatformFields();
   profileComplete = false;
-  updatePlatformLabel();
   updateProfileStatus();
   updateJoinStatus();
 });
 
 for(const id of [
   "firstName","lastName","jerseyNumber",
-  "position","gamerId"
+  "position","psnId","xboxId"
 ]){
   $(id).addEventListener("input",()=>{
     profileComplete = false;
@@ -246,13 +285,14 @@ for(const id of [
 function validProfile(){
   const first = $("firstName").value.trim();
   const last = $("lastName").value.trim();
-  const gamer = $("gamerId").value.trim();
   const jersey = $("jerseyNumber").value.trim();
+  const platform = $("platform").value;
 
-  return Boolean(first && last && gamer) &&
-    ["PS5","Xbox"].includes($("platform").value) &&
-    ["Torhüter","Verteidiger","Stürmer"]
-      .includes($("position").value) &&
+  return Boolean(first && last) &&
+    ["PS5","Xbox","PS5+Xbox"].includes(platform) &&
+    (platform === "Xbox" || Boolean($("psnId").value.trim())) &&
+    (platform === "PS5" || Boolean($("xboxId").value.trim())) &&
+    ["Torhüter","Verteidiger","Stürmer"].includes($("position").value) &&
     /^[0-9]{1,2}$/.test(jersey) &&
     Number(jersey)>=1 &&
     Number(jersey)<=99;
@@ -293,8 +333,8 @@ async function loadProfile(){
   const {data,error} = await client
     .from("player_profiles")
     .select(
-      "first_name,last_name,jersey_number,"+
-      "position,platform,psn_id,xbox_gamertag"
+      "first_name,last_name,jersey_number,position,"+
+      "platform,psn_id,xbox_gamertag"
     )
     .eq("user_id",currentUser.id)
     .maybeSingle();
@@ -307,21 +347,29 @@ async function loadProfile(){
     return;
   }
 
+  storedProfile = data || null;
+
   $("firstName").value = data?.first_name || "";
   $("lastName").value = data?.last_name || "";
-  $("jerseyNumber").value =
-    data?.jersey_number ?? "";
+  $("jerseyNumber").value = data?.jersey_number ?? "";
   $("position").value = data?.position || "";
 
   $("platform").value =
-    data?.platform === "Xbox" ? "Xbox" : "PS5";
+    ["PS5","Xbox","PS5+Xbox"].includes(data?.platform)
+      ? data.platform : "PS5";
 
-  updatePlatformLabel();
+  $("platform").disabled = Boolean(data);
+  $("psnId").value = data?.psn_id || "";
+  $("xboxId").value = data?.xbox_gamertag || "";
 
-  $("gamerId").value =
-    $("platform").value === "Xbox"
-      ? data?.xbox_gamertag || ""
-      : data?.psn_id || "";
+  $("psnId").readOnly = Boolean(data);
+  $("xboxId").readOnly = Boolean(data);
+
+  $("platformHint").textContent = data
+    ? "Plattform und Gaming-IDs sind geschützt. Änderungen bitte bei der Liga-Leitung beantragen."
+    : "Wähle deine Plattform und trage die erforderlichen Gaming-IDs ein.";
+
+  updatePlatformFields();
 
   profileComplete = Boolean(data) && validProfile();
   updateProfileStatus();
@@ -330,41 +378,61 @@ async function loadProfile(){
 
 $("profileForm").onsubmit = async event=>{
   event.preventDefault();
-
   if(profileBusy || !currentUser)return;
-
-  if(!validProfile()){
-    message("Bitte alle Spielerprofil-Pflichtfelder korrekt ausfüllen.");
-    return;
-  }
 
   const firstName = $("firstName").value.trim();
   const lastName = $("lastName").value.trim();
-  const number = Number($("jerseyNumber").value);
+  const jerseyText = $("jerseyNumber").value.trim();
   const position = $("position").value;
-  const platform = $("platform").value;
-  const gamerId = $("gamerId").value.trim();
+
+  if(
+    !firstName ||
+    !lastName ||
+    !/^[0-9]{1,2}$/.test(jerseyText) ||
+    Number(jerseyText)<1 ||
+    Number(jerseyText)>99 ||
+    !["Torhüter","Verteidiger","Stürmer"].includes(position) ||
+    (!storedProfile && !validProfile())
+  ){
+    message("Bitte alle erforderlichen Profilfelder korrekt ausfüllen.");
+    return;
+  }
 
   profileBusy = true;
-  profileComplete = false;
   $("saveProfile").disabled = true;
   updateJoinStatus();
   message("Spielerprofil wird gespeichert...");
 
   try{
-    const {error} = await client
-      .from("player_profiles")
-      .upsert({
-        user_id:currentUser.id,
-        first_name:firstName,
-        last_name:lastName,
-        jersey_number:number,
-        position:position,
-        platform:platform,
-        psn_id:platform==="PS5" ? gamerId : null,
-        xbox_gamertag:platform==="Xbox" ? gamerId : null,
-        updated_at:new Date().toISOString()
-      },{onConflict:"user_id"});
+    const fields = {
+      first_name:firstName,
+      last_name:lastName,
+      jersey_number:Number(jerseyText),
+      position,
+      updated_at:new Date().toISOString()
+    };
+
+    let error;
+
+    if(storedProfile){
+      // Geschuetzte Gaming-IDs und Plattform nicht ueberschreiben.
+      ({error} = await client
+        .from("player_profiles")
+        .update(fields)
+        .eq("user_id",currentUser.id));
+    }else{
+      ({error} = await client
+        .from("player_profiles")
+        .insert({
+          user_id:currentUser.id,
+          ...fields,
+          platform:$("platform").value,
+          psn_id:$("platform").value === "Xbox"
+            ? null : $("psnId").value.trim(),
+          xbox_gamertag:$("platform").value === "PS5"
+            ? null : $("xboxId").value.trim()
+        }));
+    }
 
     if(error)throw error;
 
@@ -372,14 +440,108 @@ $("profileForm").onsubmit = async event=>{
 
     message(profileComplete
       ? "Spielerprofil erfolgreich gespeichert!"
-      : "Speicherung prüfen: Profil konnte nicht vollständig geladen werden.");
+      : "Profil gespeichert. Fehlende Gaming-ID bitte über einen Antrag ergänzen.");
 
   }catch(error){
     fail(error);
+    await loadProfile();
   }finally{
     profileBusy = false;
     $("saveProfile").disabled = false;
     updateJoinStatus();
+  }
+};
+
+const gamingStatusNames = {
+  pending:"In Prüfung",
+  approved:"Genehmigt",
+  rejected:"Abgelehnt"
+};
+
+async function loadGamingRequests(){
+  const list = $("gamingRequests");
+
+  const {data,error} = await client.rpc(
+    "snhl_my_gaming_id_requests"
+  );
+
+  if(error){
+    list.textContent =
+      "Anträge konnten nicht geladen werden: " + error.message;
+    return;
+  }
+
+  list.replaceChildren();
+
+  if(!data?.length){
+    list.textContent = "Noch keine Gaming-ID-Anträge vorhanden.";
+    return;
+  }
+
+  for(const request of data){
+    const item = document.createElement("div");
+    item.className = "item";
+
+    const date = request.created_at
+      ? new Date(request.created_at).toLocaleDateString("de-CH")
+      : "";
+
+    item.textContent =
+      `${request.platform}: ` +
+      `${request.old_gaming_id || "(noch keine ID)"} → ` +
+      `${request.new_gaming_id} | ` +
+      `${gamingStatusNames[request.status] || request.status} | ${date}`;
+
+    list.appendChild(item);
+  }
+}
+
+$("gamingRequestForm").onsubmit = async event=>{
+  event.preventDefault();
+  if(gamingRequestBusy || !currentUser)return;
+
+  const platform = $("gamingPlatform").value;
+  const newId = $("newGamingId").value.trim();
+  const reason = $("gamingReason").value.trim();
+
+  if(!["PS5","Xbox"].includes(platform) || !newId || !reason){
+    message("Bitte alle Felder des Änderungsantrags ausfüllen.");
+    return;
+  }
+
+  if(!confirm(
+    "Gaming-ID-Änderung zur Prüfung an die Liga-Leitung senden?"
+  ))return;
+
+  gamingRequestBusy = true;
+  $("sendGamingRequest").disabled = true;
+
+  try{
+    const {error} = await client.rpc(
+      "snhl_request_gaming_id_change",
+      {
+        p_platform:platform,
+        p_new_gaming_id:newId,
+        p_reason:reason
+      }
+    );
+
+    if(error)throw error;
+
+    $("newGamingId").value = "";
+    $("gamingReason").value = "";
+
+    message(
+      "Antrag eingereicht. Die bisherige Gaming-ID bleibt unverändert."
+    );
+
+    await loadGamingRequests();
+
+  }catch(error){
+    fail(error);
+  }finally{
+    gamingRequestBusy = false;
+    $("sendGamingRequest").disabled = false;
   }
 };
 
@@ -420,7 +582,7 @@ async function loadClubs(){
 
   if(error){
     fail(error);
-    select.innerHTML = "";
+    select.replaceChildren();
     return;
   }
 
@@ -459,6 +621,7 @@ async function loadRequests(){
   hasPending = (data || []).some(
     r=>r.status==="pending"
   );
+
   requestsReady = true;
   updateJoinStatus();
 
@@ -572,6 +735,7 @@ async function init(){
   $("portal").classList.remove("hidden");
 
   await loadProfile();
+  await loadGamingRequests();
   await loadClubs();
   await loadRequests();
   await loadMembership();
@@ -585,4 +749,5 @@ init().catch(error=>{
 </script>
 </body>
 </html>
+
 
