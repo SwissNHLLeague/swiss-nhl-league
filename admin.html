@@ -91,6 +91,7 @@ a{color:#80b2ff}
 <button data-tab="requests">Clubanträge</button>
 <button data-tab="transfers">Transferfenster</button>
 <button data-tab="approvals">Transferfreigaben</button>
+<button data-tab="gaming" id="gamingNav" class="hidden">Gaming-ID-Anträge</button>
 <button data-tab="invitations" id="inviteNav" class="hidden">Liga-Leitung einladen</button>
 </nav>
 
@@ -189,6 +190,18 @@ a{color:#80b2ff}
 <div id="approvalList">Lade Transferanträge...</div>
 </section>
 
+<section class="panel hidden" data-section="gaming">
+<h2>Gaming-ID-Anträge</h2>
+<p class="muted">Anträge für PSN-Online-IDs und Xbox-Gamertags.</p>
+<div class="notice">
+<strong>Sicherheitsmodus</strong>
+<p>Genehmigungen und Ablehnungen sind bis zum Abschluss der Sicherheitsprüfung deaktiviert.</p>
+</div>
+<button id="refreshGaming" type="button">Anträge aktualisieren</button>
+<p id="gamingAdminMessage" role="status"></p>
+<div id="gamingAdminList">Lade Gaming-ID-Anträge...</div>
+</section>
+
 <section class="panel hidden" data-section="invitations">
 <h2>Liga-Leitung einladen</h2>
 <p class="muted">Testbetrieb ohne automatischen E-Mail-Versand.</p>
@@ -233,6 +246,7 @@ function deny(reason){
  $("denied").classList.remove("hidden");
  $("denyReason").textContent=reason;
 }
+
 function showTab(tab){
  document.querySelectorAll("[data-tab]").forEach(b=>
   b.classList.toggle("active",b.dataset.tab===tab));
@@ -240,7 +254,9 @@ function showTab(tab){
   s.classList.toggle("hidden",s.dataset.section!==tab));
  if(tab==="transfers")loadTransferStatus();
  if(tab==="approvals")loadApprovals();
+ if(tab==="gaming")loadAdminGamingRequests();
 }
+
 document.querySelectorAll("[data-tab]").forEach(b=>{
  b.onclick=()=>showTab(b.dataset.tab);
 });
@@ -313,6 +329,7 @@ async function addClub(){
  if(error)return alert("Fehler: "+error.message);
  alert("Club erstellt.");location.reload();
 }
+
 async function editClub(id,currentName){
  const name=prompt("Neuer Clubname:",currentName);
  if(!name?.trim())return;
@@ -321,12 +338,14 @@ async function editClub(id,currentName){
  if(error)return alert("Fehler: "+error.message);
  alert("Club aktualisiert.");location.reload();
 }
+
 async function deleteClub(id){
  if(!confirm("Club wirklich löschen?"))return;
  const {error}=await client.from("clubs").delete().eq("id",id);
  if(error)return alert("Fehler: "+error.message);
  alert("Club gelöscht.");location.reload();
 }
+
 async function uploadClubLogo(clubId){
  const input=document.createElement("input");
  input.type="file";input.accept="image/png,image/jpeg";
@@ -360,6 +379,7 @@ function swissDisplay(value){
   year:"numeric",hour:"2-digit",minute:"2-digit"
  }).format(new Date(value));
 }
+
 function swissParts(date){
  const formatter=new Intl.DateTimeFormat("en-GB",{
   timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",
@@ -368,6 +388,7 @@ function swissParts(date){
  return Object.fromEntries(formatter.formatToParts(date)
   .filter(p=>p.type!=="literal").map(p=>[p.type,Number(p.value)]));
 }
+
 function swissToISO(date,time){
  if(!date||!time)throw Error("Datum und Uhrzeit fehlen.");
  const [y,m,d]=date.split("-").map(Number);
@@ -385,6 +406,7 @@ function swissToISO(date,time){
   throw Error("Diese Uhrzeit ist wegen der Winterzeitumstellung doppeldeutig.");
  return new Date(stamp).toISOString();
 }
+
 function swissInputValues(value){
  const p=swissParts(new Date(value));
  const pad=n=>String(n).padStart(2,"0");
@@ -399,6 +421,7 @@ async function getTransferStatus(){
  if(error)throw error;
  return data;
 }
+
 async function loadTransferStatus(){
  try{
   const data=await getTransferStatus();
@@ -451,6 +474,7 @@ $("transferForm").onsubmit=async event=>{
  }catch(e){result.textContent="Fehler: "+e.message}
  finally{button.disabled=false}
 };
+
 $("refreshTransfer").onclick=()=>loadTransferStatus().catch(()=>{});
 
 // TRANSFERFREIGABEN
@@ -610,6 +634,89 @@ $("copyToken").onclick=async()=>{
  }
 };
 
+// GAMING-ID-ANTRAEGE
+// Nur Anzeige. Keine Freigabe im Testbetrieb.
+
+async function loadAdminGamingRequests(){
+ const list=$("gamingAdminList");
+ const result=$("gamingAdminMessage");
+
+ if(!isLeagueController){
+  list.textContent="Nur die Liga-Leitung hat Zugriff.";
+  return;
+ }
+
+ list.textContent="Lade Gaming-ID-Anträge...";
+ result.textContent="";
+
+ const {data,error}=await client.rpc(
+  "snhl_admin_gaming_id_requests"
+ );
+
+ if(error){
+  list.textContent="Fehler: "+error.message;
+  return;
+ }
+
+ list.replaceChildren();
+
+ if(!data?.length){
+  list.textContent="Keine Gaming-ID-Anträge vorhanden.";
+  return;
+ }
+
+ const labels={
+  pending:"Offen",
+  approved:"Genehmigt",
+  rejected:"Abgelehnt"
+ };
+
+ for(const request of data){
+  const item=document.createElement("div");
+  item.className="item";
+
+  const lines=[
+   ["h3",request.platform==="PS5"
+     ?"PSN-ID-Änderung"
+     :"Xbox-Gamertag-Änderung"],
+   ["p","Spieler-ID: "+request.user_id],
+   ["p","Bisherige ID: "+
+     (request.old_gaming_id||"Keine")],
+   ["p","Beantragte ID: "+request.new_gaming_id],
+   ["p","Begründung: "+request.reason],
+   ["p","Status: "+
+     (labels[request.status]||request.status)]
+  ];
+
+  for(const [tag,value] of lines){
+   const node=document.createElement(tag);
+   node.textContent=value;
+   item.appendChild(node);
+  }
+
+  if(request.status==="pending"){
+   const actions=document.createElement("div");
+   actions.className="actions";
+
+   const approve=document.createElement("button");
+   approve.textContent="Genehmigen";
+   approve.disabled=true;
+
+   const reject=document.createElement("button");
+   reject.textContent="Ablehnen";
+   reject.className="danger";
+   reject.disabled=true;
+
+   actions.append(approve,reject);
+   item.appendChild(actions);
+  }
+
+  list.appendChild(item);
+ }
+}
+
+$("refreshGaming").onclick=loadAdminGamingRequests;
+
 // INITIALISIERUNG
 
 async function init(){
@@ -629,6 +736,7 @@ async function init(){
  if(adminError||!admin){
   deny("Dein Konto hat keine Admin-Berechtigung.");return;
  }
+
  currentUser=user;
  adminRole=admin.admin_role;
  $("who").textContent=(user.email||"Administrator")+" · "+adminRole;
@@ -643,12 +751,19 @@ async function init(){
   $("transferForm").classList.add("hidden");
  }
 
- if(adminRole==="owner")$("inviteNav").classList.remove("hidden");
+ if(adminRole==="owner"){
+  $("inviteNav").classList.remove("hidden");
+ }
+
+ if(isLeagueController){
+  $("gamingNav").classList.remove("hidden");
+ }
 
  $("logout").onclick=async()=>{
   await client.auth.signOut();
   location.href="login.html";
  };
+
  $("addClub").onclick=addClub;
  $("loading").classList.add("hidden");
  $("dashboard").classList.remove("hidden");
@@ -665,9 +780,11 @@ async function init(){
  $("usersTable").textContent=
   "Mitgliederverwaltung wird mit einer gesicherten Admin-Funktion ergänzt.";
 }
+
 init().catch(e=>deny("Fehler beim Laden: "+e.message));
 </script>
 </body>
 </html>
+
 
 
