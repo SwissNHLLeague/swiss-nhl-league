@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -164,6 +163,34 @@ footer{
 }
 a{color:#80b2ff}
 
+/* SICHERHEITSFALLVERWALTUNG */
+.security-case{
+ background:#192a45;
+ border:1px solid var(--line);
+ border-radius:12px;
+ padding:18px;
+ margin:14px 0;
+ overflow-wrap:anywhere;
+}
+.security-case h3{margin-top:0}
+.security-case p{line-height:1.5}
+.security-case textarea{
+ width:100%;
+ min-height:105px;
+ resize:vertical;
+ background:#071321;
+ border:1px solid #45617f;
+ border-radius:8px;
+ color:white;
+ padding:12px;
+ font:inherit;
+ margin:8px 0 12px;
+}
+.security-case .actions button{
+ flex:1;
+ min-width:150px;
+}
+
 /* GAMING-ID-VERWALTUNG */
 .gaming-summary{
  display:grid;
@@ -171,21 +198,11 @@ a{color:#80b2ff}
  gap:12px;
  margin:18px 0;
 }
-.gaming-summary .metric{
- text-align:center;
-}
-.gaming-summary strong{
- font-size:30px;
-}
-.gaming-search{
- margin:16px 0;
-}
-.gaming-search input{
- margin-bottom:5px;
-}
-.gaming-group{
- margin-top:24px;
-}
+.gaming-summary .metric{text-align:center}
+.gaming-summary strong{font-size:30px}
+.gaming-search{margin:16px 0}
+.gaming-search input{margin-bottom:5px}
+.gaming-group{margin-top:24px}
 .gaming-group h3{
  padding-bottom:12px;
  border-bottom:1px solid var(--line);
@@ -205,12 +222,8 @@ a{color:#80b2ff}
  line-height:1.5;
  margin:10px 0;
 }
-.gaming-request .actions{
- margin-top:18px;
-}
-.gaming-status{
- font-weight:bold;
-}
+.gaming-request .actions{margin-top:18px}
+.gaming-status{font-weight:bold}
 .gaming-status.pending{color:#ffda87}
 .gaming-status.approved{color:#76e0a2}
 .gaming-status.rejected{color:#ffb1b1}
@@ -228,9 +241,7 @@ a{color:#80b2ff}
 @media(max-width:400px){
  .panel{padding:17px}
  .gaming-request{padding:14px}
- .gaming-request .actions button{
-  flex:1;
- }
+ .gaming-request .actions button{flex:1}
 }
 </style>
 </head>
@@ -292,6 +303,9 @@ Prüfe Anmeldung und Admin-Berechtigung...
 <button data-tab="gaming" id="gamingNav" class="hidden">
 Gaming-ID-Anträge
 </button>
+<button data-tab="security" id="securityNav" class="hidden">
+Sicherheitsfälle
+</button>
 <button data-tab="invitations" id="inviteNav" class="hidden">
 Liga-Leitung einladen
 </button>
@@ -349,11 +363,14 @@ Lade Clubanträge...
 </div>
 </section>
 
+<!-- TRANSFERFENSTER -->
+
 <section class="panel hidden" data-section="transfers">
 <h2>Transferfenster verwalten</h2>
 <p class="muted">
 Die Liga-Leitung plant die automatische Öffnung und Schliessung.
 </p>
+
 <div class="notice">
 <h3>Aktueller Status</h3>
 <p id="transferStatus">Lade Status...</p>
@@ -362,6 +379,7 @@ Die Liga-Leitung plant die automatische Öffnung und Schliessung.
 
 <form id="transferForm">
 <div class="calendar-grid">
+
 <div class="calendar-box">
 <h3>Öffnung</h3>
 <label for="transferStartDate">Startdatum</label>
@@ -369,6 +387,7 @@ Die Liga-Leitung plant die automatische Öffnung und Schliessung.
 <label for="transferStartTime">Startzeit</label>
 <input id="transferStartTime" type="time" value="00:00" required>
 </div>
+
 <div class="calendar-box">
 <h3>Schliessung</h3>
 <label for="transferEndDate">Enddatum</label>
@@ -376,30 +395,40 @@ Die Liga-Leitung plant die automatische Öffnung und Schliessung.
 <label for="transferEndTime">Endzeit</label>
 <input id="transferEndTime" type="time" value="23:59" required>
 </div>
+
 </div>
+
 <p class="muted">
 Alle Zeiten gelten für die Schweiz (Europe/Zurich).
 </p>
+
 <button id="saveTransfer" type="submit">
 Transferfenster planen
 </button>
 </form>
+
 <p id="transferMessage" role="status"></p>
+
 <button id="refreshTransfer" class="info">
 Status aktualisieren
 </button>
 </section>
 
+<!-- TRANSFERFREIGABEN -->
+
 <section class="panel hidden" data-section="approvals">
 <h2>Transferfreigaben</h2>
+
 <p class="muted">
 Hier prüft die Liga-Leitung die Transferanträge
 und Zustimmungen der Clubs.
 </p>
+
 <div class="notice">
 <strong>Transferfenster</strong>
 <p id="approvalWindowStatus">Lade Status...</p>
 </div>
+
 <div class="notice">
 <strong>Sicherheitsmodus</strong>
 <p>
@@ -408,9 +437,11 @@ Dashboard vorerst deaktiviert.
 Die Freigabe allein verschiebt keinen Spieler.
 </p>
 </div>
+
 <button id="refreshApprovals">
 Transferanträge aktualisieren
 </button>
+
 <p id="approvalMessage" role="status"></p>
 <div id="approvalList">Lade Transferanträge...</div>
 </section>
@@ -419,6 +450,7 @@ Transferanträge aktualisieren
 
 <section class="panel hidden" data-section="gaming">
 <h2>Gaming-ID-Anträge</h2>
+
 <p class="muted">
 Hier verwaltet die offizielle Liga-Leitung
 Änderungsanträge für PSN-Online-IDs
@@ -438,7 +470,6 @@ Testanträge bearbeiten.
 </p>
 </div>
 
-<!-- NEU: ANTRAGSZAEHLER -->
 <div class="gaming-summary">
 <div class="metric">
 <strong id="gamingPendingCount">–</strong>
@@ -450,7 +481,6 @@ Bearbeitete Anträge
 </div>
 </div>
 
-<!-- NEU: SPIELERSUCHE -->
 <div class="gaming-search">
 <label for="gamingSearch">
 Spieler oder Gaming-ID suchen
@@ -469,7 +499,6 @@ Anträge aktualisieren
 
 <p id="gamingAdminMessage" role="status"></p>
 
-<!-- NEU: OFFENE ANTRAEGE -->
 <div class="gaming-group">
 <h3>
 Offene Anträge
@@ -480,7 +509,6 @@ Lade offene Anträge...
 </div>
 </div>
 
-<!-- NEU: BEARBEITETE ANTRAEGE -->
 <div class="gaming-group">
 <h3>
 Bearbeitete Anträge
@@ -490,28 +518,98 @@ Bearbeitete Anträge
 Lade Verlauf...
 </div>
 </div>
-
 </section>
+
+<!-- SICHERHEITSFALLVERWALTUNG -->
+
+<section class="panel hidden" data-section="security">
+<h2>Sicherheitsfälle</h2>
+
+<p class="muted">
+Nur die offizielle Liga-Leitung darf
+Sicherheitsfälle untersuchen und abschliessen.
+</p>
+
+<div class="notice">
+<strong>Wichtige Sicherheitsregel</strong>
+<p>
+Offene Sicherheitsfälle blockieren die
+betroffenen Spieleranträge.
+</p>
+<p>
+Ein ausgeräumter Verdacht genehmigt einen
+Spielerantrag nicht automatisch.
+</p>
+<p>
+Jede Entscheidung benötigt eine Begründung.
+</p>
+</div>
+
+<div class="gaming-summary">
+<div class="metric">
+<strong id="securityOpenCount">–</strong>
+Offene Sicherheitsfälle
+</div>
+<div class="metric">
+<strong id="securityClosedCount">–</strong>
+Abgeschlossene Sicherheitsfälle
+</div>
+</div>
+
+<button id="refreshSecurity" type="button">
+Sicherheitsfälle aktualisieren
+</button>
+
+<p id="securityMessage" role="status"></p>
+
+<div class="gaming-group">
+<h3>Offene Sicherheitsfälle</h3>
+<div id="securityOpenList">
+Noch nicht geladen.
+</div>
+</div>
+
+<div class="gaming-group">
+<h3>Abgeschlossene Sicherheitsfälle</h3>
+<div id="securityClosedList">
+Noch nicht geladen.
+</div>
+</div>
+</section>
+
+<!-- LIGA-LEITUNG EINLADEN -->
 
 <section class="panel hidden" data-section="invitations">
 <h2>Liga-Leitung einladen</h2>
+
 <p class="muted">
 Testbetrieb ohne automatischen E-Mail-Versand.
 </p>
+
 <form id="inviteForm">
+
 <label for="inviteEmail">E-Mail-Adresse</label>
-<input id="inviteEmail" type="email" maxlength="254" required>
+<input
+ id="inviteEmail"
+ type="email"
+ maxlength="254"
+ required
+>
+
 <label for="inviteRole">Administratorrolle</label>
 <select id="inviteRole">
 <option value="league_admin">Liga-Leitung</option>
 <option value="moderator">Moderator</option>
 <option value="stats_manager">Statistikverwaltung</option>
 </select>
+
 <button id="inviteSubmit" type="submit">
 Einladung erstellen
 </button>
 </form>
+
 <p id="inviteResult" role="status"></p>
+
 <div id="inviteSecret" class="hidden">
 <p>Einladung erstellt. Noch keine E-Mail versendet.</p>
 <p class="muted">Der Einladungstoken ist geheim.</p>
@@ -532,18 +630,21 @@ Einladungstoken kopieren
 
 const SUPABASE_URL =
  "https://avvsnfgdmamhabcyngds.supabase.co";
+
 const SUPABASE_KEY =
  "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
 
-const $=id=>document.getElementById(id);
-const TZ="Europe/Zurich";
+const $ = id => document.getElementById(id);
+const TZ = "Europe/Zurich";
 
-let client,currentUser,adminRole;
-let invitationToken=null;
-let approvalBusy=false;
-let gamingDecisionBusy=false;
-let isLeagueController=false;
-let gamingRequests=[];
+let client, currentUser, adminRole;
+let invitationToken = null;
+let approvalBusy = false;
+let gamingDecisionBusy = false;
+let securityDecisionBusy = false;
+let isLeagueController = false;
+let gamingRequests = [];
+let securityCases = [];
 
 function deny(reason){
  $("loading").classList.add("hidden");
@@ -570,11 +671,17 @@ function showTab(tab){
  if(tab==="transfers"){
   loadTransferStatus().catch(()=>{});
  }
+
  if(tab==="approvals"){
   loadApprovals();
  }
+
  if(tab==="gaming"){
   loadAdminGamingRequests();
+ }
+
+ if(tab==="security"){
+  loadSecurityCases();
  }
 }
 
@@ -582,7 +689,7 @@ document.querySelectorAll("[data-tab]").forEach(b=>{
  b.onclick=()=>showTab(b.dataset.tab);
 });
 
-// TABELLEN
+// ALLGEMEINE TABELLEN
 
 async function loadTable(name,target,count){
  const el=$(target);
@@ -662,7 +769,7 @@ async function loadTable(name,target,count){
  el.replaceChildren(table);
 }
 
-// CLUBANTRAEGE
+// CLUBANTRÄGE
 
 async function loadClubRequests(){
  const el=$("requestsTable");
@@ -1268,8 +1375,10 @@ $("copyToken").onclick=async()=>{
  }
 };
 
+// ENDE TEIL 3
+// TEIL 4 FOLGT DIREKT DARUNTER
+
 // GAMING-ID-ANTRAEGE
-// SCHRITT 1.12.634
 
 function gamingDate(value){
  if(!value)return "Noch offen";
@@ -1302,7 +1411,6 @@ function gamingSearchText(request){
 
 function gamingAddLine(parent,label,value){
  const p=document.createElement("p");
-
  const strong=document.createElement("strong");
  strong.textContent=label+": ";
 
@@ -1489,7 +1597,7 @@ async function loadAdminGamingRequests(){
   $("gamingOpenList").textContent=
    "Nur die Liga-Leitung hat Zugriff.";
   $("gamingHistoryList").textContent="";
-  return;
+  return false;
  }
 
  $("gamingOpenList").textContent=
@@ -1604,6 +1712,250 @@ $("refreshGaming").onclick=async()=>{
  await loadAdminGamingRequests();
 };
 
+// SICHERHEITSFALLVERWALTUNG
+
+function securityStatusLabel(status){
+ const labels={
+  pending:"Wartet auf Prüfung",
+  investigating:"In Untersuchung",
+  cleared:"Verdacht ausgeräumt",
+  confirmed:"Verstoss bestätigt"
+ };
+ return labels[status]||status||"Unbekannt";
+}
+
+function securityCaseCard(sc){
+ const item=document.createElement("article");
+ item.className="security-case";
+
+ const heading=document.createElement("h3");
+ heading.textContent=securityStatusLabel(sc.status);
+ item.appendChild(heading);
+
+ gamingAddLine(item,"Fall-ID",sc.id);
+ gamingAddLine(item,"Benutzer-ID",sc.user_id);
+ gamingAddLine(item,"Spielerantrag",sc.request_id||"–");
+ gamingAddLine(item,"Grund",sc.reason||"–");
+ gamingAddLine(item,"Erkennung",sc.detection_type||"–");
+ gamingAddLine(
+  item,"Testfall",
+  sc.is_test_case?"Ja":"Nein"
+ );
+
+ gamingAddLine(
+  item,"Erstellt",
+  sc.created_at?gamingDate(sc.created_at):"–"
+ );
+
+ if(sc.reviewed_at){
+  gamingAddLine(
+   item,"Geprüft",
+   gamingDate(sc.reviewed_at)
+  );
+ }
+
+ if(sc.reviewed_by){
+  gamingAddLine(
+   item,"Geprüft durch",
+   sc.reviewed_by
+  );
+ }
+
+ if(sc.resolution_note){
+  gamingAddLine(
+   item,"Prüfnotiz",
+   sc.resolution_note
+  );
+ }
+
+ if(
+  !isLeagueController||
+  !["pending","investigating"].includes(sc.status)
+ ){
+  return item;
+ }
+
+ const label=document.createElement("label");
+ label.textContent="Begründung (mindestens 10 Zeichen)";
+
+ const note=document.createElement("textarea");
+ note.maxLength=3000;
+ note.placeholder="Begründung eingeben...";
+ label.appendChild(note);
+ item.appendChild(label);
+
+ const actions=document.createElement("div");
+ actions.className="actions";
+
+ const choices=[
+  ["investigating","Untersuchen"],
+  ["cleared","Verdacht ausgeräumt"],
+  ["confirmed","Verstoss bestätigt"]
+ ];
+
+ choices.forEach(([status,text])=>{
+  if(
+   sc.status==="investigating"&&
+   status==="investigating"
+  )return;
+
+  const button=document.createElement("button");
+  button.type="button";
+  button.textContent=text;
+
+  if(status==="confirmed"){
+   button.className="danger";
+  }
+
+  button.disabled=securityDecisionBusy;
+
+  button.onclick=()=>reviewSecurityCase(
+   sc,status,note.value
+  );
+
+  actions.appendChild(button);
+ });
+
+ item.appendChild(actions);
+ return item;
+}
+
+function renderSecurityCases(){
+ const openList=$("securityOpenList");
+ const closedList=$("securityClosedList");
+
+ openList.replaceChildren();
+ closedList.replaceChildren();
+
+ const open=securityCases.filter(sc=>
+  ["pending","investigating"].includes(sc.status)
+ );
+
+ const closed=securityCases.filter(sc=>
+  ["cleared","confirmed"].includes(sc.status)
+ );
+
+ $("securityOpenCount").textContent=open.length;
+ $("securityClosedCount").textContent=closed.length;
+
+ if(!open.length){
+  openList.textContent="Keine offenen Sicherheitsfälle.";
+ }else{
+  open.forEach(sc=>
+   openList.appendChild(securityCaseCard(sc))
+  );
+ }
+
+ if(!closed.length){
+  closedList.textContent=
+   "Keine abgeschlossenen Sicherheitsfälle.";
+ }else{
+  closed.forEach(sc=>
+   closedList.appendChild(securityCaseCard(sc))
+  );
+ }
+}
+
+async function loadSecurityCases(){
+ const result=$("securityMessage");
+
+ if(!isLeagueController){
+  $("securityOpenList").textContent=
+   "Nur die offizielle Liga-Leitung hat Zugriff.";
+  $("securityClosedList").textContent="";
+  return false;
+ }
+
+ $("securityOpenList").textContent=
+  "Lade Sicherheitsfälle...";
+
+ $("securityClosedList").textContent="";
+
+ const {data,error}=await client.rpc(
+  "snhl_admin_list_security_cases"
+ );
+
+ if(error){
+  result.textContent="Fehler: "+error.message;
+  $("securityOpenList").textContent=
+   "Sicherheitsfälle konnten nicht geladen werden.";
+  return false;
+ }
+
+ securityCases=data||[];
+ renderSecurityCases();
+ return true;
+}
+
+async function reviewSecurityCase(sc,status,reason){
+ if(
+  !isLeagueController||
+  securityDecisionBusy||
+  !["pending","investigating"].includes(sc.status)
+ )return;
+
+ const note=String(reason||"").trim();
+
+ if(note.length<10){
+  $("securityMessage").textContent=
+   "Bitte eine Begründung mit mindestens 10 Zeichen eingeben.";
+  return;
+ }
+
+ const action=securityStatusLabel(status);
+
+ if(!confirm(
+  "Sicherheitsfall bearbeiten?\n\n"+
+  "Entscheidung: "+action+"\n\n"+
+  "Begründung: "+note+"\n\n"+
+  "Diese Entscheidung wird gespeichert."
+ ))return;
+
+ securityDecisionBusy=true;
+
+ $("securityMessage").textContent=
+  "Entscheidung wird gespeichert...";
+
+ document.querySelectorAll(
+  ".security-case button"
+ ).forEach(button=>{
+  button.disabled=true;
+ });
+
+ try{
+  const {data,error}=await client.rpc(
+   "snhl_review_security_case",
+   {
+    p_case_id:sc.id,
+    p_status:status,
+    p_resolution_note:note
+   }
+  );
+
+  if(error)throw error;
+
+  const refreshed=await loadSecurityCases();
+
+  $("securityMessage").textContent=
+   refreshed
+    ?data||"Sicherheitsfall aktualisiert."
+    :"Entscheidung gespeichert. Bitte Liste aktualisieren.";
+
+ }catch(e){
+  $("securityMessage").textContent=
+   "Fehler: "+e.message;
+
+ }finally{
+  securityDecisionBusy=false;
+  renderSecurityCases();
+ }
+}
+
+$("refreshSecurity").onclick=async()=>{
+ $("securityMessage").textContent="";
+ await loadSecurityCases();
+};
+
 // INITIALISIERUNG
 
 async function init(){
@@ -1647,6 +1999,8 @@ async function init(){
   " · "+adminRole;
 
  isLeagueController=
+  user.id===
+   "9ad105e2-ae1a-4fbf-9636-ef13cddffba9"&&
   user.email?.toLowerCase()===
    "swiss_nhl_league@gmx.ch"&&
   ["owner","league_admin"].includes(adminRole);
@@ -1669,6 +2023,7 @@ async function init(){
 
  if(isLeagueController){
   $("gamingNav").classList.remove("hidden");
+  $("securityNav").classList.remove("hidden");
  }
 
  $("logout").onclick=async()=>{
@@ -1706,6 +2061,7 @@ async function init(){
 init().catch(e=>{
  deny("Fehler beim Laden: "+e.message);
 });
+
 </script>
 </body>
 </html>
