@@ -123,8 +123,6 @@ th,td{
 .table-wrap td{
  min-width:130px;
  white-space:nowrap;
- overflow-wrap:normal;
- word-break:normal;
 }
 section h2{margin-top:0}
 .actions{
@@ -165,6 +163,75 @@ footer{
  padding:25px;
 }
 a{color:#80b2ff}
+
+/* GAMING-ID-VERWALTUNG */
+.gaming-summary{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:12px;
+ margin:18px 0;
+}
+.gaming-summary .metric{
+ text-align:center;
+}
+.gaming-summary strong{
+ font-size:30px;
+}
+.gaming-search{
+ margin:16px 0;
+}
+.gaming-search input{
+ margin-bottom:5px;
+}
+.gaming-group{
+ margin-top:24px;
+}
+.gaming-group h3{
+ padding-bottom:12px;
+ border-bottom:1px solid var(--line);
+}
+.gaming-request{
+ background:#192a45;
+ border:1px solid var(--line);
+ border-radius:12px;
+ padding:18px;
+ margin:14px 0;
+}
+.gaming-request h4{
+ margin:0 0 14px;
+ font-size:19px;
+}
+.gaming-request p{
+ line-height:1.5;
+ margin:10px 0;
+}
+.gaming-request .actions{
+ margin-top:18px;
+}
+.gaming-status{
+ font-weight:bold;
+}
+.gaming-status.pending{color:#ffda87}
+.gaming-status.approved{color:#76e0a2}
+.gaming-status.rejected{color:#ffb1b1}
+.gaming-count{
+ font-size:13px;
+ background:#2b466a;
+ padding:5px 10px;
+ border-radius:20px;
+ margin-left:7px;
+}
+.empty-message{
+ color:var(--muted);
+ padding:14px 0;
+}
+@media(max-width:400px){
+ .panel{padding:17px}
+ .gaming-request{padding:14px}
+ .gaming-request .actions button{
+  flex:1;
+ }
+}
 </style>
 </head>
 <body>
@@ -234,9 +301,7 @@ Liga-Leitung einladen
 
 <section class="panel" data-section="overview">
 <h2>Ligaverwaltung</h2>
-<p>
-Willkommen im Administrationsbereich der Swiss NHL League.
-</p>
+<p>Willkommen im Administrationsbereich der Swiss NHL League.</p>
 <h3>Transferfenster</h3>
 <p id="overviewTransferStatus">Lade Status...</p>
 </section>
@@ -289,7 +354,6 @@ Lade Clubanträge...
 <p class="muted">
 Die Liga-Leitung plant die automatische Öffnung und Schliessung.
 </p>
-
 <div class="notice">
 <h3>Aktueller Status</h3>
 <p id="transferStatus">Lade Status...</p>
@@ -298,7 +362,6 @@ Die Liga-Leitung plant die automatische Öffnung und Schliessung.
 
 <form id="transferForm">
 <div class="calendar-grid">
-
 <div class="calendar-box">
 <h3>Öffnung</h3>
 <label for="transferStartDate">Startdatum</label>
@@ -306,7 +369,6 @@ Die Liga-Leitung plant die automatische Öffnung und Schliessung.
 <label for="transferStartTime">Startzeit</label>
 <input id="transferStartTime" type="time" value="00:00" required>
 </div>
-
 <div class="calendar-box">
 <h3>Schliessung</h3>
 <label for="transferEndDate">Enddatum</label>
@@ -314,7 +376,6 @@ Die Liga-Leitung plant die automatische Öffnung und Schliessung.
 <label for="transferEndTime">Endzeit</label>
 <input id="transferEndTime" type="time" value="23:59" required>
 </div>
-
 </div>
 <p class="muted">
 Alle Zeiten gelten für die Schweiz (Europe/Zurich).
@@ -323,7 +384,6 @@ Alle Zeiten gelten für die Schweiz (Europe/Zurich).
 Transferfenster planen
 </button>
 </form>
-
 <p id="transferMessage" role="status"></p>
 <button id="refreshTransfer" class="info">
 Status aktualisieren
@@ -343,8 +403,9 @@ und Zustimmungen der Clubs.
 <div class="notice">
 <strong>Sicherheitsmodus</strong>
 <p>
-Der tatsächliche Spielerwechsel ist in diesem Dashboard
-vorerst deaktiviert. Die Freigabe allein verschiebt keinen Spieler.
+Der tatsächliche Spielerwechsel ist in diesem
+Dashboard vorerst deaktiviert.
+Die Freigabe allein verschiebt keinen Spieler.
 </p>
 </div>
 <button id="refreshApprovals">
@@ -354,12 +415,16 @@ Transferanträge aktualisieren
 <div id="approvalList">Lade Transferanträge...</div>
 </section>
 
+<!-- GAMING-ID-VERWALTUNG -->
+
 <section class="panel hidden" data-section="gaming">
 <h2>Gaming-ID-Anträge</h2>
 <p class="muted">
-Hier verwaltet die offizielle Liga-Leitung Änderungsanträge
-für PSN-Online-IDs und Xbox-Gamertags.
+Hier verwaltet die offizielle Liga-Leitung
+Änderungsanträge für PSN-Online-IDs
+und Xbox-Gamertags.
 </p>
+
 <div class="notice">
 <strong>Sicherheitsprüfung</strong>
 <p>
@@ -372,11 +437,60 @@ Bitte während der Testphase ausschliesslich
 Testanträge bearbeiten.
 </p>
 </div>
+
+<!-- NEU: ANTRAGSZAEHLER -->
+<div class="gaming-summary">
+<div class="metric">
+<strong id="gamingPendingCount">–</strong>
+Offene Anträge
+</div>
+<div class="metric">
+<strong id="gamingProcessedCount">–</strong>
+Bearbeitete Anträge
+</div>
+</div>
+
+<!-- NEU: SPIELERSUCHE -->
+<div class="gaming-search">
+<label for="gamingSearch">
+Spieler oder Gaming-ID suchen
+</label>
+<input
+ id="gamingSearch"
+ type="search"
+ placeholder="Name, PSN-ID oder Xbox-Gamertag"
+ autocomplete="off"
+>
+</div>
+
 <button id="refreshGaming" type="button">
 Anträge aktualisieren
 </button>
+
 <p id="gamingAdminMessage" role="status"></p>
-<div id="gamingAdminList">Lade Gaming-ID-Anträge...</div>
+
+<!-- NEU: OFFENE ANTRAEGE -->
+<div class="gaming-group">
+<h3>
+Offene Anträge
+<span class="gaming-count" id="gamingOpenLabel">0</span>
+</h3>
+<div id="gamingOpenList">
+Lade offene Anträge...
+</div>
+</div>
+
+<!-- NEU: BEARBEITETE ANTRAEGE -->
+<div class="gaming-group">
+<h3>
+Bearbeitete Anträge
+<span class="gaming-count" id="gamingHistoryLabel">0</span>
+</h3>
+<div id="gamingHistoryList">
+Lade Verlauf...
+</div>
+</div>
+
 </section>
 
 <section class="panel hidden" data-section="invitations">
@@ -401,7 +515,9 @@ Einladung erstellen
 <div id="inviteSecret" class="hidden">
 <p>Einladung erstellt. Noch keine E-Mail versendet.</p>
 <p class="muted">Der Einladungstoken ist geheim.</p>
-<button id="copyToken">Einladungstoken kopieren</button>
+<button id="copyToken">
+Einladungstoken kopieren
+</button>
 </div>
 </section>
 
@@ -418,14 +534,16 @@ const SUPABASE_URL =
  "https://avvsnfgdmamhabcyngds.supabase.co";
 const SUPABASE_KEY =
  "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
-const $ = id => document.getElementById(id);
-const TZ = "Europe/Zurich";
+
+const $=id=>document.getElementById(id);
+const TZ="Europe/Zurich";
 
 let client,currentUser,adminRole;
 let invitationToken=null;
 let approvalBusy=false;
 let gamingDecisionBusy=false;
 let isLeagueController=false;
+let gamingRequests=[];
 
 function deny(reason){
  $("loading").classList.add("hidden");
@@ -435,14 +553,29 @@ function deny(reason){
 }
 
 function showTab(tab){
- document.querySelectorAll("[data-tab]").forEach(b=>
-  b.classList.toggle("active",b.dataset.tab===tab));
- document.querySelectorAll("[data-section]").forEach(s=>
-  s.classList.toggle("hidden",s.dataset.section!==tab));
+ document.querySelectorAll("[data-tab]").forEach(b=>{
+  b.classList.toggle(
+   "active",
+   b.dataset.tab===tab
+  );
+ });
 
- if(tab==="transfers")loadTransferStatus().catch(()=>{});
- if(tab==="approvals")loadApprovals();
- if(tab==="gaming")loadAdminGamingRequests();
+ document.querySelectorAll("[data-section]").forEach(s=>{
+  s.classList.toggle(
+   "hidden",
+   s.dataset.section!==tab
+  );
+ });
+
+ if(tab==="transfers"){
+  loadTransferStatus().catch(()=>{});
+ }
+ if(tab==="approvals"){
+  loadApprovals();
+ }
+ if(tab==="gaming"){
+  loadAdminGamingRequests();
+ }
 }
 
 document.querySelectorAll("[data-tab]").forEach(b=>{
@@ -453,21 +586,30 @@ document.querySelectorAll("[data-tab]").forEach(b=>{
 
 async function loadTable(name,target,count){
  const el=$(target);
- const {data,error}=await client.from(name).select("*");
+
+ const {data,error}=await client
+  .from(name)
+  .select("*");
 
  if(error){
   el.textContent=error.message;
   return;
  }
 
- if(count)$(count).textContent=data.length;
+ if(count){
+  $(count).textContent=data.length;
+ }
+
  if(!data.length){
   el.textContent="Noch keine Einträge.";
   return;
  }
 
  const cols=Object.keys(data[0]);
- if(name==="clubs")cols.push("Aktionen");
+
+ if(name==="clubs"){
+  cols.push("Aktionen");
+ }
 
  const table=document.createElement("table");
  const header=table.createTHead().insertRow();
@@ -482,6 +624,7 @@ async function loadTable(name,target,count){
 
  data.forEach(item=>{
   const row=tbody.insertRow();
+
   cols.forEach(col=>{
    const cell=row.insertCell();
 
@@ -500,6 +643,7 @@ async function loadTable(name,target,count){
     logo.onclick=()=>uploadClubLogo(item.id);
 
     cell.append(edit," ",del," ",logo);
+
    }else if(col==="logo_url"&&item[col]){
     const img=document.createElement("img");
     img.src=item[col];
@@ -508,6 +652,7 @@ async function loadTable(name,target,count){
     img.style.height="60px";
     img.style.objectFit="contain";
     cell.appendChild(img);
+
    }else{
     cell.textContent=String(item[col]??"—");
    }
@@ -521,7 +666,9 @@ async function loadTable(name,target,count){
 
 async function loadClubRequests(){
  const el=$("requestsTable");
- const {data,error}=await client.from("club_requests")
+
+ const {data,error}=await client
+  .from("club_requests")
   .select("id,user_id,club_name,status,created_at")
   .order("created_at",{ascending:false});
 
@@ -529,6 +676,7 @@ async function loadClubRequests(){
   el.textContent="Fehler: "+error.message;
   return;
  }
+
  if(!data?.length){
   el.textContent="Noch keine Clubanträge.";
   return;
@@ -545,11 +693,14 @@ async function loadClubRequests(){
 
  data.forEach(r=>{
   const row=table.insertRow();
+
   [
    r.club_name,
    r.status,
    new Date(r.created_at).toLocaleDateString("de-CH")
-  ].forEach(v=>row.insertCell().textContent=v??"—");
+  ].forEach(v=>{
+   row.insertCell().textContent=v??"—";
+  });
  });
 
  el.replaceChildren(table);
@@ -561,10 +712,14 @@ async function addClub(){
  const name=prompt("Name des neuen Clubs:");
  if(!name?.trim())return;
 
- const {error}=await client.from("clubs")
+ const {error}=await client
+  .from("clubs")
   .insert({name:name.trim()});
 
- if(error)return alert("Fehler: "+error.message);
+ if(error){
+  alert("Fehler: "+error.message);
+  return;
+ }
 
  alert("Club erstellt.");
  location.reload();
@@ -574,11 +729,15 @@ async function editClub(id,currentName){
  const name=prompt("Neuer Clubname:",currentName);
  if(!name?.trim())return;
 
- const {error}=await client.from("clubs")
+ const {error}=await client
+  .from("clubs")
   .update({name:name.trim()})
   .eq("id",id);
 
- if(error)return alert("Fehler: "+error.message);
+ if(error){
+  alert("Fehler: "+error.message);
+  return;
+ }
 
  alert("Club aktualisiert.");
  location.reload();
@@ -587,10 +746,15 @@ async function editClub(id,currentName){
 async function deleteClub(id){
  if(!confirm("Club wirklich löschen?"))return;
 
- const {error}=await client.from("clubs")
-  .delete().eq("id",id);
+ const {error}=await client
+  .from("clubs")
+  .delete()
+  .eq("id",id);
 
- if(error)return alert("Fehler: "+error.message);
+ if(error){
+  alert("Fehler: "+error.message);
+  return;
+ }
 
  alert("Club gelöscht.");
  location.reload();
@@ -605,8 +769,10 @@ async function uploadClubLogo(clubId){
   const file=input.files?.[0];
   if(!file)return;
 
-  if(file.size>2097152||
-     !["image/png","image/jpeg"].includes(file.type)){
+  if(
+   file.size>2097152||
+   !["image/png","image/jpeg"].includes(file.type)
+  ){
    alert("Nur PNG/JPEG bis 2 MB erlaubt.");
    return;
   }
@@ -628,7 +794,9 @@ async function uploadClubLogo(clubId){
     SUPABASE_URL+"/functions/v1/upload-club-logo",
     {
      method:"POST",
-     headers:{Authorization:"Bearer "+token},
+     headers:{
+      Authorization:"Bearer "+token
+     },
      body:form
     }
    );
@@ -637,12 +805,15 @@ async function uploadClubLogo(clubId){
 
    if(!response.ok){
     throw Error(
-     result.reason||result.error||"Upload fehlgeschlagen"
+     result.reason||
+     result.error||
+     "Upload fehlgeschlagen"
     );
    }
 
    alert("Clublogo erfolgreich hochgeladen!");
    location.reload();
+
   }catch(e){
    alert("Fehler: "+e.message);
   }
@@ -701,6 +872,7 @@ function swissToISO(date,time){
  }
 
  let stamp=desired;
+
  for(let i=0;i<4;i++){
   stamp+=desired-local(stamp);
  }
@@ -711,8 +883,10 @@ function swissToISO(date,time){
   );
  }
 
- if(local(stamp-3600000)===desired||
-    local(stamp+3600000)===desired){
+ if(
+  local(stamp-3600000)===desired||
+  local(stamp+3600000)===desired
+ ){
   throw Error(
    "Diese Uhrzeit ist wegen der Winterzeitumstellung doppeldeutig."
   );
@@ -746,21 +920,30 @@ async function loadTransferStatus(){
  try{
   const data=await getTransferStatus();
 
-  const label=data?.is_open?"GEÖFFNET":
-   data?.status==="scheduled"?"Geplant – noch geschlossen":
-   data?.status==="closed"?"GESCHLOSSEN":
-   "Kein Transferfenster geplant";
+  const label=data?.is_open
+   ?"GEÖFFNET"
+   :data?.status==="scheduled"
+    ?"Geplant – noch geschlossen"
+    :data?.status==="closed"
+     ?"GESCHLOSSEN"
+     :"Kein Transferfenster geplant";
 
   $("transferStatus").textContent=label;
-  $("transferStatus").className=data?.is_open?"status-open":
-   data?.status==="scheduled"?"status-planned":"status-closed";
+
+  $("transferStatus").className=data?.is_open
+   ?"status-open"
+   :data?.status==="scheduled"
+    ?"status-planned"
+    :"status-closed";
+
   $("overviewTransferStatus").textContent=label;
 
   $("transferPeriod").textContent=
    data?.opens_at&&data?.closes_at
-    ?"Öffnung: "+swissDisplay(data.opens_at)+
-     " Uhr | Schliessung: "+
-     swissDisplay(data.closes_at)+" Uhr"
+    ?"Öffnung: "+
+      swissDisplay(data.opens_at)+
+      " Uhr | Schliessung: "+
+      swissDisplay(data.closes_at)+" Uhr"
     :"Noch kein Zeitraum gespeichert.";
 
   if(data?.opens_at&&data?.closes_at){
@@ -774,8 +957,10 @@ async function loadTransferStatus(){
   }
 
   return data;
+
  }catch(e){
-  $("transferStatus").textContent="Fehler: "+e.message;
+  $("transferStatus").textContent=
+   "Fehler: "+e.message;
   throw e;
  }
 }
@@ -792,6 +977,7 @@ $("transferForm").onsubmit=async event=>{
    $("transferStartDate").value,
    $("transferStartTime").value
   );
+
   const end=swissToISO(
    $("transferEndDate").value,
    $("transferEndTime").value
@@ -822,6 +1008,7 @@ $("transferForm").onsubmit=async event=>{
   );
 
   if(error)throw error;
+
   if(!data?.success){
    throw Error("Speichern nicht bestätigt.");
   }
@@ -830,6 +1017,7 @@ $("transferForm").onsubmit=async event=>{
    "Transferfenster erfolgreich geplant!";
 
   await loadTransferStatus();
+
  }catch(e){
   result.textContent="Fehler: "+e.message;
  }finally{
@@ -862,10 +1050,12 @@ async function loadApprovals(){
   windowOpen=status?.is_open===true;
 
   $("approvalWindowStatus").textContent=
-   windowOpen?"GEÖFFNET":
-   status?.status==="scheduled"
-    ?"Geplant – noch geschlossen"
-    :"GESCHLOSSEN";
+   windowOpen
+    ?"GEÖFFNET"
+    :status?.status==="scheduled"
+     ?"Geplant – noch geschlossen"
+     :"GESCHLOSSEN";
+
  }catch(e){
   $("approvalWindowStatus").textContent=
    "Status nicht verfügbar: "+e.message;
@@ -961,12 +1151,14 @@ async function approveTransfer(id){
   );
 
   if(error)throw error;
+
   if(!data?.success){
    throw Error("Freigabe nicht bestätigt.");
   }
 
   $("approvalMessage").textContent=
    "Liga-Freigabe gespeichert. Spieler noch nicht verschoben.";
+
  }catch(e){
   $("approvalMessage").textContent=
    "Fehler: "+e.message;
@@ -995,7 +1187,9 @@ $("inviteForm").onsubmit=async event=>{
  }
 
  if(![
-  "league_admin","moderator","stats_manager"
+  "league_admin",
+  "moderator",
+  "stats_manager"
  ].includes(role))return;
 
  if(!confirm(
@@ -1038,8 +1232,10 @@ $("inviteForm").onsubmit=async event=>{
    );
   }
 
-  if(payload.status!=="created"||
-     !payload.invitation_token){
+  if(
+   payload.status!=="created"||
+   !payload.invitation_token
+  ){
    throw Error("Unerwartete Serverantwort.");
   }
 
@@ -1049,6 +1245,7 @@ $("inviteForm").onsubmit=async event=>{
 
   result.textContent=
    "Einladung erfolgreich erstellt.";
+
  }catch(e){
   result.textContent="Fehler: "+e.message;
  }finally{
@@ -1071,38 +1268,120 @@ $("copyToken").onclick=async()=>{
  }
 };
 
-// GAMING-ID-ANTRAEGE MIT SPIELERNAMEN
-// SCHRITT 1.12.633: SORTIERUNG UND DATUM
+// GAMING-ID-ANTRAEGE
+// SCHRITT 1.12.634
 
-async function loadAdminGamingRequests(){
- const list=$("gamingAdminList");
- const result=$("gamingAdminMessage");
+function gamingDate(value){
+ if(!value)return "Noch offen";
+ return swissDisplay(value)+" Uhr";
+}
 
- if(!isLeagueController){
-  list.textContent=
-   "Nur die Liga-Leitung hat Zugriff.";
-  return;
- }
+function gamingPlayerName(request){
+ return [
+  request.first_name,
+  request.last_name
+ ].filter(Boolean).join(" ")||
+ "Unbekannter Spieler";
+}
 
- list.textContent="Lade Gaming-ID-Anträge...";
- result.textContent="";
+function gamingSearchText(request){
+ return [
+  request.first_name,
+  request.last_name,
+  gamingPlayerName(request),
+  request.platform,
+  request.old_gaming_id,
+  request.new_gaming_id,
+  request.position,
+  request.jersey_number,
+  request.reason
+ ].filter(v=>v!==null&&v!==undefined)
+  .join(" ")
+  .toLocaleLowerCase("de-CH");
+}
 
- const {data,error}=await client.rpc(
-  "snhl_admin_gaming_requests_detailed"
+function gamingAddLine(parent,label,value){
+ const p=document.createElement("p");
+
+ const strong=document.createElement("strong");
+ strong.textContent=label+": ";
+
+ p.appendChild(strong);
+ p.appendChild(
+  document.createTextNode(String(value??"–"))
  );
 
- if(error){
-  list.textContent="Fehler: "+error.message;
-  return;
- }
+ parent.appendChild(p);
+ return p;
+}
 
- list.replaceChildren();
+function gamingRequestCard(request){
+ const item=document.createElement("article");
+ item.className="gaming-request";
 
- if(!data?.length){
-  list.textContent=
-   "Keine Gaming-ID-Anträge vorhanden.";
-  return;
- }
+ const heading=document.createElement("h4");
+ heading.textContent=
+  request.platform==="PS5"
+   ?"PSN-ID-Änderung"
+   :"Xbox-Gamertag-Änderung";
+
+ item.appendChild(heading);
+
+ gamingAddLine(
+  item,"Spieler",gamingPlayerName(request)
+ );
+
+ gamingAddLine(
+  item,
+  "Trikotnummer",
+  request.jersey_number??"–"
+ );
+
+ gamingAddLine(
+  item,
+  "Position",
+  request.position||"–"
+ );
+
+ gamingAddLine(
+  item,
+  "Plattform",
+  request.platform
+ );
+
+ gamingAddLine(
+  item,
+  "Bisherige ID",
+  request.old_gaming_id||"Keine"
+ );
+
+ gamingAddLine(
+  item,
+  "Beantragte ID",
+  request.new_gaming_id
+ );
+
+ gamingAddLine(
+  item,
+  "Begründung",
+  request.reason||"–"
+ );
+
+ gamingAddLine(
+  item,
+  "Antrag gestellt",
+  request.created_at
+   ?gamingDate(request.created_at)
+   :"–"
+ );
+
+ gamingAddLine(
+  item,
+  "Entscheidung",
+  request.reviewed_at
+   ?gamingDate(request.reviewed_at)
+   :"Noch offen"
+ );
 
  const labels={
   pending:"Offen",
@@ -1110,123 +1389,145 @@ async function loadAdminGamingRequests(){
   rejected:"Abgelehnt"
  };
 
- // NEU: Offene Antraege zuerst
- const sortedRequests=[...data].sort((a,b)=>{
-  const priority={
-   pending:0,
-   approved:1,
-   rejected:2
-  };
+ const status=gamingAddLine(
+  item,
+  "Status",
+  labels[request.status]||request.status
+ );
 
-  const aPriority=priority[a.status]??3;
-  const bPriority=priority[b.status]??3;
+ status.classList.add(
+  "gaming-status",
+  request.status||"unknown"
+ );
 
-  if(aPriority!==bPriority){
-   return aPriority-bPriority;
-  }
+ if(request.status==="pending"){
+  const actions=document.createElement("div");
+  actions.className="actions";
 
-  return new Date(b.created_at||0)-
-         new Date(a.created_at||0);
- });
+  const approve=document.createElement("button");
+  approve.textContent="Genehmigen";
+  approve.disabled=gamingDecisionBusy;
+  approve.onclick=()=>
+   reviewGamingRequest(request,true);
 
- for(const request of sortedRequests){
-  const item=document.createElement("div");
-  item.className="item";
+  const reject=document.createElement("button");
+  reject.textContent="Ablehnen";
+  reject.className="danger";
+  reject.disabled=gamingDecisionBusy;
+  reject.onclick=()=>
+   reviewGamingRequest(request,false);
 
-  const playerName=[
-   request.first_name,
-   request.last_name
-  ].filter(Boolean).join(" ")||
-   "Unbekannter Spieler";
+  actions.append(approve,reject);
+  item.appendChild(actions);
+ }
 
-  const lines=[
-   [
-    "h3",
-    request.platform==="PS5"
-     ?"PSN-ID-Änderung"
-     :"Xbox-Gamertag-Änderung"
-   ],
-   [
-    "p",
-    "Spieler: "+playerName
-   ],
-   [
-    "p",
-    "Trikotnummer: "+
-    (request.jersey_number??"–")+
-    " | Position: "+
-    (request.position||"–")
-   ],
-   [
-    "p",
-    "Plattform: "+request.platform
-   ],
-   [
-    "p",
-    "Bisherige ID: "+
-    (request.old_gaming_id||"Keine")
-   ],
-   [
-    "p",
-    "Beantragte ID: "+
-    request.new_gaming_id
-   ],
-   [
-    "p",
-    "Begründung: "+
-    (request.reason||"–")
-   ],
-   [
-    "p",
-    "Antrag gestellt: "+
-    (request.created_at
-     ?swissDisplay(request.created_at)+" Uhr"
-     :"–")
-   ],
-   [
-    "p",
-    "Entscheidung: "+
-    (request.reviewed_at
-     ?swissDisplay(request.reviewed_at)+" Uhr"
-     :"Noch offen")
-   ],
-   [
-    "p",
-    "Status: "+
-    (labels[request.status]||request.status)
-   ]
-  ];
+ return item;
+}
 
-  for(const [tag,value] of lines){
-   const node=document.createElement(tag);
-   node.textContent=value;
-   item.appendChild(node);
-  }
+function renderGamingRequests(){
+ const openList=$("gamingOpenList");
+ const historyList=$("gamingHistoryList");
 
-  if(request.status==="pending"){
-   const actions=document.createElement("div");
-   actions.className="actions";
+ openList.replaceChildren();
+ historyList.replaceChildren();
 
-   const approve=document.createElement("button");
-   approve.textContent="Genehmigen";
-   approve.disabled=gamingDecisionBusy;
-   approve.onclick=()=>
-    reviewGamingRequest(request,true);
+ const search=$("gamingSearch")
+  .value.trim().toLocaleLowerCase("de-CH");
 
-   const reject=document.createElement("button");
-   reject.textContent="Ablehnen";
-   reject.className="danger";
-   reject.disabled=gamingDecisionBusy;
-   reject.onclick=()=>
-    reviewGamingRequest(request,false);
+ const matching=gamingRequests.filter(r=>
+  !search||gamingSearchText(r).includes(search)
+ );
 
-   actions.append(approve,reject);
-   item.appendChild(actions);
-  }
+ const open=matching
+  .filter(r=>r.status==="pending")
+  .sort((a,b)=>
+   new Date(b.created_at||0)-
+   new Date(a.created_at||0)
+  );
 
-  list.appendChild(item);
+ const processed=matching
+  .filter(r=>r.status!=="pending")
+  .sort((a,b)=>
+   new Date(b.reviewed_at||b.created_at||0)-
+   new Date(a.reviewed_at||a.created_at||0)
+  );
+
+ $("gamingOpenLabel").textContent=open.length;
+ $("gamingHistoryLabel").textContent=processed.length;
+
+ if(!open.length){
+  const empty=document.createElement("p");
+  empty.className="empty-message";
+  empty.textContent=search
+   ?"Keine passenden offenen Anträge."
+   :"Keine offenen Gaming-ID-Anträge.";
+  openList.appendChild(empty);
+ }else{
+  open.forEach(r=>
+   openList.appendChild(gamingRequestCard(r))
+  );
+ }
+
+ if(!processed.length){
+  const empty=document.createElement("p");
+  empty.className="empty-message";
+  empty.textContent=search
+   ?"Keine passenden bearbeiteten Anträge."
+   :"Noch keine bearbeiteten Anträge.";
+  historyList.appendChild(empty);
+ }else{
+  processed.forEach(r=>
+   historyList.appendChild(gamingRequestCard(r))
+  );
  }
 }
+
+async function loadAdminGamingRequests(){
+ const result=$("gamingAdminMessage");
+
+ if(!isLeagueController){
+  $("gamingOpenList").textContent=
+   "Nur die Liga-Leitung hat Zugriff.";
+  $("gamingHistoryList").textContent="";
+  return;
+ }
+
+ $("gamingOpenList").textContent=
+  "Lade offene Anträge...";
+
+ $("gamingHistoryList").textContent=
+  "Lade bearbeitete Anträge...";
+
+ const {data,error}=await client.rpc(
+  "snhl_admin_gaming_requests_detailed"
+ );
+
+ if(error){
+  const message="Fehler: "+error.message;
+  $("gamingOpenList").textContent=message;
+  $("gamingHistoryList").textContent="";
+  result.textContent=message;
+  return false;
+ }
+
+ gamingRequests=data||[];
+
+ const pending=gamingRequests.filter(
+  r=>r.status==="pending"
+ ).length;
+
+ $("gamingPendingCount").textContent=pending;
+ $("gamingProcessedCount").textContent=
+  gamingRequests.length-pending;
+
+ renderGamingRequests();
+ return true;
+}
+
+$("gamingSearch").addEventListener(
+ "input",
+ renderGamingRequests
+);
 
 // GAMING-ID GENEHMIGEN ODER ABLEHNEN
 
@@ -1241,15 +1542,9 @@ async function reviewGamingRequest(request,approve){
   ?"GENEHMIGEN"
   :"ABLEHNEN";
 
- const playerName=[
-  request.first_name,
-  request.last_name
- ].filter(Boolean).join(" ")||
-  "Unbekannter Spieler";
-
  const question=
   action+"?\n\n"+
-  "Spieler: "+playerName+"\n"+
+  "Spieler: "+gamingPlayerName(request)+"\n"+
   "Plattform: "+request.platform+"\n"+
   "Bisherige ID: "+
   (request.old_gaming_id||"Keine")+"\n"+
@@ -1264,7 +1559,7 @@ async function reviewGamingRequest(request,approve){
   "Entscheidung wird gespeichert...";
 
  document.querySelectorAll(
-  "#gamingAdminList button"
+  ".gaming-request button"
  ).forEach(button=>{
   button.disabled=true;
  });
@@ -1280,25 +1575,34 @@ async function reviewGamingRequest(request,approve){
 
   if(error)throw error;
 
-  await loadAdminGamingRequests();
+  const refreshed=await loadAdminGamingRequests();
 
   $("gamingAdminMessage").textContent=
-   approve
-    ?"Antrag genehmigt. Die neue Gaming-ID wurde gespeichert."
-    :"Antrag abgelehnt. Die bisherige Gaming-ID bleibt erhalten.";
+   refreshed
+    ?approve
+      ?"Antrag genehmigt. Die neue Gaming-ID wurde gespeichert."
+      :"Antrag abgelehnt. Die bisherige Gaming-ID bleibt erhalten."
+    :"Entscheidung gespeichert. Bitte Antragsliste erneut aktualisieren.";
 
  }catch(e){
+  $("gamingAdminMessage").textContent=
+   "Fehler: "+e.message;
+
   await loadAdminGamingRequests();
 
   $("gamingAdminMessage").textContent=
    "Fehler: "+e.message;
+
  }finally{
   gamingDecisionBusy=false;
+  renderGamingRequests();
  }
 }
 
-$("refreshGaming").onclick=
- loadAdminGamingRequests;
+$("refreshGaming").onclick=async()=>{
+ $("gamingAdminMessage").textContent="";
+ await loadAdminGamingRequests();
+};
 
 // INITIALISIERUNG
 
@@ -1405,6 +1709,7 @@ init().catch(e=>{
 </script>
 </body>
 </html>
+
 
 
 
