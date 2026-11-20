@@ -39,8 +39,8 @@ nav button.active{background:var(--blue)}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .danger{background:#a53648}
 .notice{padding:12px;background:#263b58;border-radius:8px;margin:12px 0}
-input,select{max-width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid var(--line);background:var(--card);color:white}
-input[type=email],select{width:100%}
+input,select,textarea{max-width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid var(--line);background:var(--card);color:white}
+input[type=email],select,textarea{width:100%}
 footer{text-align:center;color:#95a7c1;padding:25px}
 .matchup{display:grid;grid-template-columns:minmax(0,1fr) 35px minmax(0,1fr);align-items:center;gap:8px;margin:20px 0;text-align:center}
 .match-club{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0;overflow-wrap:anywhere}
@@ -102,6 +102,28 @@ Maximaler Kader
 <h3 id="clubName"></h3>
 <p id="rosterStatus"></p>
 <p class="muted">Mindestens 7 und maximal 15 aktive Spieler.</p>
+
+<div id="archiveControls" class="notice hidden">
+<h3>Club archivieren</h3>
+<p>
+Nur der Clubinhaber darf den Club archivieren.
+Die bisherigen Resultate und Statistiken bleiben erhalten.
+Der Club wird aus der öffentlichen aktiven Clubliste entfernt.
+</p>
+<label for="archiveReason">
+Begründung (mindestens 10 Zeichen)
+</label>
+<textarea
+  id="archiveReason"
+  rows="3"
+  maxlength="1000"
+  placeholder="Warum soll dieser Club archiviert werden?"
+></textarea>
+<button id="archiveClubButton" type="button" class="danger">
+Club archivieren
+</button>
+<p id="archiveStatus" role="status" class="muted"></p>
+</div>
 </section>
 
 <section class="panel hidden" data-section="roster">
@@ -111,8 +133,12 @@ Maximaler Kader
 
 <section class="panel hidden" data-section="games">
 <h2>Meine Spiele</h2>
-<p class="muted">Beide Clubs müssen spätestens 2 Stunden vor Anspiel bestätigen.</p>
-<button id="refreshGames" type="button">Spiele aktualisieren</button>
+<p class="muted">
+Beide Clubs müssen spätestens 2 Stunden vor Anspiel bestätigen.
+</p>
+<button id="refreshGames" type="button">
+Spiele aktualisieren
+</button>
 <div id="gamesList">Lade Spiele...</div>
 </section>
 
@@ -153,7 +179,9 @@ des Transferfensters gesperrt.
 <section class="panel hidden" data-section="logo">
 <h2>Clublogo</h2>
 <input type="file" id="clubLogoFile" accept="image/png,image/jpeg">
-<button id="uploadLogoButton" type="button">Logo hochladen</button>
+<button id="uploadLogoButton" type="button">
+Logo hochladen
+</button>
 <p>Maximal 2 eigene Logoänderungen pro Saison.</p>
 <p>Danach kann nur die Ligaleitung das Logo ändern.</p>
 </section>
@@ -164,15 +192,25 @@ des Transferfensters gesperrt.
 Maximal 2 General Managers pro Club.
 Nur der Clubinhaber darf GMs ernennen oder entfernen.
 </p>
+
 <h3>General Managers</h3>
 <p id="gmSlots">0 von 2 GM-Plätzen belegt</p>
 <div id="gmList">Lade General Managers...</div>
 
 <div id="gmOwnerControls">
 <h3>GM ernennen</h3>
-<label for="gmEmail">E-Mail-Adresse des registrierten Benutzers</label>
-<input id="gmEmail" type="email" placeholder="beispiel@email.ch" autocomplete="off">
-<button id="assignGmButton" type="button">GM ernennen</button>
+<label for="gmEmail">
+E-Mail-Adresse des registrierten Benutzers
+</label>
+<input
+  id="gmEmail"
+  type="email"
+  placeholder="beispiel@email.ch"
+  autocomplete="off"
+>
+<button id="assignGmButton" type="button">
+GM ernennen
+</button>
 </div>
 <p id="gmStatus" role="status" class="muted"></p>
 </section>
@@ -188,6 +226,7 @@ Nur der Clubinhaber darf GMs ernennen oder entfernen.
 
 const SUPABASE_URL =
 "https://avvsnfgdmamhabcyngds.supabase.co";
+
 const SUPABASE_KEY =
 "sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
 
@@ -204,6 +243,7 @@ let gmBusy=false;
 let gamesBusy=false;
 let logoBusy=false;
 let transferBusy=false;
+let archiveBusy=false;
 
 function message(text){
   $("status").textContent=text;
@@ -220,9 +260,14 @@ function showTab(tab){
   document.querySelectorAll("[data-tab]").forEach(b=>{
     b.classList.toggle("active",b.dataset.tab===tab);
   });
+
   document.querySelectorAll("[data-section]").forEach(s=>{
-    s.classList.toggle("hidden",s.dataset.section===tab?false:true);
+    s.classList.toggle(
+      "hidden",
+      s.dataset.section===tab?false:true
+    );
   });
+
   if(tab==="gm")loadGms();
   if(tab==="games")loadGames();
   if(tab==="transfers")loadTransfers();
@@ -233,8 +278,9 @@ document.querySelectorAll("[data-tab]").forEach(b=>{
 });
 
 async function init(){
-  
-$("loading").textContent = "Schritt A: Supabase-Anmeldung wird geprüft...";
+
+  $("loading").textContent=
+    "Schritt A: Supabase-Anmeldung wird geprüft...";
 
   const {data:{user},error:authError}=
     await client.auth.getUser();
@@ -246,12 +292,14 @@ $("loading").textContent = "Schritt A: Supabase-Anmeldung wird geprüft...";
 
   currentUser=user;
 
-$("loading").textContent = "Schritt B: Clubzuordnung wird geprüft...";
+  $("loading").textContent=
+    "Schritt B: Clubzuordnung wird geprüft...";
 
   const {data:owned,error:ownerError}=
     await client.from("clubs")
-    .select("id,name,logo_url,owner_id")
-    .eq("owner_id",user.id).limit(1);
+    .select("id,name,logo_url,owner_id,is_archived")
+    .eq("owner_id",user.id)
+    .limit(1);
 
   if(ownerError){
     deny("Clubprüfung fehlgeschlagen: "+ownerError.message);
@@ -262,15 +310,18 @@ $("loading").textContent = "Schritt B: Clubzuordnung wird geprüft...";
     currentClub=owned[0];
     isClubOwner=true;
   }else{
-  
-const {data:managed,error:managerError}=
-  await client.rpc("snhl_my_managed_club");
 
+    const {data:managed,error:managerError}=
+      await client.rpc("snhl_my_managed_club");
 
     if(managerError){
-      deny("GM-Zuordnung konnte nicht geprüft werden: "+managerError.message);
+      deny(
+        "GM-Zuordnung konnte nicht geprüft werden: "+
+        managerError.message
+      );
       return;
     }
+
     if(!managed?.length){
       deny("Deinem Konto ist noch kein Club zugeordnet.");
       return;
@@ -278,20 +329,41 @@ const {data:managed,error:managerError}=
 
     const {data:club,error:clubError}=
       await client.from("clubs")
-      .select("id,name,logo_url,owner_id")
-      .eq("id",managed[0].club_id).single();
+      .select("id,name,logo_url,owner_id,is_archived")
+      .eq("id",managed[0].club_id)
+      .single();
 
     if(clubError||!club){
       deny("Club konnte nicht geladen werden.");
       return;
     }
+
     currentClub=club;
   }
 
+  if(currentClub.is_archived){
+    deny(
+      "Dieser Club ist archiviert. "+
+      "Die Verwaltung ist gesperrt; historische "+
+      "Resultate und Statistiken bleiben erhalten."
+    );
+    return;
+  }
+
+  $("archiveControls").classList.toggle(
+    "hidden",!isClubOwner
+  );
+
   $("account").textContent=user.email||"";
-  $("accountRole").textContent=isClubOwner?"Clubinhaber":"General Manager";
+
+  $("accountRole").textContent=
+    isClubOwner?"Clubinhaber":"General Manager";
+
   $("clubName").textContent=currentClub.name;
-  $("gmOwnerControls").classList.toggle("hidden",!isClubOwner);
+
+  $("gmOwnerControls").classList.toggle(
+    "hidden",!isClubOwner
+  );
 
   if(currentClub.logo_url){
     $("clubLogo").src=currentClub.logo_url;
@@ -310,13 +382,15 @@ const {data:managed,error:managerError}=
 
 async function loadRoster(){
   const list=$("rosterList");
+
   const {data,error}=await client.from("club_players")
     .select("user_id,is_active,joined_at")
     .eq("club_id",currentClub.id)
     .eq("is_active",true);
 
   if(error){
-    list.textContent="Kader konnte nicht geladen werden: "+error.message;
+    list.textContent=
+      "Kader konnte nicht geladen werden: "+error.message;
     return;
   }
 
@@ -338,15 +412,22 @@ async function loadRoster(){
 
   const {data:profiles,error:profileError}=
     await client.from("player_profiles")
-    .select("user_id,first_name,last_name,psn_id,position,jersey_number,platform,xbox_gamertag")
+    .select(
+      "user_id,first_name,last_name,psn_id,"+
+      "position,jersey_number,platform,xbox_gamertag"
+    )
     .in("user_id",players.map(p=>p.user_id));
 
   if(profileError){
-    list.textContent="Spielerprofile konnten nicht geladen werden: "+profileError.message;
+    list.textContent=
+      "Spielerprofile konnten nicht geladen werden: "+
+      profileError.message;
     return;
   }
 
-  const map=new Map((profiles||[]).map(p=>[p.user_id,p]));
+  const map=new Map(
+    (profiles||[]).map(p=>[p.user_id,p])
+  );
 
   for(const player of players){
     const profile=map.get(player.user_id);
@@ -354,24 +435,31 @@ async function loadRoster(){
     div.className="item";
 
     const name=document.createElement("strong");
+
     const playerName=profile
-      ?[profile.first_name,profile.last_name].filter(Boolean).join(" ")||"Spieler"
+      ?[profile.first_name,profile.last_name]
+        .filter(Boolean).join(" ")||"Spieler"
       :"Spielerprofil fehlt";
 
     name.textContent=
-      (profile?.jersey_number==null?"":"#"+profile.jersey_number+" · ")+playerName;
+      (profile?.jersey_number==null
+        ?"":"#"+profile.jersey_number+" · ")+playerName;
 
     div.appendChild(name);
 
     if(profile){
       const info=document.createElement("p");
       const platform=profile.platform||"PS5";
-      info.textContent="Plattform: "+platform+" | "+
+
+      info.textContent=
+        "Plattform: "+platform+" | "+
         (platform==="Xbox"?"Gamertag: ":"PSN: ")+
         (platform==="Xbox"
           ?profile.xbox_gamertag||"Nicht angegeben"
           :profile.psn_id||"Nicht angegeben")+
-        " | Position: "+(profile.position||"Nicht angegeben");
+        " | Position: "+
+        (profile.position||"Nicht angegeben");
+
       div.appendChild(info);
     }
 
@@ -381,7 +469,10 @@ async function loadRoster(){
     remove.textContent="Spieler entfernen";
 
     remove.onclick=async()=>{
-      if(!confirm(playerName+" wirklich aus dem Club entfernen?"))return;
+      if(!confirm(
+        playerName+" wirklich aus dem Club entfernen?"
+      ))return;
+
       remove.disabled=true;
 
       const {error:e}=await client.rpc(
@@ -394,6 +485,7 @@ async function loadRoster(){
         remove.disabled=false;
         return;
       }
+
       message("Spieler erfolgreich entfernt.");
       await loadRoster();
     };
@@ -419,87 +511,87 @@ async function loadRequests(){
   }
 
   list.replaceChildren();
+
   if(!data?.length){
     list.textContent="Keine offenen Spieleranfragen.";
     return;
   }
 
-  
-  const userIds = [...new Set(
-    data.map(r => r.user_id)
+  const userIds=[...new Set(
+    data.map(r=>r.user_id)
   )];
 
-  const {data: profiles, error: profileError} =
+  const {data:profiles,error:profileError}=
     await client.from("player_profiles")
-      .select(
-        "user_id,first_name,last_name," +
-        "jersey_number,position,platform," +
-        "psn_id,xbox_gamertag"
-      )
-      .in("user_id", userIds);
+    .select(
+      "user_id,first_name,last_name,"+
+      "jersey_number,position,platform,"+
+      "psn_id,xbox_gamertag"
+    )
+    .in("user_id",userIds);
 
-  const profileMap = new Map(
-    (profiles || []).map(p => [p.user_id, p])
+  const profileMap=new Map(
+    (profiles||[]).map(p=>[p.user_id,p])
   );
 
-  if (profileError) {
-    message("Spielerprofile: " + profileError.message);
+  if(profileError){
+    message("Spielerprofile: "+profileError.message);
   }
 
-  for (const request of data) {
-    const p = profileMap.get(request.user_id);
-    const div = document.createElement("div");
-    div.className = "item";
+  for(const request of data){
+    const p=profileMap.get(request.user_id);
+    const div=document.createElement("div");
+    div.className="item";
 
-    const label = document.createElement("p");
+    const label=document.createElement("p");
 
-    if (p) {
-      const name = [
-        p.first_name,
-        p.last_name
+    if(p){
+      const name=[
+        p.first_name,p.last_name
       ].filter(Boolean).join(" ");
 
-      const number = p.jersey_number != null
-        ? "#" + p.jersey_number + " · "
-        : "";
+      const number=p.jersey_number!=null
+        ?"#"+p.jersey_number+" · ":"";
 
-      label.textContent =
-        number + (name || "Spieler") +
-        " | Position: " + (p.position || "–") +
-        " | Plattform: " + (p.platform || "–") +
-        " | PSN: " + (p.psn_id || "–") +
-        " | Xbox: " + (p.xbox_gamertag || "–");
-    } else {
-      label.textContent =
-        "Spieler-ID: " + request.user_id;
+      label.textContent=
+        number+(name||"Spieler")+
+        " | Position: "+(p.position||"–")+
+        " | Plattform: "+(p.platform||"–")+
+        " | PSN: "+(p.psn_id||"–")+
+        " | Xbox: "+(p.xbox_gamertag||"–");
+    }else{
+      label.textContent=
+        "Spieler-ID: "+request.user_id;
     }
 
-    const actions = document.createElement("div");
-    actions.className = "actions";
+    const actions=document.createElement("div");
+    actions.className="actions";
 
-    for (const approve of [true, false]) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = approve
-        ? "Annehmen"
-        : "Ablehnen";
+    for(const approve of [true,false]){
+      const btn=document.createElement("button");
+      btn.type="button";
 
-      if (!approve) btn.className = "danger";
+      btn.textContent=approve
+        ?"Annehmen":"Ablehnen";
 
-      btn.onclick = () =>
-        reviewRequest(request.id, approve);
+      if(!approve)btn.className="danger";
+
+      btn.onclick=()=>
+        reviewRequest(request.id,approve);
 
       actions.appendChild(btn);
     }
 
-    div.append(label, actions);
+    div.append(label,actions);
     list.appendChild(div);
   }
 }
 
 async function reviewRequest(id,approve){
   if(!confirm(
-    approve?"Spieler wirklich aufnehmen?":"Spieleranfrage wirklich ablehnen?"
+    approve
+      ?"Spieler wirklich aufnehmen?"
+      :"Spieleranfrage wirklich ablehnen?"
   ))return;
 
   message("Anfrage wird bearbeitet...");
@@ -514,15 +606,26 @@ async function reviewRequest(id,approve){
     return;
   }
 
-  message(typeof data==="string"?data:"Anfrage bearbeitet.");
-  await Promise.all([loadRequests(),loadRoster()]);
+  message(
+    typeof data==="string"
+      ?data:"Anfrage bearbeitet."
+  );
+
+  await Promise.all([
+    loadRequests(),
+    loadRoster()
+  ]);
 }
 
-const formatGameTime=value=>new Intl.DateTimeFormat("de-CH",{
-  timeZone:"Europe/Zurich",
-  day:"2-digit",month:"2-digit",year:"numeric",
-  hour:"2-digit",minute:"2-digit"
-}).format(new Date(value));
+const formatGameTime=value=>
+  new Intl.DateTimeFormat("de-CH",{
+    timeZone:"Europe/Zurich",
+    day:"2-digit",
+    month:"2-digit",
+    year:"numeric",
+    hour:"2-digit",
+    minute:"2-digit"
+  }).format(new Date(value));
 
 async function loadGames(){
   if(!currentClub||gamesBusy)return;
@@ -531,18 +634,30 @@ async function loadGames(){
   list.textContent="Lade Spiele...";
 
   const {data,error}=await client.from("games")
-    .select("id,home_club_id,away_club_id,scheduled_at,status,game_mode,home_confirmed_at,away_confirmed_at")
-    .or(`home_club_id.eq.${currentClub.id},away_club_id.eq.${currentClub.id}`)
-    .order("scheduled_at",{ascending:true}).limit(100);
+    .select(
+      "id,home_club_id,away_club_id,"+
+      "scheduled_at,status,game_mode,"+
+      "home_confirmed_at,away_confirmed_at"
+    )
+    .or(
+      `home_club_id.eq.${currentClub.id},`+
+      `away_club_id.eq.${currentClub.id}`
+    )
+    .order("scheduled_at",{ascending:true})
+    .limit(100);
 
   if(error){
-    list.textContent="Spiele konnten nicht geladen werden: "+error.message;
+    list.textContent=
+      "Spiele konnten nicht geladen werden: "+
+      error.message;
     return;
   }
 
   list.replaceChildren();
+
   if(!data?.length){
-    list.textContent="Noch keine Spiele für deinen Club vorhanden.";
+    list.textContent=
+      "Noch keine Spiele für deinen Club vorhanden.";
     return;
   }
 
@@ -551,28 +666,52 @@ async function loadGames(){
   ]))];
 
   const {data:clubs}=await client.from("clubs")
-    .select("id,name,logo_url").in("id",ids);
+    .select("id,name,logo_url")
+    .in("id",ids);
 
-  const map=new Map((clubs||[]).map(c=>[c.id,c]));
+  const map=new Map(
+    (clubs||[]).map(c=>[c.id,c])
+  );
 
   for(const game of data){
     const home=map.get(game.home_club_id);
     const away=map.get(game.away_club_id);
-    const isHome=game.home_club_id===currentClub.id;
-    const mine=isHome?game.home_confirmed_at:game.away_confirmed_at;
-    const other=isHome?game.away_confirmed_at:game.home_confirmed_at;
-    const valid=game.scheduled_at&&!Number.isNaN(new Date(game.scheduled_at).getTime());
-    const inTime=valid&&new Date(game.scheduled_at).getTime()-Date.now()>=7200000;
-    const allowed=["scheduled","confirmed"].includes(game.status);
+
+    const isHome=
+      game.home_club_id===currentClub.id;
+
+    const mine=isHome
+      ?game.home_confirmed_at
+      :game.away_confirmed_at;
+
+    const other=isHome
+      ?game.away_confirmed_at
+      :game.home_confirmed_at;
+
+    const valid=
+      game.scheduled_at&&
+      !Number.isNaN(
+        new Date(game.scheduled_at).getTime()
+      );
+
+    const inTime=
+      valid&&
+      new Date(game.scheduled_at).getTime()
+        -Date.now()>=7200000;
+
+    const allowed=
+      ["scheduled","confirmed"].includes(game.status);
 
     const item=document.createElement("div");
     item.className="item";
+
     const matchup=document.createElement("div");
     matchup.className="matchup";
 
     function clubDisplay(club,fallback){
       const box=document.createElement("div");
       box.className="match-club";
+
       if(club?.logo_url){
         const img=document.createElement("img");
         img.src=club.logo_url;
@@ -581,9 +720,11 @@ async function loadGames(){
         img.loading="lazy";
         box.appendChild(img);
       }
+
       const name=document.createElement("strong");
       name.textContent=club?.name||fallback;
       box.appendChild(name);
+
       return box;
     }
 
@@ -598,29 +739,47 @@ async function loadGames(){
     );
 
     const meta=document.createElement("p");
-    meta.textContent="Spielbeginn: "+
-      (valid?formatGameTime(game.scheduled_at):"Nicht festgelegt")+
-      " (Schweiz) · Modus: "+(game.game_mode||"–")+
+
+    meta.textContent=
+      "Spielbeginn: "+
+      (valid
+        ?formatGameTime(game.scheduled_at)
+        :"Nicht festgelegt")+
+      " (Schweiz) · Modus: "+
+      (game.game_mode||"–")+
       " · Status: "+(game.status||"–");
 
     const state=document.createElement("p");
-    state.textContent="Dein Club: "+(mine?"Bestätigt":"Offen")+
-      " · Gegner: "+(other?"Bestätigt":"Offen");
+
+    state.textContent=
+      "Dein Club: "+
+      (mine?"Bestätigt":"Offen")+
+      " · Gegner: "+
+      (other?"Bestätigt":"Offen");
 
     item.append(matchup,meta,state);
 
     if(!mine&&allowed){
       const button=document.createElement("button");
       button.type="button";
+
       button.textContent=inTime
         ?"Spieltermin bestätigen"
         :"Bestätigungsfrist abgelaufen";
+
       button.disabled=!inTime;
 
       button.onclick=async()=>{
-        if(gamesBusy||!confirm("Diesen Spieltermin verbindlich bestätigen?"))return;
+        if(
+          gamesBusy||
+          !confirm(
+            "Diesen Spieltermin verbindlich bestätigen?"
+          )
+        )return;
+
         gamesBusy=true;
         button.disabled=true;
+
         message("Bestätigung wird geprüft...");
 
         try{
@@ -628,15 +787,21 @@ async function loadGames(){
             "club_confirm_game",
             {p_game_id:game.id}
           );
+
           if(e)throw e;
+
           message("Spielbestätigung gespeichert.");
         }catch(e){
-          message("Bestätigung fehlgeschlagen: "+e.message);
+          message(
+            "Bestätigung fehlgeschlagen: "+
+            e.message
+          );
         }finally{
           gamesBusy=false;
           await loadGames();
         }
       };
+
       item.appendChild(button);
     }
 
@@ -660,27 +825,41 @@ async function loadGms(){
   );
 
   if(error){
-    list.textContent="GM-Liste konnte nicht geladen werden: "+error.message;
+    list.textContent=
+      "GM-Liste konnte nicht geladen werden: "+
+      error.message;
     return;
   }
 
   const gms=data||[];
   list.replaceChildren();
 
-  $("gmSlots").textContent=gms.length+" von 2 GM-Plätzen belegt";
-  $("gmOwnerControls").classList.toggle("hidden",!isClubOwner);
-  $("assignGmButton").disabled=!isClubOwner||gms.length>=2;
+  $("gmSlots").textContent=
+    gms.length+" von 2 GM-Plätzen belegt";
+
+  $("gmOwnerControls").classList.toggle(
+    "hidden",!isClubOwner
+  );
+
+  $("assignGmButton").disabled=
+    !isClubOwner||gms.length>=2;
 
   if(!gms.length){
-    list.textContent="Noch keine General Managers eingetragen.";
+    list.textContent=
+      "Noch keine General Managers eingetragen.";
     return;
   }
 
   for(const gm of gms){
     const item=document.createElement("div");
     item.className="item";
+
     const label=document.createElement("p");
-    label.textContent="General Manager · Benutzer-ID: "+gm.user_id;
+
+    label.textContent=
+      "General Manager · Benutzer-ID: "+
+      gm.user_id;
+
     item.appendChild(label);
 
     if(isClubOwner){
@@ -690,16 +869,27 @@ async function loadGms(){
       remove.textContent="GM entfernen";
 
       remove.onclick=async()=>{
-        if(gmBusy||!confirm("Diesen General Manager wirklich entfernen?"))return;
+        if(
+          gmBusy||
+          !confirm(
+            "Diesen General Manager wirklich entfernen?"
+          )
+        )return;
+
         gmBusy=true;
         remove.disabled=true;
 
         try{
           const {error:e}=await client.rpc(
             "snhl_remove_club_gm",
-            {p_club_id:currentClub.id,p_user_id:gm.user_id}
+            {
+              p_club_id:currentClub.id,
+              p_user_id:gm.user_id
+            }
           );
+
           if(e)throw e;
+
           gmMessage("GM erfolgreich entfernt.");
           await loadGms();
         }catch(e){
@@ -718,16 +908,24 @@ async function loadGms(){
 }
 
 $("assignGmButton").onclick=async()=>{
-  if(gmBusy||!currentClub?.id||!isClubOwner)return;
+  if(
+    gmBusy||
+    !currentClub?.id||
+    !isClubOwner
+  )return;
 
   const email=$("gmEmail").value.trim();
 
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-    gmMessage("Bitte eine gültige E-Mail-Adresse eingeben.");
+    gmMessage(
+      "Bitte eine gültige E-Mail-Adresse eingeben."
+    );
     return;
   }
 
-  if(!confirm(email+" als General Manager ernennen?"))return;
+  if(!confirm(
+    email+" als General Manager ernennen?"
+  ))return;
 
   gmBusy=true;
   $("assignGmButton").disabled=true;
@@ -736,9 +934,14 @@ $("assignGmButton").onclick=async()=>{
   try{
     const {error}=await client.rpc(
       "snhl_assign_club_gm_by_email",
-      {p_club_id:currentClub.id,p_email:email}
+      {
+        p_club_id:currentClub.id,
+        p_email:email
+      }
     );
+
     if(error)throw error;
+
     $("gmEmail").value="";
     gmMessage("GM erfolgreich ernannt.");
   }catch(e){
@@ -753,13 +956,17 @@ async function uploadOwnerLogo(){
   if(logoBusy||!currentClub?.id)return;
 
   const file=$("clubLogoFile").files[0];
+
   if(!file){
     alert("Bitte zuerst ein Logo auswählen.");
     return;
   }
 
-  if(!["image/png","image/jpeg"].includes(file.type)||
-    file.size<8||file.size>2*1024*1024){
+  if(
+    !["image/png","image/jpeg"].includes(file.type)||
+    file.size<8||
+    file.size>2*1024*1024
+  ){
     alert("Nur PNG/JPEG bis 2 MB erlaubt.");
     return;
   }
@@ -784,7 +991,9 @@ async function uploadOwnerLogo(){
       SUPABASE_URL+"/functions/v1/upload-club-logo",
       {
         method:"POST",
-        headers:{Authorization:"Bearer "+token},
+        headers:{
+          Authorization:"Bearer "+token
+        },
         body:form
       }
     );
@@ -792,7 +1001,10 @@ async function uploadOwnerLogo(){
     const result=await response.json();
 
     if(!response.ok){
-      const reason=result.reason||result.error||"Unbekannter Fehler";
+      const reason=
+        result.reason||
+        result.error||
+        "Unbekannter Fehler";
 
       if(reason.includes("LIMIT_REACHED")){
         alert(
@@ -802,18 +1014,25 @@ async function uploadOwnerLogo(){
           "Bitte kontaktiere die Ligaleitung."
         );
       }else{
-        alert("Logo-Upload fehlgeschlagen: "+reason);
+        alert(
+          "Logo-Upload fehlgeschlagen: "+reason
+        );
       }
       return;
     }
 
-    alert(result.already_current
-      ?"Dieses Logo ist bereits aktuell."
-      :"Clublogo erfolgreich hochgeladen!");
+    alert(
+      result.already_current
+        ?"Dieses Logo ist bereits aktuell."
+        :"Clublogo erfolgreich hochgeladen!"
+    );
+
     location.reload();
   }catch(e){
     console.error(e);
-    alert("Verbindungsfehler beim Logo-Upload.");
+    alert(
+      "Verbindungsfehler beim Logo-Upload."
+    );
   }finally{
     logoBusy=false;
     $("uploadLogoButton").disabled=false;
@@ -824,6 +1043,7 @@ async function uploadOwnerLogo(){
 
 function swissDate(value){
   if(!value)return "Nicht festgelegt";
+
   return new Intl.DateTimeFormat("de-CH",{
     timeZone:"Europe/Zurich",
     day:"2-digit",
@@ -875,7 +1095,8 @@ async function loadTransfers(){
   );
 
   if(error){
-    list.textContent="Transfers konnten nicht geladen werden: "+
+    list.textContent=
+      "Transfers konnten nicht geladen werden: "+
       error.message;
     return;
   }
@@ -888,7 +1109,8 @@ async function loadTransfers(){
   list.replaceChildren();
 
   if(!transfers.length){
-    list.textContent="Keine Transferanträge für deinen Club vorhanden.";
+    list.textContent=
+      "Keine Transferanträge für deinen Club vorhanden.";
     return;
   }
 
@@ -897,37 +1119,57 @@ async function loadTransfers(){
     item.className="item";
 
     const heading=document.createElement("h3");
+
     heading.textContent=
       (tr.from_club_name||"Alter Club")+
-      " → "+(tr.to_club_name||"Neuer Club");
+      " → "+
+      (tr.to_club_name||"Neuer Club");
 
     const player=document.createElement("p");
     player.textContent="Spieler-ID: "+tr.player_id;
 
     const status=document.createElement("p");
+
     status.textContent=
       "Status: "+tr.transfer_status+
       (tr.completed?" · Abgeschlossen":"");
 
     const approvals=document.createElement("p");
+
     approvals.textContent=
-      "Alter Club: "+(tr.old_club_approved?"Zugestimmt":"Offen")+
-      " | Neuer Club: "+(tr.new_club_approved?"Zugestimmt":"Offen")+
-      " | Liga-Leitung: "+(tr.league_approved?"Freigegeben":"Offen");
+      "Alter Club: "+
+      (tr.old_club_approved?"Zugestimmt":"Offen")+
+      " | Neuer Club: "+
+      (tr.new_club_approved?"Zugestimmt":"Offen")+
+      " | Liga-Leitung: "+
+      (tr.league_approved?"Freigegeben":"Offen");
 
-    item.append(heading,player,status,approvals);
+    item.append(
+      heading,
+      player,
+      status,
+      approvals
+    );
 
-    const isOld=tr.from_club_id===currentClub.id;
-    const isNew=tr.to_club_id===currentClub.id;
+    const isOld=
+      tr.from_club_id===currentClub.id;
+
+    const isNew=
+      tr.to_club_id===currentClub.id;
+
     const alreadyApproved=isOld
       ?tr.old_club_approved
       :tr.new_club_approved;
 
-    // Die bestehende RPC erlaubt derzeit nur Clubinhabern
-    // die Zustimmung. GM-Rechte werden serverseitig ergänzt.
-    const canReview=isClubOwner&&open&&
+    // Die bestehende RPC erlaubt derzeit
+    // nur Clubinhabern die Zustimmung.
+    // GM-Rechte werden serverseitig ergänzt.
+    const canReview=
+      isClubOwner&&
+      open&&
       tr.transfer_status==="pending"&&
-      !tr.completed&&!alreadyApproved&&
+      !tr.completed&&
+      !alreadyApproved&&
       (isOld||isNew);
 
     if(canReview){
@@ -937,12 +1179,18 @@ async function loadTransfers(){
       for(const approve of [true,false]){
         const button=document.createElement("button");
         button.type="button";
+
         button.textContent=approve
           ?"Transfer zustimmen"
           :"Transfer ablehnen";
-        if(!approve)button.className="danger";
 
-        button.onclick=()=>reviewTransfer(tr.request_id,approve);
+        if(!approve){
+          button.className="danger";
+        }
+
+        button.onclick=()=>
+          reviewTransfer(tr.request_id,approve);
+
         actions.appendChild(button);
       }
 
@@ -956,13 +1204,17 @@ async function loadTransfers(){
 async function reviewTransfer(id,approve){
   if(transferBusy)return;
 
-  if(!confirm(approve
-    ?"Diesem Transfer verbindlich zustimmen?"
-    :"Diesen Transfer ablehnen?"
+  if(!confirm(
+    approve
+      ?"Diesem Transfer verbindlich zustimmen?"
+      :"Diesen Transfer ablehnen?"
   ))return;
 
   transferBusy=true;
-  message("Transferentscheidung wird gespeichert...");
+
+  message(
+    "Transferentscheidung wird gespeichert..."
+  );
 
   try{
     const {data,error}=await client.rpc(
@@ -975,9 +1227,11 @@ async function reviewTransfer(id,approve){
 
     if(error)throw error;
 
-    message(typeof data==="string"
-      ?data
-      :"Transferentscheidung gespeichert.");
+    message(
+      typeof data==="string"
+        ?data
+        :"Transferentscheidung gespeichert."
+    );
   }catch(e){
     message("Transferfehler: "+e.message);
   }finally{
@@ -985,6 +1239,80 @@ async function reviewTransfer(id,approve){
     await loadTransfers();
   }
 }
+
+// CLUBARCHIVIERUNG
+
+$("archiveClubButton").onclick=async()=>{
+  if(
+    archiveBusy||
+    !isClubOwner||
+    !currentClub?.id||
+    currentClub.is_archived
+  )return;
+
+  const reason=$("archiveReason").value.trim();
+
+  if(reason.length<10){
+    $("archiveStatus").textContent=
+      "Bitte eine Begründung mit mindestens "+
+      "10 Zeichen eingeben.";
+    return;
+  }
+
+  const firstConfirmation=confirm(
+    `Club «${currentClub.name}» wirklich archivieren?\n\n`+
+    "Die aktive Clubverwaltung wird gesperrt.\n"+
+    "Historische Resultate und Statistiken "+
+    "bleiben erhalten."
+  );
+
+  if(!firstConfirmation)return;
+
+  const secondConfirmation=confirm(
+    "LETZTE BESTÄTIGUNG\n\n"+
+    "Möchtest du diesen Club wirklich archivieren?"
+  );
+
+  if(!secondConfirmation)return;
+
+  archiveBusy=true;
+  $("archiveClubButton").disabled=true;
+
+  $("archiveStatus").textContent=
+    "Club wird archiviert...";
+
+  try{
+    const {error}=await client.rpc(
+      "snhl_archive_own_club",
+      {
+        p_club_id:currentClub.id,
+        p_reason:reason
+      }
+    );
+
+    if(error)throw error;
+
+    currentClub.is_archived=true;
+
+    $("archiveStatus").textContent=
+      "Club erfolgreich archiviert.";
+
+    alert(
+      "Der Club wurde archiviert.\n\n"+
+      "Resultate und Statistiken bleiben erhalten."
+    );
+
+    location.reload();
+  }catch(e){
+    $("archiveStatus").textContent=
+      "Archivierung fehlgeschlagen: "+e.message;
+
+    archiveBusy=false;
+    $("archiveClubButton").disabled=false;
+  }
+};
+
+// BUTTONS
 
 $("refreshTransfers").onclick=loadTransfers;
 $("uploadLogoButton").onclick=uploadOwnerLogo;
@@ -996,8 +1324,10 @@ $("logout").onclick=async()=>{
 };
 
 init().catch(e=>deny(e.message));
+
 </script>
 </body>
 </html>
+
 
 
