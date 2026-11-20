@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -300,6 +302,9 @@ Prüfe Anmeldung und Admin-Berechtigung...
 <button data-tab="requests">Clubanträge</button>
 <button data-tab="transfers">Transferfenster</button>
 <button data-tab="approvals">Transferfreigaben</button>
+<button data-tab="nameRequests" id="nameRequestsNav" class="hidden">
+Clubnamen-Anträge
+</button>
 <button data-tab="gaming" id="gamingNav" class="hidden">
 Gaming-ID-Anträge
 </button>
@@ -360,6 +365,21 @@ Benutzerrollen werden sicher in Supabase verwaltet.
 <h2>Clubanträge</h2>
 <div id="requestsTable" class="table-wrap">
 Lade Clubanträge...
+</div>
+</section>
+
+<section class="panel hidden" data-section="nameRequests">
+<h2>Clubnamen-Anträge</h2>
+<p class="muted">
+Hier genehmigt oder lehnt die offizielle Liga-Leitung
+Anträge zur Änderung von Clubnamen ab.
+</p>
+<button id="refreshNameRequests" type="button">
+Anträge aktualisieren
+</button>
+<p id="nameRequestsMessage" role="status"></p>
+<div id="nameRequestsList">
+Noch keine Anträge geladen.
 </div>
 </section>
 
@@ -683,6 +703,10 @@ function showTab(tab){
  if(tab==="security"){
   loadSecurityCases();
  }
+
+ if(tab==="nameRequests"){
+  loadNameRequests();
+ }
 }
 
 document.querySelectorAll("[data-tab]").forEach(b=>{
@@ -743,7 +767,8 @@ async function loadTable(name,target,count){
     const del=document.createElement("button");
     del.className="danger";
     del.textContent="Löschen";
-    del.onclick=()=>deleteClub(item.id);
+    del.disabled=true;
+    del.title="Direkte Clublöschung ist gesperrt";
 
     const logo=document.createElement("button");
     logo.textContent="Logo hochladen";
@@ -836,35 +861,33 @@ async function editClub(id,currentName){
  const name=prompt("Neuer Clubname:",currentName);
  if(!name?.trim())return;
 
- const {error}=await client
-  .from("clubs")
-  .update({name:name.trim()})
-  .eq("id",id);
+ const reason=prompt(
+  "Begründung für die Clubnamenänderung (mindestens 10 Zeichen):"
+ );
+ if(!reason?.trim())return;
+
+ const {error}=await client.rpc(
+  "snhl_request_club_name_change",
+  {
+   p_club_id:id,
+   p_new_name:name.trim(),
+   p_reason:reason.trim()
+  }
+ );
 
  if(error){
   alert("Fehler: "+error.message);
   return;
  }
 
- alert("Club aktualisiert.");
- location.reload();
+ alert("Antrag an die Liga-Leitung gesendet.");
 }
 
 async function deleteClub(id){
- if(!confirm("Club wirklich löschen?"))return;
-
- const {error}=await client
-  .from("clubs")
-  .delete()
-  .eq("id",id);
-
- if(error){
-  alert("Fehler: "+error.message);
-  return;
- }
-
- alert("Club gelöscht.");
- location.reload();
+ alert(
+  "Direktes Löschen ist gesperrt. "+
+  "Clubs können nur gemäss den Liga-Regeln archiviert werden."
+ );
 }
 
 async function uploadClubLogo(clubId){
@@ -1012,13 +1035,14 @@ function swissInputValues(value){
  };
 }
 
-// TRANSFERFENSTER
+// FORTSETZUNG FOLGT
+
+/* TRANSFERFENSTER */
 
 async function getTransferStatus(){
  const {data,error}=await client.rpc(
   "snhl_transfer_window_status"
  );
-
  if(error)throw error;
  return data;
 }
@@ -1135,7 +1159,7 @@ $("transferForm").onsubmit=async event=>{
 $("refreshTransfer").onclick=()=>
  loadTransferStatus().catch(()=>{});
 
-// TRANSFERFREIGABEN
+/* TRANSFERFREIGABEN */
 
 async function loadApprovals(){
  const list=$("approvalList");
@@ -1277,7 +1301,7 @@ async function approveTransfer(id){
 
 $("refreshApprovals").onclick=loadApprovals;
 
-// LIGA-LEITUNG EINLADEN
+/* LIGA-LEITUNG EINLADEN */
 
 $("inviteForm").onsubmit=async event=>{
  event.preventDefault();
@@ -1375,10 +1399,9 @@ $("copyToken").onclick=async()=>{
  }
 };
 
-// ENDE TEIL 3
-// TEIL 4 FOLGT DIREKT DARUNTER
+/* TEIL 2 ENDE – TEIL 3 FOLGT */
 
-// GAMING-ID-ANTRAEGE
+/* GAMING-ID-ANTRAEGE */
 
 function gamingDate(value){
  if(!value)return "Noch offen";
@@ -1637,7 +1660,7 @@ $("gamingSearch").addEventListener(
  renderGamingRequests
 );
 
-// GAMING-ID GENEHMIGEN ODER ABLEHNEN
+/* GAMING-ID GENEHMIGEN ODER ABLEHNEN */
 
 async function reviewGamingRequest(request,approve){
  if(
@@ -1712,7 +1735,7 @@ $("refreshGaming").onclick=async()=>{
  await loadAdminGamingRequests();
 };
 
-// SICHERHEITSFALLVERWALTUNG
+/* SICHERHEITSFALLVERWALTUNG */
 
 function securityStatusLabel(status){
  const labels={
@@ -1956,7 +1979,177 @@ $("refreshSecurity").onclick=async()=>{
  await loadSecurityCases();
 };
 
-// INITIALISIERUNG
+/* TEIL 3 ENDE – TEIL 4 FOLGT */
+
+/* CLUBNAMEN-ANTRAEGE */
+
+let nameReviewBusy=false;
+
+async function loadNameRequests(){
+ const list=$("nameRequestsList");
+ const message=$("nameRequestsMessage");
+
+ if(!isLeagueController){
+  list.textContent=
+   "Nur die offizielle Liga-Leitung hat Zugriff.";
+  return;
+ }
+
+ list.textContent="Lade Clubnamen-Anträge...";
+
+ const {data,error}=await client.rpc(
+  "snhl_admin_club_name_requests"
+ );
+
+ if(error){
+  list.textContent="Fehler: "+error.message;
+  return;
+ }
+
+ list.replaceChildren();
+
+ if(!data?.length){
+  list.textContent=
+   "Keine Clubnamen-Anträge vorhanden.";
+  return;
+ }
+
+ for(const r of data){
+  const card=document.createElement("article");
+  card.className="gaming-request";
+
+  const title=document.createElement("h3");
+  title.textContent=
+   (r.old_name||"–")+
+   " → "+
+   (r.new_name||"–");
+
+  card.appendChild(title);
+
+  gamingAddLine(
+   card,
+   "Begründung",
+   r.reason||"–"
+  );
+
+  gamingAddLine(
+   card,
+   "Status",
+   r.status||"–"
+  );
+
+  gamingAddLine(
+   card,
+   "Erstellt",
+   r.created_at
+    ?swissDisplay(r.created_at)
+    :"–"
+  );
+
+  if(r.status==="pending"){
+   const actions=document.createElement("div");
+   actions.className="actions";
+
+   for(const [approve,label] of [
+    [true,"Genehmigen"],
+    [false,"Ablehnen"]
+   ]){
+    const button=document.createElement("button");
+    button.type="button";
+    button.textContent=label;
+
+    if(!approve){
+     button.className="danger";
+    }
+
+    button.disabled=nameReviewBusy;
+
+    button.onclick=()=>
+     reviewNameRequest(r,approve);
+
+    actions.appendChild(button);
+   }
+
+   card.appendChild(actions);
+  }
+
+  list.appendChild(card);
+ }
+
+ message.textContent="";
+}
+
+/* CLUBNAMEN GENEHMIGEN ODER ABLEHNEN */
+
+async function reviewNameRequest(request,approve){
+ if(
+  !isLeagueController||
+  nameReviewBusy||
+  request.status!=="pending"
+ )return;
+
+ const verb=approve
+  ?"genehmigen"
+  :"ablehnen";
+
+ if(!confirm(
+  "Clubnamenänderung "+verb+"?\n"+
+  request.old_name+
+  " → "+
+  request.new_name+
+  "\nDiese Entscheidung wird gespeichert."
+ ))return;
+
+ nameReviewBusy=true;
+
+ $("nameRequestsMessage").textContent=
+  "Speichere Entscheidung...";
+
+ document.querySelectorAll(
+  '[data-section="nameRequests"] button'
+ ).forEach(button=>{
+  button.disabled=true;
+ });
+
+ try{
+  const {error}=await client.rpc(
+   "snhl_review_club_name_change",
+   {
+    p_request_id:request.request_id,
+    p_approve:approve
+   }
+  );
+
+  if(error)throw error;
+
+  await loadNameRequests();
+
+  $("nameRequestsMessage").textContent=
+   approve
+    ?"Antrag genehmigt."
+    :"Antrag abgelehnt.";
+
+ }catch(e){
+  $("nameRequestsMessage").textContent=
+   "Fehler: "+e.message;
+
+ }finally{
+  nameReviewBusy=false;
+
+  $("refreshNameRequests").disabled=false;
+
+  document.querySelectorAll(
+   '[data-section="nameRequests"] button'
+  ).forEach(button=>{
+   button.disabled=false;
+  });
+ }
+}
+
+$("refreshNameRequests").onclick=
+ loadNameRequests;
+
+/* INITIALISIERUNG */
 
 async function init(){
  if(!window.supabase){
@@ -2024,6 +2217,7 @@ async function init(){
  if(isLeagueController){
   $("gamingNav").classList.remove("hidden");
   $("securityNav").classList.remove("hidden");
+  $("nameRequestsNav").classList.remove("hidden");
  }
 
  $("logout").onclick=async()=>{
@@ -2038,17 +2232,25 @@ async function init(){
 
  await Promise.allSettled([
   loadTable(
-   "clubs","clubsTable","clubsCount"
+   "clubs",
+   "clubsTable",
+   "clubsCount"
   ),
+
   loadTable(
    "player_profiles",
    "playersTable",
    "playersCount"
   ),
+
   loadTable(
-   "games","gamesTable","gamesCount"
+   "games",
+   "gamesTable",
+   "gamesCount"
   ),
+
   loadClubRequests(),
+
   loadTransferStatus()
  ]);
 
