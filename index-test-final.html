@@ -6,102 +6,422 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101d">
 <title>Swiss NHL League | Season 1</title>
+
 <style>
 :root{
- --bg:#07101d;--panel:#10233a;--blue:#1683ff;
- --line:#294767;--text:#f5f9ff;--muted:#a2b8d1
+ --bg:#07101d;
+ --panel:#10233a;
+ --blue:#1683ff;
+ --line:#294767;
+ --text:#f5f9ff;
+ --muted:#a2b8d1;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--text);font:15px Arial,Helvetica,sans-serif}
+body{
+ margin:0;
+ background:var(--bg);
+ color:var(--text);
+ font:15px Arial,Helvetica,sans-serif;
+}
 a{color:inherit;text-decoration:none}
 button,select,input{font:inherit}
 button{cursor:pointer}
-button:focus-visible,a:focus-visible,select:focus-visible{
- outline:3px solid #8dc6ff;outline-offset:3px
+button:focus-visible,
+a:focus-visible,
+select:focus-visible{
+ outline:3px solid #8dc6ff;
+ outline-offset:3px;
 }
 [hidden]{display:none!important}
-header{background:#0c1b2e;border-bottom:1px solid var(--line)}
-.top{max-width:1300px;margin:auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
-.brand img{width:150px;max-width:100%;height:auto}
-.actions{display:flex;gap:9px;flex-wrap:wrap}
-.btn{border:1px solid #298aff;background:#086fe0;color:white;padding:11px 15px;border-radius:7px;font-weight:bold;display:inline-block}
-.btn.secondary{background:#142b47;border-color:#40658c}
-nav{display:flex;overflow-x:auto;background:#06101c;border-bottom:1px solid var(--line);padding:0 max(12px,calc((100vw - 1300px)/2))}
-nav a{padding:16px;white-space:nowrap;font-weight:bold;font-size:13px}
+
+header{
+ background:#0c1b2e;
+ border-bottom:1px solid var(--line);
+}
+.top{
+ max-width:1300px;
+ margin:auto;
+ padding:16px 20px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:15px;
+ flex-wrap:wrap;
+}
+.brand img{
+ width:150px;
+ max-width:100%;
+ height:auto;
+}
+.actions{
+ display:flex;
+ gap:9px;
+ flex-wrap:wrap;
+}
+.btn{
+ border:1px solid #298aff;
+ background:#086fe0;
+ color:white;
+ padding:11px 15px;
+ border-radius:7px;
+ font-weight:bold;
+ display:inline-block;
+}
+.btn.secondary{
+ background:#142b47;
+ border-color:#40658c;
+}
+nav{
+ display:flex;
+ overflow-x:auto;
+ background:#06101c;
+ border-bottom:1px solid var(--line);
+ padding:0 max(12px,calc((100vw - 1300px)/2));
+}
+nav a{
+ padding:16px;
+ white-space:nowrap;
+ font-weight:bold;
+ font-size:13px;
+}
 nav a:hover{background:#126bd0}
-main{max-width:1300px;margin:auto;padding:18px}
+main{
+ max-width:1300px;
+ margin:auto;
+ padding:18px;
+}
 .section{margin-bottom:24px}
-.heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.heading{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:10px;
+ flex-wrap:wrap;
+ margin-bottom:12px;
+}
 h1,h2,h3,p{margin-top:0}
 h1{font-size:clamp(27px,5vw,46px)}
 h2{font-size:21px;margin-bottom:0}
 h3{font-size:17px}
 .muted{color:var(--muted)}
-.panel{background:linear-gradient(145deg,#142b45,#0c1b2e);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
-.hero{background:linear-gradient(120deg,#102b4e,#091726);border:1px solid #2d5680;border-radius:15px;padding:32px 25px;margin:15px 0 24px}
-.eyebrow{color:#81bdff;font-weight:bold;letter-spacing:2px;font-size:12px}
-.hero p{max-width:650px;color:#bfd1e8;line-height:1.7}
-.hero-links{display:flex;gap:10px;flex-wrap:wrap}
-.score-strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
-.score{flex:0 0 260px;background:#173351;border:1px solid #335a80;border-radius:10px;padding:16px}
-.score .meta{font-size:12px;color:#a5c7eb;margin-bottom:12px}
-.score .teams{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;font-weight:bold}
-.score .status{font-size:12px;margin-top:12px;color:#c2d4e9}
-.live{color:#ff7474!important;font-weight:bold}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.two{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
-.tag{display:inline-block;padding:5px 9px;border-radius:5px;background:#1c436e;color:#b9dfff;font-size:11px;font-weight:bold}
-.stream-preview{background:#081320;border:1px solid #365b81;border-radius:9px;min-height:145px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:18px}
+.panel{
+ background:linear-gradient(145deg,#142b45,#0c1b2e);
+ border:1px solid var(--line);
+ border-radius:12px;
+ padding:18px;
+ min-width:0;
+}
+.hero{
+ background:linear-gradient(120deg,#102b4e,#091726);
+ border:1px solid #2d5680;
+ border-radius:15px;
+ padding:32px 25px;
+ margin:15px 0 24px;
+}
+.eyebrow{
+ color:#81bdff;
+ font-weight:bold;
+ letter-spacing:2px;
+ font-size:12px;
+}
+.hero p{
+ max-width:650px;
+ color:#bfd1e8;
+ line-height:1.7;
+}
+.hero-links{
+ display:flex;
+ gap:10px;
+ flex-wrap:wrap;
+}
+.score-strip{
+ display:flex;
+ gap:12px;
+ overflow-x:auto;
+ padding-bottom:6px;
+}
+.score{
+ flex:0 0 260px;
+ background:#173351;
+ border:1px solid #335a80;
+ border-radius:10px;
+ padding:16px;
+}
+.score .meta{
+ font-size:12px;
+ color:#a5c7eb;
+ margin-bottom:12px;
+}
+.score .teams{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:8px;
+ font-size:15px;
+ font-weight:bold;
+}
+.score .status{
+ font-size:12px;
+ margin-top:12px;
+ color:#c2d4e9;
+}
+.live{
+ color:#ff7474!important;
+ font-weight:bold;
+}
+.grid{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:16px;
+}
+.two{
+ display:grid;
+ grid-template-columns:1.5fr 1fr;
+ gap:16px;
+}
+.tag{
+ display:inline-block;
+ padding:5px 9px;
+ border-radius:5px;
+ background:#1c436e;
+ color:#b9dfff;
+ font-size:11px;
+ font-weight:bold;
+}
+.stream-preview{
+ background:#081320;
+ border:1px solid #365b81;
+ border-radius:9px;
+ min-height:145px;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:12px;
+ text-align:center;
+ padding:18px;
+}
 .stream-icon{font-size:38px}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:12px 9px;border-bottom:1px solid #29415b;text-align:left;white-space:nowrap}
+table{
+ border-collapse:collapse;
+ width:100%;
+ font-size:13px;
+}
+th,td{
+ padding:12px 9px;
+ border-bottom:1px solid #29415b;
+ text-align:left;
+ white-space:nowrap;
+}
 th{color:#9cc6f1}
 .table-wrap{overflow-x:auto}
-select{background:#183756;border:1px solid #47719b;color:white;padding:9px;border-radius:6px}
-.club-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
-.club{display:flex;align-items:center;gap:12px;background:#193552;border-radius:9px;padding:14px}
-.club-logo{width:55px;height:55px;background:#284c72;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:25px;flex-shrink:0;overflow:hidden}
-.club-logo img{width:100%;height:100%;object-fit:contain}
-.club strong,.club small{display:block}
-.club small{color:#b7cce5;margin-top:5px}
+select{
+ background:#183756;
+ border:1px solid #47719b;
+ color:white;
+ padding:9px;
+ border-radius:6px;
+}
+
+/* CLUBÜBERSICHT – NEUES DESIGN */
+
+.club-grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));
+ gap:16px;
+}
+.club{
+ display:flex;
+ align-items:center;
+ gap:22px;
+ width:100%;
+ min-width:0;
+ padding:22px;
+ background:#1c3654;
+ border:none;
+ border-radius:20px;
+}
+.club-logo{
+ width:120px;
+ height:120px;
+ min-width:120px;
+ flex-shrink:0;
+ background:transparent;
+ border:none;
+ border-radius:0;
+ overflow:visible;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+}
+.club-logo img{
+ display:block;
+ width:100%;
+ height:100%;
+ object-fit:contain;
+ background:transparent;
+ border:none;
+ border-radius:0;
+}
+.club-info{
+ flex:1;
+ min-width:0;
+}
+.club strong{
+ display:block;
+ font-size:20px;
+ line-height:1.3;
+ overflow-wrap:anywhere;
+}
+.club small{
+ display:block;
+ font-size:15px;
+ margin-top:9px;
+ color:#b7cce5;
+}
 .good{color:#70e6a0!important}
 .bad{color:#ff8b8b!important}
-.empty{padding:18px;color:#b4c7dd;background:#112640;border:1px dashed #385b7d;border-radius:8px}
-.video-center{position:fixed;inset:0;z-index:100;background:#07101d;overflow-y:auto;padding:20px}
-.video-inner{max-width:1150px;margin:auto}
-.video-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-.player{background:black;border-radius:10px;overflow:hidden;margin-bottom:20px}
-.player iframe{display:block;width:100%;aspect-ratio:16/9;border:0}
-.video-item{padding:16px;background:#17314f;border:1px solid #365777;border-radius:9px;margin-bottom:10px}
-footer{border-top:1px solid var(--line);padding:30px 20px;text-align:center;color:#a2b8d1}
-.language-gate{position:fixed;inset:0;z-index:1000;background:#06101c;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
-.language-box{width:min(100%,530px);background:#10233a;border:1px solid #37659b;border-radius:16px;padding:25px;text-align:center}
+
+.empty{
+ padding:18px;
+ color:#b4c7dd;
+ background:#112640;
+ border:1px dashed #385b7d;
+ border-radius:8px;
+}
+.video-center{
+ position:fixed;
+ inset:0;
+ z-index:100;
+ background:#07101d;
+ overflow-y:auto;
+ padding:20px;
+}
+.video-inner{
+ max-width:1150px;
+ margin:auto;
+}
+.video-top{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:10px;
+ flex-wrap:wrap;
+ margin-bottom:20px;
+}
+.player{
+ background:black;
+ border-radius:10px;
+ overflow:hidden;
+ margin-bottom:20px;
+}
+.player iframe{
+ display:block;
+ width:100%;
+ aspect-ratio:16/9;
+ border:0;
+}
+.video-item{
+ padding:16px;
+ background:#17314f;
+ border:1px solid #365777;
+ border-radius:9px;
+ margin-bottom:10px;
+}
+footer{
+ border-top:1px solid var(--line);
+ padding:30px 20px;
+ text-align:center;
+ color:#a2b8d1;
+}
+.language-gate{
+ position:fixed;
+ inset:0;
+ z-index:1000;
+ background:#06101c;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ padding:20px;
+ overflow-y:auto;
+}
+.language-box{
+ width:min(100%,530px);
+ background:#10233a;
+ border:1px solid #37659b;
+ border-radius:16px;
+ padding:25px;
+ text-align:center;
+}
 .language-box h1{font-size:26px}
-.language-box select{width:100%;margin:12px 0 18px;padding:14px}
+.language-box select{
+ width:100%;
+ margin:12px 0 18px;
+ padding:14px;
+}
 .language-box .btn{width:100%}
 .language-box p{line-height:1.6}
-.small-note{font-size:12px;color:#9db3cf}
-.mode-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-.mode-row button{background:#183756;color:white;border:1px solid #47719b;border-radius:6px;padding:8px 12px}
-.mode-row button.active{background:#086fe0;border-color:#63aaff}
-.game-card{padding:12px;border-bottom:1px solid #29415b}
+.small-note{
+ font-size:12px;
+ color:#9db3cf;
+}
+.mode-row{
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap;
+ margin:12px 0;
+}
+.mode-row button{
+ background:#183756;
+ color:white;
+ border:1px solid #47719b;
+ border-radius:6px;
+ padding:8px 12px;
+}
+.mode-row button.active{
+ background:#086fe0;
+ border-color:#63aaff;
+}
+.game-card{
+ padding:12px;
+ border-bottom:1px solid #29415b;
+}
 .game-card:last-child{border-bottom:0}
-.game-card strong{display:block;margin:7px 0}
+.game-card strong{
+ display:block;
+ margin:7px 0;
+}
 .game-card small{color:#9db3cf}
+
 @media(max-width:800px){
  .grid,.two{grid-template-columns:1fr}
  .hero{padding:24px 18px}
  nav a{padding:14px 12px}
 }
+
+@media(max-width:480px){
+ .club{
+  padding:15px;
+  gap:14px;
+ }
+ .club-logo{
+  width:95px;
+  height:95px;
+  min-width:95px;
+ }
+ .club strong{font-size:17px}
+ .club small{font-size:13px}
+}
 </style>
 </head>
+
 <body>
 
 <div id="languageGate" class="language-gate" hidden>
  <div class="language-box">
   <h1>🌍 SWISS NHL LEAGUE</h1>
-  <p id="languageWelcome">
+  <p>
    Welcome! Please select your language.<br>
    Bitte wähle deine Sprache.
   </p>
@@ -187,9 +507,18 @@ footer{border-top:1px solid var(--line);padding:30px 20px;text-align:center;colo
   <div class="heading">
    <h2 data-i18n="ourLeagues">🏆 Unsere Ligen</h2>
   </div>
-  <div class="video-item"><strong>1vs1</strong><p class="muted" data-i18n="solo">Einzelwettbewerb</p></div>
-  <div class="video-item"><strong>3vs3</strong><p class="muted" data-i18n="three">Dreier-Teams</p></div>
-  <div class="video-item"><strong>6vs6</strong><p class="muted" data-i18n="six">Club-Wettbewerb</p></div>
+  <div class="video-item">
+   <strong>1vs1</strong>
+   <p class="muted" data-i18n="solo">Einzelwettbewerb</p>
+  </div>
+  <div class="video-item">
+   <strong>3vs3</strong>
+   <p class="muted" data-i18n="three">Dreier-Teams</p>
+  </div>
+  <div class="video-item">
+   <strong>6vs6</strong>
+   <p class="muted" data-i18n="six">Club-Wettbewerb</p>
+  </div>
  </section>
 </div>
 
@@ -236,7 +565,10 @@ footer{border-top:1px solid var(--line);padding:30px 20px;text-align:center;colo
   <div class="table-wrap">
    <table>
     <thead>
-     <tr><th>#</th><th>Spieler</th><th>Club</th><th>Sp.</th><th>T</th><th>A</th><th>PTS</th></tr>
+     <tr>
+      <th>#</th><th>Spieler</th><th>Club</th>
+      <th>Sp.</th><th>T</th><th>A</th><th>PTS</th>
+     </tr>
     </thead>
     <tbody id="playerStats"></tbody>
    </table>
@@ -245,7 +577,10 @@ footer{border-top:1px solid var(--line);padding:30px 20px;text-align:center;colo
   <div class="table-wrap">
    <table>
     <thead>
-     <tr><th>Torhüter</th><th>Club</th><th>Sp.</th><th>Siege</th><th>SV%</th><th>GAA</th><th>SO</th></tr>
+     <tr>
+      <th>Torhüter</th><th>Club</th><th>Sp.</th>
+      <th>Siege</th><th>SV%</th><th>GAA</th><th>SO</th>
+     </tr>
     </thead>
     <tbody id="goalieStats"></tbody>
    </table>
@@ -309,12 +644,14 @@ const KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
 const HEADERS={apikey:KEY};
 
 const $=id=>document.getElementById(id);
+
 const make=(tag,text,cls)=>{
  const n=document.createElement(tag);
  if(text!==undefined)n.textContent=String(text);
  if(cls)n.className=cls;
  return n;
 };
+
 const empty=text=>make("div",text,"empty");
 
 const LANGUAGES=[
@@ -331,19 +668,28 @@ const LANGUAGES=[
 
 const TRANSLATIONS={
  de:{
-  login:"Login",register:"Registrieren",home:"Home",live:"Live Center",
-  leagues:"Ligen",schedule:"Spielplan",standings:"Tabellen",
-  clubs:"Clubs",statistics:"Statistiken",about:"Über uns",
+  login:"Login",register:"Registrieren",home:"Home",
+  live:"Live Center",leagues:"Ligen",schedule:"Spielplan",
+  standings:"Tabellen",clubs:"Clubs",statistics:"Statistiken",
+  about:"Über uns",
   hero:"Die internationale E-Sport-Liga für NHL 27. Spiele in 1vs1, 3vs3 und 6vs6. Verfolge Ergebnisse, Clubs, Spielpläne und offizielle Twitch-Übertragungen.",
-  discover:"Ligen entdecken",streams:"📺 Live-Streams & Replays",
+  discover:"Ligen entdecken",
+  streams:"📺 Live-Streams & Replays",
   streamsDescription:"Alle offiziellen Liga-Streams und verfügbaren Match-Replays.",
-  watch:"Alle Spiele ansehen",ourLeagues:"🏆 Unsere Ligen",
-  solo:"Einzelwettbewerb",three:"Dreier-Teams",six:"Club-Wettbewerb",
-  scheduleTitle:"📅 Spielplan",standingsTitle:"📊 Tabellen",
-  statisticsTitle:"🥅 Spielerstatistiken",goalies:"Torhüterstatistiken",
-  clubsTitle:"🛡️ Clubübersicht",aboutTitle:"Über die Swiss NHL League",
+  watch:"Alle Spiele ansehen",
+  ourLeagues:"🏆 Unsere Ligen",
+  solo:"Einzelwettbewerb",
+  three:"Dreier-Teams",
+  six:"Club-Wettbewerb",
+  scheduleTitle:"📅 Spielplan",
+  standingsTitle:"📊 Tabellen",
+  statisticsTitle:"🥅 Spielerstatistiken",
+  goalies:"Torhüterstatistiken",
+  clubsTitle:"🛡️ Clubübersicht",
+  aboutTitle:"Über die Swiss NHL League",
   aboutText:"Die Swiss NHL League wurde 2022 gegründet und organisiert internationale Online-Eishockeywettbewerbe in NHL 27 mit 1vs1, 3vs3 und 6vs6.",
-  back:"Zurück zur Startseite",noGames:"Noch keine offiziellen Spiele verfügbar.",
+  back:"Zurück zur Startseite",
+  noGames:"Noch keine offiziellen Spiele verfügbar.",
   noStandings:"Noch keine offizielle Tabelle verfügbar.",
   noPlayers:"Noch keine offiziellen Spielerstatistiken verfügbar.",
   noGoalies:"Noch keine offiziellen Torhüterstatistiken verfügbar.",
@@ -351,30 +697,44 @@ const TRANSLATIONS={
   noNews:"Noch keine offiziellen News.",
   noStreams:"Noch keine offiziellen Streams oder Replays verfügbar.",
   error:"Daten konnten nicht geladen werden.",
-  active:"aktive Spieler",registered:"Angemeldet",
-  confirmed:"Offiziell bestätigt",loading:"Daten werden geladen …"
+  active:"aktive Spieler",
+  registered:"Angemeldet",
+  confirmed:"Offiziell bestätigt",
+  loading:"Daten werden geladen …"
  },
  en:{
-  login:"Login",register:"Register",home:"Home",live:"Live Center",
-  leagues:"Leagues",schedule:"Schedule",standings:"Standings",
-  clubs:"Clubs",statistics:"Statistics",about:"About us",
+  login:"Login",register:"Register",home:"Home",
+  live:"Live Center",leagues:"Leagues",schedule:"Schedule",
+  standings:"Standings",clubs:"Clubs",statistics:"Statistics",
+  about:"About us",
   hero:"The international NHL 27 esports league. Compete in 1vs1, 3vs3 and 6vs6. Follow results, clubs, schedules and official Twitch broadcasts.",
-  discover:"Explore leagues",streams:"📺 Live Streams & Replays",
+  discover:"Explore leagues",
+  streams:"📺 Live Streams & Replays",
   streamsDescription:"All official league streams and available match replays.",
-  watch:"Watch all matches",ourLeagues:"🏆 Our Leagues",
-  solo:"Individual competition",three:"Three-player teams",six:"Club competition",
-  scheduleTitle:"📅 Schedule",standingsTitle:"📊 Standings",
-  statisticsTitle:"🥅 Player Statistics",goalies:"Goalie Statistics",
-  clubsTitle:"🛡️ Clubs",aboutTitle:"About Swiss NHL League",
+  watch:"Watch all matches",
+  ourLeagues:"🏆 Our Leagues",
+  solo:"Individual competition",
+  three:"Three-player teams",
+  six:"Club competition",
+  scheduleTitle:"📅 Schedule",
+  standingsTitle:"📊 Standings",
+  statisticsTitle:"🥅 Player Statistics",
+  goalies:"Goalie Statistics",
+  clubsTitle:"🛡️ Clubs",
+  aboutTitle:"About Swiss NHL League",
   aboutText:"Founded in 2022, Swiss NHL League organizes international online NHL 27 hockey competitions in 1vs1, 3vs3 and 6vs6.",
-  back:"Back to homepage",noGames:"No official games available yet.",
+  back:"Back to homepage",
+  noGames:"No official games available yet.",
   noStandings:"No official standings available yet.",
   noPlayers:"No official player statistics available yet.",
   noGoalies:"No official goalie statistics available yet.",
-  noClubs:"No clubs published yet.",noNews:"No official news yet.",
+  noClubs:"No clubs published yet.",
+  noNews:"No official news yet.",
   noStreams:"No official streams or replays available yet.",
-  error:"Data could not be loaded.",active:"active players",
-  registered:"Registered",confirmed:"Officially confirmed",
+  error:"Data could not be loaded.",
+  active:"active players",
+  registered:"Registered",
+  confirmed:"Officially confirmed",
   loading:"Loading data …"
  }
 };
@@ -383,21 +743,35 @@ let currentLanguage="de";
 let statsMode="3v3";
 
 const DATA={
- matches:[],clubs:[],standings:[],players:[],
- goalies:[],streams:[],news:[],errors:{}
+ matches:[],
+ clubs:[],
+ standings:[],
+ players:[],
+ goalies:[],
+ streams:[],
+ news:[],
+ errors:{}
 };
 
 function t(key){
  return TRANSLATIONS[currentLanguage]?.[key]||
- TRANSLATIONS.en[key]||TRANSLATIONS.de[key]||key;
+ TRANSLATIONS.en[key]||
+ TRANSLATIONS.de[key]||
+ key;
 }
 
 function saveLanguage(lang){
- try{localStorage.setItem("snhl_language",lang)}catch(e){}
+ try{
+  localStorage.setItem("snhl_language",lang);
+ }catch(e){}
 }
 
 function storedLanguage(){
- try{return localStorage.getItem("snhl_language")}catch(e){return null}
+ try{
+  return localStorage.getItem("snhl_language");
+ }catch(e){
+  return null;
+ }
 }
 
 function applyLanguage(lang){
@@ -405,9 +779,11 @@ function applyLanguage(lang){
  document.documentElement.lang=currentLanguage;
  $("headerLanguage").value=currentLanguage;
  $("firstLanguage").value=currentLanguage;
+
  document.querySelectorAll("[data-i18n]").forEach(node=>{
   node.textContent=t(node.dataset.i18n);
  });
+
  renderAll();
 }
 
@@ -415,11 +791,14 @@ function setupLanguages(){
  for(const select of [$("headerLanguage"),$("firstLanguage")]){
   LANGUAGES.forEach(([code,name])=>{
    const option=document.createElement("option");
-   option.value=code;option.textContent=name;
+   option.value=code;
+   option.textContent=name;
    select.appendChild(option);
   });
  }
+
  const saved=storedLanguage();
+
  if(saved&&LANGUAGES.some(x=>x[0]===saved)){
   applyLanguage(saved);
  }else{
@@ -427,6 +806,7 @@ function setupLanguages(){
   $("languageGate").hidden=false;
   document.body.style.overflow="hidden";
  }
+
  $("confirmLanguage").onclick=()=>{
   const lang=$("firstLanguage").value;
   saveLanguage(lang);
@@ -434,6 +814,7 @@ function setupLanguages(){
   $("languageGate").hidden=true;
   document.body.style.overflow="";
  };
+
  $("headerLanguage").onchange=e=>{
   saveLanguage(e.target.value);
   applyLanguage(e.target.value);
@@ -442,9 +823,12 @@ function setupLanguages(){
 
 async function api(path){
  const response=await fetch(BASE+"/rest/v1/"+path,{
-  headers:HEADERS,cache:"no-store"
+  headers:HEADERS,
+  cache:"no-store"
  });
- if(!response.ok)throw Error("HTTP "+response.status);
+ if(!response.ok){
+  throw Error("HTTP "+response.status);
+ }
  return response.json();
 }
 
@@ -469,6 +853,7 @@ async function loadData(){
   loadPart("players","rpc/get_public_player_stats"),
   loadPart("goalies","rpc/get_public_goalie_stats")
  ]);
+
  renderAll();
 }
 
@@ -481,11 +866,19 @@ function clubName(id){
 }
 
 function gameMode(value){
- return {"1vs1":"1v1","3vs3":"3v3","6vs6":"6v6"}[value]||value;
+ return {
+  "1vs1":"1v1",
+  "3vs3":"3v3",
+  "6vs6":"6v6"
+ }[value]||value;
 }
 
 function displayMode(value){
- return {"1v1":"1vs1","3v3":"3vs3","6v6":"6vs6"}[value]||value||"–";
+ return {
+  "1v1":"1vs1",
+  "3v3":"3vs3",
+  "6v6":"6vs6"
+ }[value]||value||"–";
 }
 
 function num(value){
@@ -509,40 +902,63 @@ function dateText(value){
  if(!value)return "–";
  const d=new Date(value);
  if(!Number.isFinite(d.getTime()))return "–";
+
  return new Intl.DateTimeFormat(
   currentLanguage==="de"?"de-CH":currentLanguage,
-  {timeZone:"Europe/Zurich",day:"2-digit",month:"2-digit",
-   year:"numeric",hour:"2-digit",minute:"2-digit"}
+  {
+   timeZone:"Europe/Zurich",
+   day:"2-digit",
+   month:"2-digit",
+   year:"numeric",
+   hour:"2-digit",
+   minute:"2-digit"
+  }
  ).format(d);
 }
 
 function renderScores(){
  const box=$("scoreboard");
  box.replaceChildren();
+
  const games=DATA.matches.filter(g=>
   g.match_type!=="friendly"&&
   ["in_progress","completed"].includes(g.status)
  ).slice(0,12);
 
  if(!games.length){
-  box.appendChild(empty(DATA.errors.matches?t("error"):t("noGames")));
+  box.appendChild(empty(
+   DATA.errors.matches?t("error"):t("noGames")
+  ));
   return;
  }
+
  games.forEach(g=>{
   const card=make("article",undefined,"score");
   const meta=make("div",
-   displayMode(g.game_mode)+" · "+dateText(g.scheduled_at),"meta");
+   displayMode(g.game_mode)+" · "+dateText(g.scheduled_at),
+   "meta"
+  );
+
   const teams=make("div",undefined,"teams");
   teams.append(
    make("span",clubName(g.home_club_id)),
    make("span",num(g.home_score)+" : "+num(g.away_score)),
    make("span",clubName(g.away_club_id))
   );
+
   const status=make("div",
    g.status==="in_progress"?"● LIVE":
-   "FINAL"+(g.decision_type&&g.decision_type!=="REG"?
-   " · "+g.decision_type:""),"status");
-  if(g.status==="in_progress")status.classList.add("live");
+   "FINAL"+(
+    g.decision_type&&g.decision_type!=="REG"
+    ?" · "+g.decision_type:""
+   ),
+   "status"
+  );
+
+  if(g.status==="in_progress"){
+   status.classList.add("live");
+  }
+
   card.append(meta,teams,status);
   box.appendChild(card);
  });
@@ -551,16 +967,21 @@ function renderScores(){
 function renderSchedule(){
  const box=$("schedule");
  box.replaceChildren();
+
  const games=DATA.matches.filter(g=>
   g.match_type!=="friendly"&&
   ["scheduled","confirmed","in_progress"].includes(g.status)
- ).sort((a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at))
-  .slice(0,15);
+ ).sort(
+  (a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at)
+ ).slice(0,15);
 
  if(!games.length){
-  box.appendChild(empty(DATA.errors.matches?t("error"):t("noGames")));
+  box.appendChild(empty(
+   DATA.errors.matches?t("error"):t("noGames")
+  ));
   return;
  }
+
  games.forEach(g=>{
   const card=make("article",undefined,"game-card");
   card.append(
@@ -575,14 +996,22 @@ function renderSchedule(){
 function renderStandings(){
  const box=$("standings");
  const mode=$("leagueSelect").value;
- const rows=DATA.standings.filter(r=>gameMode(r.game_mode)===mode)
-  .sort((a,b)=>num(a.platz)-num(b.platz));
+
+ const rows=DATA.standings.filter(
+  r=>gameMode(r.game_mode)===mode
+ ).sort((a,b)=>num(a.platz)-num(b.platz));
 
  if(!rows.length){
-  messageRow(box,DATA.errors.standings?t("error"):t("noStandings"),13);
+  messageRow(
+   box,
+   DATA.errors.standings?t("error"):t("noStandings"),
+   13
+  );
   return;
  }
+
  box.replaceChildren();
+
  rows.forEach(r=>{
   const tr=make("tr");
   [
@@ -590,93 +1019,156 @@ function renderStandings(){
    r.w,r.otw,r.sow,r.l,r.otl,r.sol,
    r.tore,r.gegentore,r.tordifferenz,r.punkte
   ].forEach(v=>cell(tr,v));
+
   box.appendChild(tr);
  });
 }
 
 function renderPlayers(){
  const host=$("playerStats");
- const rows=DATA.players.filter(p=>gameMode(p.game_mode)===statsMode)
-  .sort((a,b)=>num(b.points)-num(a.points));
+
+ const rows=DATA.players.filter(
+  p=>gameMode(p.game_mode)===statsMode
+ ).sort((a,b)=>num(b.points)-num(a.points));
+
  if(!rows.length){
-  messageRow(host,DATA.errors.players?t("error"):t("noPlayers"),7);
+  messageRow(
+   host,
+   DATA.errors.players?t("error"):t("noPlayers"),
+   7
+  );
   return;
  }
+
  host.replaceChildren();
+
  rows.slice(0,50).forEach((p,i)=>{
   const tr=make("tr");
   [
-   i+1,p.gamer_name||p.player_name||"–",
-   p.club_name||"–",p.games_played??0,
-   p.goals??0,p.assists??0,p.points??0
+   i+1,
+   p.gamer_name||p.player_name||"–",
+   p.club_name||"–",
+   p.games_played??0,
+   p.goals??0,
+   p.assists??0,
+   p.points??0
   ].forEach(v=>cell(tr,v));
+
   host.appendChild(tr);
  });
 }
 
 function renderGoalies(){
  const host=$("goalieStats");
- const rows=DATA.goalies.filter(g=>gameMode(g.game_mode)===statsMode)
-  .sort((a,b)=>num(b.save_percentage)-num(a.save_percentage));
+
+ const rows=DATA.goalies.filter(
+  g=>gameMode(g.game_mode)===statsMode
+ ).sort(
+  (a,b)=>num(b.save_percentage)-num(a.save_percentage)
+ );
+
  if(!rows.length){
-  messageRow(host,DATA.errors.goalies?t("error"):t("noGoalies"),7);
+  messageRow(
+   host,
+   DATA.errors.goalies?t("error"):t("noGoalies"),
+   7
+  );
   return;
  }
+
  host.replaceChildren();
+
  rows.slice(0,50).forEach(g=>{
   const tr=make("tr");
   [
    g.gamer_name||g.player_name||"–",
-   g.club_name||"–",g.games_played??0,
-   g.wins??0,g.save_percentage??"–",
-   g.goals_against_average??"–",g.shutouts??0
+   g.club_name||"–",
+   g.games_played??0,
+   g.wins??0,
+   g.save_percentage??"–",
+   g.goals_against_average??"–",
+   g.shutouts??0
   ].forEach(v=>cell(tr,v));
+
   host.appendChild(tr);
  });
 }
 
 function countryName(code){
  if(!code)return "–";
+
  try{
   return new Intl.DisplayNames(
-   [currentLanguage],{type:"region"}
+   [currentLanguage],
+   {type:"region"}
   ).of(code.toUpperCase());
- }catch(e){return code}
+ }catch(e){
+  return code;
+ }
 }
 
 function flag(code){
- if(!/^[a-z]{2}$/i.test(code||""))return "";
+ if(!/^[a-z]{2}$/i.test(code||"")){
+  return "";
+ }
+
  return [...code.toUpperCase()].map(c=>
-  String.fromCodePoint(127397+c.charCodeAt(0))
+  String.fromCodePoint(
+   127397+c.charCodeAt(0)
+  )
  ).join("");
 }
+
+/* CLUBS – GROSSE LOGOS OHNE HINTERGRUND */
 
 function renderClubs(){
  const box=$("clubList");
  box.replaceChildren();
+
  if(!DATA.clubs.length){
-  box.appendChild(empty(DATA.errors.clubs?t("error"):t("noClubs")));
+  box.appendChild(empty(
+   DATA.errors.clubs?t("error"):t("noClubs")
+  ));
   return;
  }
+
  DATA.clubs.forEach(c=>{
   const card=make("article",undefined,"club");
   const logo=make("div",undefined,"club-logo");
+
   if(c.logo_url&&/^https:\/\//i.test(c.logo_url)){
    const img=document.createElement("img");
    img.src=c.logo_url;
-   img.alt="Clublogo";
+   img.alt="Clublogo "+(c.name||"");
    img.loading="lazy";
-   img.onerror=()=>logo.replaceChildren(make("span","🛡️"));
+   img.onerror=()=>{
+    logo.replaceChildren(make("span","🛡️"));
+   };
    logo.appendChild(img);
-  }else logo.textContent="🛡️";
-  const info=make("div");
+  }else{
+   logo.textContent="🛡️";
+  }
+
+  const info=make("div",undefined,"club-info");
+
   info.append(
    make("strong",c.name||"–"),
-   make("small",flag(c.country_code)+" "+countryName(c.country_code))
+   make(
+    "small",
+    flag(c.country_code)+" "+countryName(c.country_code)
+   )
   );
+
   const count=num(c.player_count);
-  info.appendChild(make("small",
-   count+" "+t("active"),count>=7?"good":"bad"));
+
+  info.appendChild(
+   make(
+    "small",
+    count+" "+t("active"),
+    count>=7?"good":"bad"
+   )
+  );
+
   card.append(logo,info);
   box.appendChild(card);
  });
@@ -685,14 +1177,18 @@ function renderClubs(){
 function renderNews(){
  const box=$("newsList");
  box.replaceChildren();
+
  if(!DATA.news.length){
   box.appendChild(make("p",t("noNews"),"muted"));
   return;
  }
+
  DATA.news.forEach(n=>{
   const card=make("article",undefined,"video-item");
-  card.append(make("h3",n.title||"News"),
-   make("p",n.text||"","muted"));
+  card.append(
+   make("h3",n.title||"News"),
+   make("p",n.text||"","muted")
+  );
   box.appendChild(card);
  });
 }
@@ -700,21 +1196,31 @@ function renderNews(){
 function showStream(s){
  const host=$("videoPlayer");
  host.replaceChildren();
- const channel=String(s.channel||"").replace(/[^a-zA-Z0-9_]/g,"");
- const vod=String(s.vodId||"").replace(/[^0-9]/g,"");
+
+ const channel=String(s.channel||"")
+  .replace(/[^a-zA-Z0-9_]/g,"");
+
+ const vod=String(s.vodId||"")
+  .replace(/[^0-9]/g,"");
+
  if((!channel&&!vod)||!location.hostname){
   host.appendChild(empty(t("noStreams")));
   return;
  }
+
  const frame=document.createElement("iframe");
  frame.title=s.title||"Twitch";
  frame.allow="autoplay; fullscreen";
  frame.allowFullscreen=true;
+
  frame.src="https://player.twitch.tv/?"+
-  (vod?"video=v"+encodeURIComponent(vod):
-   "channel="+encodeURIComponent(channel))+
+  (vod
+   ?"video=v"+encodeURIComponent(vod)
+   :"channel="+encodeURIComponent(channel)
+  )+
   "&parent="+encodeURIComponent(location.hostname)+
   "&autoplay=false";
+
  const player=make("div",undefined,"player");
  player.appendChild(frame);
  host.appendChild(player);
@@ -723,16 +1229,24 @@ function showStream(s){
 function renderStreams(){
  const box=$("videoList");
  box.replaceChildren();
+
  if(!DATA.streams.length){
   box.appendChild(empty(t("noStreams")));
   return;
  }
+
  DATA.streams.forEach(s=>{
   const card=make("article",undefined,"video-item");
   const btn=make("button",t("watch"),"btn");
+
   btn.onclick=()=>showStream(s);
-  card.append(make("h3",s.title||"Swiss NHL League"),
-   make("p",s.vodId?"REPLAY":s.status||"LIVE","muted"),btn);
+
+  card.append(
+   make("h3",s.title||"Swiss NHL League"),
+   make("p",s.vodId?"REPLAY":s.status||"LIVE","muted"),
+   btn
+  );
+
   box.appendChild(card);
  });
 }
@@ -753,8 +1267,11 @@ $("leagueSelect").onchange=renderStandings;
 document.querySelectorAll("[data-stats-mode]").forEach(btn=>{
  btn.onclick=()=>{
   statsMode=btn.dataset.statsMode;
-  document.querySelectorAll("[data-stats-mode]").forEach(b=>
-   b.classList.toggle("active",b===btn));
+
+  document.querySelectorAll("[data-stats-mode]").forEach(b=>{
+   b.classList.toggle("active",b===btn);
+  });
+
   renderPlayers();
   renderGoalies();
  };
@@ -777,6 +1294,8 @@ window.addEventListener("snhl:data-updated",renderAll);
 setupLanguages();
 loadData();
 setInterval(loadData,60000);
+
 </script>
 </body>
 </html>
+
