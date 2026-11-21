@@ -16,48 +16,154 @@
   --muted:#aebed4;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:white;font-family:Arial,sans-serif}
-header{text-align:center;background:#192640;padding:30px 12px;border-bottom:4px solid var(--blue)}
+body{
+  margin:0;
+  background:var(--bg);
+  color:white;
+  font-family:Arial,sans-serif;
+}
+header{
+  text-align:center;
+  background:#192640;
+  padding:30px 12px;
+  border-bottom:4px solid var(--blue);
+}
 h1{font-size:clamp(24px,5vw,36px);margin:0}
 h1 span{color:var(--blue)}
-header p{letter-spacing:3px;color:var(--muted);font-size:12px}
+header p{
+  letter-spacing:3px;
+  color:var(--muted);
+  font-size:12px;
+}
 main{max-width:1000px;margin:30px auto;padding:15px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px}
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:22px;
+  margin-bottom:20px;
+}
 h2{margin-top:0}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.card{background:var(--card);border-radius:12px;padding:18px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.card{
+  background:var(--card);
+  border-radius:12px;
+  padding:18px;
+}
 .number{font-size:30px;font-weight:bold}
-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0}
-button{background:var(--blue);color:white;border:0;border-radius:9px;padding:13px;font-weight:bold;cursor:pointer}
+nav{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:20px 0;
+}
+button{
+  background:var(--blue);
+  color:white;
+  border:0;
+  border-radius:9px;
+  padding:13px;
+  font-weight:bold;
+  cursor:pointer;
+}
 button:disabled{opacity:.5;cursor:not-allowed}
 nav button{background:var(--card);text-align:left}
 nav button.active{background:var(--blue)}
 .hidden{display:none!important}
 .muted{color:var(--muted)}
 .logo{width:110px;height:110px;object-fit:contain}
-.item{border-top:1px solid var(--line);padding:15px 0;overflow-wrap:anywhere}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.item{
+  border-top:1px solid var(--line);
+  padding:15px 0;
+  overflow-wrap:anywhere;
+}
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
 .danger{background:#a53648}
-.notice{padding:12px;background:#263b58;border-radius:8px;margin:12px 0}
-input,select,textarea{max-width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid var(--line);background:var(--card);color:white}
+.notice{
+  padding:12px;
+  background:#263b58;
+  border-radius:8px;
+  margin:12px 0;
+}
+input,select,textarea{
+  max-width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:8px;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:white;
+}
 input[type=email],select,textarea{width:100%}
 footer{text-align:center;color:#95a7c1;padding:25px}
-.matchup{display:grid;grid-template-columns:minmax(0,1fr) 35px minmax(0,1fr);align-items:center;gap:8px;margin:20px 0;text-align:center}
-.match-club{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0;overflow-wrap:anywhere}
-.match-logo{width:100%;max-width:100px;height:100px;object-fit:contain}
+.matchup{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 35px minmax(0,1fr);
+  align-items:center;
+  gap:8px;
+  margin:20px 0;
+  text-align:center;
+}
+.match-club{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.match-logo{
+  width:100%;
+  max-width:100px;
+  height:100px;
+  object-fit:contain;
+}
 .match-vs{color:var(--blue);font-size:20px}
 a{color:#85b4ff}
+.game-proposal{
+  background:#192b47;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:15px;
+  margin-top:15px;
+}
+.game-proposal label{
+  display:block;
+  margin-top:10px;
+}
+.game-proposal select,
+.game-proposal input[type=time]{
+  display:block;
+  width:100%;
+}
+.proposal-status{
+  padding:10px;
+  border-radius:8px;
+  background:#253957;
+  margin:10px 0;
+}
 </style>
 </head>
 <body>
 
 <header>
 <h1>SWISS <span>NHL</span> LEAGUE</h1>
-<p>CLUBVERWALTUNG · PLAYSTATION 5</p>
+<p>CLUBVERWALTUNG · PLAYSTATION 5 / XBOX</p>
 </header>
 
 <main>
-<div id="loading" class="panel">Prüfe Anmeldung...</div>
+<div id="loading" class="panel">
+Prüfe Anmeldung...
+</div>
 
 <div id="denied" class="panel hidden">
 <h2>Zugriff nicht erlaubt</h2>
@@ -66,6 +172,7 @@ a{color:#85b4ff}
 </div>
 
 <div id="dashboard" class="hidden">
+
 <section class="panel">
 <h2>Clubverwaltung</h2>
 <p id="account" class="muted"></p>
@@ -101,7 +208,9 @@ Maximaler Kader
 <img id="clubLogo" class="logo hidden" alt="Clublogo">
 <h3 id="clubName"></h3>
 <p id="rosterStatus"></p>
-<p class="muted">Mindestens 7 und maximal 15 aktive Spieler.</p>
+<p class="muted">
+Mindestens 7 und maximal 15 aktive Spieler.
+</p>
 
 <div id="archiveControls" class="notice hidden">
 <h3>Club archivieren</h3>
@@ -114,10 +223,10 @@ Der Club wird aus der öffentlichen aktiven Clubliste entfernt.
 Begründung (mindestens 10 Zeichen)
 </label>
 <textarea
-  id="archiveReason"
-  rows="3"
-  maxlength="1000"
-  placeholder="Warum soll dieser Club archiviert werden?"
+ id="archiveReason"
+ rows="3"
+ maxlength="1000"
+ placeholder="Warum soll dieser Club archiviert werden?"
 ></textarea>
 <button id="archiveClubButton" type="button" class="danger">
 Club archivieren
@@ -203,10 +312,10 @@ Nur der Clubinhaber darf GMs ernennen oder entfernen.
 E-Mail-Adresse des registrierten Benutzers
 </label>
 <input
-  id="gmEmail"
-  type="email"
-  placeholder="beispiel@email.ch"
-  autocomplete="off"
+ id="gmEmail"
+ type="email"
+ placeholder="beispiel@email.ch"
+ autocomplete="off"
 >
 <button id="assignGmButton" type="button">
 GM ernennen
@@ -244,6 +353,7 @@ let gamesBusy=false;
 let logoBusy=false;
 let transferBusy=false;
 let archiveBusy=false;
+let proposalBusy=false;
 
 function message(text){
   $("status").textContent=text;
@@ -264,7 +374,7 @@ function showTab(tab){
   document.querySelectorAll("[data-section]").forEach(s=>{
     s.classList.toggle(
       "hidden",
-      s.dataset.section===tab?false:true
+      s.dataset.section!==tab
     );
   });
 
@@ -278,7 +388,6 @@ document.querySelectorAll("[data-tab]").forEach(b=>{
 });
 
 async function init(){
-
   $("loading").textContent=
     "Schritt A: Supabase-Anmeldung wird geprüft...";
 
@@ -310,7 +419,6 @@ async function init(){
     currentClub=owned[0];
     isClubOwner=true;
   }else{
-
     const {data:managed,error:managerError}=
       await client.rpc("snhl_my_managed_club");
 
@@ -373,7 +481,7 @@ async function init(){
   $("loading").classList.add("hidden");
   $("dashboard").classList.remove("hidden");
 
-  await Promise.all([
+  await Promise.allSettled([
     loadRoster(),
     loadRequests(),
     loadGames()
@@ -627,187 +735,589 @@ const formatGameTime=value=>
     minute:"2-digit"
   }).format(new Date(value));
 
+/* GAMEDAY-TERMINVEREINBARUNG */
+
+const swissParts=value=>{
+  const parts=new Intl.DateTimeFormat("en-GB",{
+    timeZone:"Europe/Zurich",
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit",
+    hourCycle:"h23"
+  }).formatToParts(new Date(value));
+
+  const result={};
+  for(const p of parts){
+    if(p.type!=="literal")result[p.type]=p.value;
+  }
+  return result;
+};
+
+function swissDateKey(value){
+  const p=swissParts(value);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+function addSwissDays(dateKey,days){
+  const d=new Date(dateKey+"T12:00:00Z");
+  d.setUTCDate(d.getUTCDate()+days);
+  return d.toISOString().slice(0,10);
+}
+
+function swissOffsetFor(dateKey){
+  const noon=new Date(dateKey+"T12:00:00Z");
+  const p=swissParts(noon);
+  const localAsUTC=Date.UTC(
+    Number(p.year),
+    Number(p.month)-1,
+    Number(p.day),
+    Number(p.hour),
+    Number(p.minute)
+  );
+  const minutes=(localAsUTC-noon.getTime())/60000;
+  const sign=minutes>=0?"+":"-";
+  const abs=Math.abs(minutes);
+  return sign+
+    String(Math.floor(abs/60)).padStart(2,"0")+":"+
+    String(abs%60).padStart(2,"0");
+}
+
+function swissLocalToISO(dateKey,time){
+  const offset=swissOffsetFor(dateKey);
+  const value=new Date(
+    dateKey+"T"+time+":00"+offset
+  );
+
+  if(Number.isNaN(value.getTime())){
+    throw new Error("Ungültiger Termin");
+  }
+
+  const p=swissParts(value);
+  const actual=`${p.hour}:${p.minute}`;
+
+  if(swissDateKey(value)!==dateKey||actual!==time){
+    throw new Error("Diese Uhrzeit existiert lokal nicht.");
+  }
+
+  return value.toISOString();
+}
+
+function validStartTime(dateKey,time){
+  const date=new Date(dateKey+"T12:00:00Z");
+  const day=date.getUTCDay();
+
+  if(day===5||day===6){
+    if(time>="20:00")return true;
+  }else if(time>="20:00"&&time<="23:40"){
+    return true;
+  }
+
+  if((day===6||day===0)&&time<="03:30"){
+    return true;
+  }
+
+  return false;
+}
+
+function dateOptionLabel(option){
+  return {
+    official:"Offizieller Gameday",
+    day_before:"Vortag",
+    day_after:"Folgetag"
+  }[option]||option;
+}
+
+function proposalStatusLabel(status){
+  return {
+    pending:"Offen",
+    approved:"Genehmigt",
+    rejected:"Abgelehnt",
+    cancelled:"Zurückgezogen"
+  }[status]||status;
+}
+
+async function getGameProposals(){
+  const {data,error}=await client.rpc(
+    "snhl_my_game_date_proposals"
+  );
+  if(error)throw error;
+  return data||[];
+}
+
+async function createGameProposal(
+  game,option,time,button
+){
+  if(proposalBusy||gamesBusy)return;
+
+  const baseDate=swissDateKey(game.scheduled_at);
+
+  const dateKey=addSwissDays(
+    baseDate,
+    option==="day_before"?-1:
+    option==="day_after"?1:0
+  );
+
+  if(!validStartTime(dateKey,time)){
+    message(
+      "Diese Anspielzeit ist nicht erlaubt. "+
+      "So–Do 20:00–23:40, Fr/Sa ab 20:00 "+
+      "bis 03:30 Uhr am Folgetag."
+    );
+    return;
+  }
+
+  let proposedISO;
+  try{
+    proposedISO=swissLocalToISO(dateKey,time);
+  }catch(e){
+    message(e.message);
+    return;
+  }
+
+  if(
+    new Date(proposedISO).getTime()-
+    Date.now()<7200000
+  ){
+    message(
+      "Der vorgeschlagene Termin muss "+
+      "mindestens 2 Stunden in der Zukunft liegen."
+    );
+    return;
+  }
+
+  if(!confirm(
+    "Terminvorschlag verbindlich senden?\n\n"+
+    dateOptionLabel(option)+"\n"+
+    dateKey+" "+time+" Uhr\n\n"+
+    "Der gegnerische Club muss zustimmen."
+  ))return;
+
+  proposalBusy=true;
+  button.disabled=true;
+  message("Terminvorschlag wird gesendet...");
+
+  try{
+    const {error}=await client.rpc(
+      "snhl_create_game_date_proposal",
+      {
+        p_game_id:game.id,
+        p_club_id:currentClub.id,
+        p_date_option:option,
+        p_proposed_start_at:proposedISO
+      }
+    );
+
+    if(error)throw error;
+
+    message(
+      "Terminvorschlag gespeichert. "+
+      "Die Zustimmung des gegnerischen Clubs steht aus."
+    );
+  }catch(e){
+    message("Terminvorschlag fehlgeschlagen: "+e.message);
+  }finally{
+    proposalBusy=false;
+    await loadGames();
+  }
+}
+
+async function respondGameProposal(
+  proposal,approve,button
+){
+  if(proposalBusy||gamesBusy)return;
+
+  if(!confirm(
+    approve
+      ?"Diesem neuen Spieltermin verbindlich zustimmen?"
+      :"Diesen Terminvorschlag ablehnen?"
+  ))return;
+
+  proposalBusy=true;
+  button.disabled=true;
+  message("Entscheidung wird gespeichert...");
+
+  try{
+    const {data,error}=await client.rpc(
+      "snhl_respond_game_date_proposal",
+      {
+        p_proposal_id:proposal.id,
+        p_approve:approve
+      }
+    );
+
+    if(error)throw error;
+
+    message(
+      data==="approved"
+        ?"Beide Clubs haben zugestimmt. "+
+         "Der Spielplan wurde aktualisiert."
+        :data==="rejected"
+        ?"Terminvorschlag abgelehnt."
+        :"Zustimmung gespeichert. "+
+         "Die zweite Zustimmung steht noch aus."
+    );
+  }catch(e){
+    message("Entscheidung fehlgeschlagen: "+e.message);
+  }finally{
+    proposalBusy=false;
+    await loadGames();
+  }
+}
+
+function renderGameProposal(
+  game,proposal,isHome,inTime,allowed
+){
+  const box=document.createElement("div");
+  box.className="game-proposal";
+
+  const title=document.createElement("h3");
+  title.textContent="Gameday-Terminvereinbarung";
+  box.appendChild(title);
+
+  if(proposal){
+    const details=document.createElement("div");
+    details.className="proposal-status";
+
+    const proposedByMe=
+      proposal.proposed_by_club_id===currentClub.id;
+
+    const mine=isHome
+      ?proposal.home_approved
+      :proposal.away_approved;
+
+    const other=isHome
+      ?proposal.away_approved
+      :proposal.home_approved;
+
+    details.textContent=
+      "Option: "+dateOptionLabel(proposal.date_option)+
+      "\nNeuer Termin: "+
+      formatGameTime(proposal.proposed_start_at)+
+      " Uhr\nStatus: "+
+      proposalStatusLabel(proposal.status)+
+      "\nDein Club: "+
+      (mine?"Zugestimmt":"Offen")+
+      "\nGegner: "+
+      (other?"Zugestimmt":"Offen");
+
+    details.style.whiteSpace="pre-line";
+    box.appendChild(details);
+
+    if(proposal.status==="pending"){
+      if(!mine&&allowed&&inTime){
+        const actions=document.createElement("div");
+        actions.className="actions";
+
+        for(const approve of [true,false]){
+          const btn=document.createElement("button");
+          btn.type="button";
+          btn.textContent=approve
+            ?"Termin zustimmen"
+            :"Termin ablehnen";
+          if(!approve)btn.className="danger";
+
+          btn.onclick=()=>respondGameProposal(
+            proposal,approve,btn
+          );
+
+          actions.appendChild(btn);
+        }
+        box.appendChild(actions);
+      }else{
+        const info=document.createElement("p");
+        info.className="muted";
+        info.textContent=mine
+          ?"Deine Zustimmung ist gespeichert. "+
+           "Warte auf den gegnerischen Club."
+          :proposedByMe
+          ?"Terminvorschlag wurde erstellt."
+          :"Eine Entscheidung ist derzeit nicht möglich.";
+        box.appendChild(info);
+      }
+    }
+
+    return box;
+  }
+
+  if(!allowed||!inTime){
+    const info=document.createElement("p");
+    info.className="muted";
+    info.textContent=
+      "Für dieses Spiel kann derzeit kein "+
+      "neuer Terminvorschlag erstellt werden.";
+    box.appendChild(info);
+    return box;
+  }
+
+  const optionLabel=document.createElement("label");
+  optionLabel.textContent="Gewünschter Spieltag";
+
+  const optionSelect=document.createElement("select");
+
+  for(const [value,label] of [
+    ["official","Offizieller Gameday"],
+    ["day_before","Vortag"],
+    ["day_after","Folgetag"]
+  ]){
+    const opt=document.createElement("option");
+    opt.value=value;
+    opt.textContent=label;
+    optionSelect.appendChild(opt);
+  }
+
+  const timeLabel=document.createElement("label");
+  timeLabel.textContent="Gewünschte Anspielzeit (Schweiz)";
+
+  const timeInput=document.createElement("input");
+  timeInput.type="time";
+  timeInput.value="20:00";
+  timeInput.step=600;
+
+  const dateInfo=document.createElement("p");
+  dateInfo.className="muted";
+
+  function updateDateInfo(){
+    const base=swissDateKey(game.scheduled_at);
+    const shift=optionSelect.value==="day_before"?-1:
+      optionSelect.value==="day_after"?1:0;
+    dateInfo.textContent=
+      "Vorgeschlagenes Datum: "+
+      addSwissDays(base,shift);
+  }
+
+  optionSelect.onchange=updateDateInfo;
+  updateDateInfo();
+
+  const send=document.createElement("button");
+  send.type="button";
+  send.textContent="Terminvorschlag senden";
+
+  send.onclick=()=>createGameProposal(
+    game,
+    optionSelect.value,
+    timeInput.value,
+    send
+  );
+
+  box.append(
+    optionLabel,
+    optionSelect,
+    timeLabel,
+    timeInput,
+    dateInfo,
+    send
+  );
+
+  return box;
+}
+
+/* MEINE SPIELE */
+
 async function loadGames(){
-  if(!currentClub||gamesBusy)return;
+  if(!currentClub||gamesBusy||proposalBusy)return;
 
   const list=$("gamesList");
   list.textContent="Lade Spiele...";
 
-  const {data,error}=await client.from("games")
-    .select(
-      "id,home_club_id,away_club_id,"+
-      "scheduled_at,status,game_mode,"+
-      "home_confirmed_at,away_confirmed_at"
-    )
-    .or(
-      `home_club_id.eq.${currentClub.id},`+
-      `away_club_id.eq.${currentClub.id}`
-    )
-    .order("scheduled_at",{ascending:true})
-    .limit(100);
+  gamesBusy=true;
 
-  if(error){
-    list.textContent=
-      "Spiele konnten nicht geladen werden: "+
-      error.message;
-    return;
-  }
+  try{
+    const {data,error}=await client.from("games")
+      .select(
+        "id,home_club_id,away_club_id,"+
+        "scheduled_at,status,game_mode,"+
+        "home_confirmed_at,away_confirmed_at"
+      )
+      .or(
+        `home_club_id.eq.${currentClub.id},`+
+        `away_club_id.eq.${currentClub.id}`
+      )
+      .order("scheduled_at",{ascending:true})
+      .limit(100);
 
-  list.replaceChildren();
+    if(error)throw error;
 
-  if(!data?.length){
-    list.textContent=
-      "Noch keine Spiele für deinen Club vorhanden.";
-    return;
-  }
+    const games=data||[];
 
-  const ids=[...new Set(data.flatMap(g=>[
-    g.home_club_id,g.away_club_id
-  ]))];
+    const ids=[...new Set(games.flatMap(g=>[
+      g.home_club_id,g.away_club_id
+    ]))];
 
-  const {data:clubs}=await client.from("clubs")
-    .select("id,name,logo_url")
-    .in("id",ids);
-
-  const map=new Map(
-    (clubs||[]).map(c=>[c.id,c])
-  );
-
-  for(const game of data){
-    const home=map.get(game.home_club_id);
-    const away=map.get(game.away_club_id);
-
-    const isHome=
-      game.home_club_id===currentClub.id;
-
-    const mine=isHome
-      ?game.home_confirmed_at
-      :game.away_confirmed_at;
-
-    const other=isHome
-      ?game.away_confirmed_at
-      :game.home_confirmed_at;
-
-    const valid=
-      game.scheduled_at&&
-      !Number.isNaN(
-        new Date(game.scheduled_at).getTime()
-      );
-
-    const inTime=
-      valid&&
-      new Date(game.scheduled_at).getTime()
-        -Date.now()>=7200000;
-
-    const allowed=
-      ["scheduled","confirmed"].includes(game.status);
-
-    const item=document.createElement("div");
-    item.className="item";
-
-    const matchup=document.createElement("div");
-    matchup.className="matchup";
-
-    function clubDisplay(club,fallback){
-      const box=document.createElement("div");
-      box.className="match-club";
-
-      if(club?.logo_url){
-        const img=document.createElement("img");
-        img.src=club.logo_url;
-        img.alt="Clublogo";
-        img.className="match-logo";
-        img.loading="lazy";
-        box.appendChild(img);
-      }
-
-      const name=document.createElement("strong");
-      name.textContent=club?.name||fallback;
-      box.appendChild(name);
-
-      return box;
+    let clubs=[];
+    if(ids.length){
+      const response=await client.from("clubs")
+        .select("id,name,logo_url")
+        .in("id",ids);
+      if(response.error)throw response.error;
+      clubs=response.data||[];
     }
 
-    const vs=document.createElement("strong");
-    vs.className="match-vs";
-    vs.textContent="VS";
-
-    matchup.append(
-      clubDisplay(home,"Heimclub"),
-      vs,
-      clubDisplay(away,"Auswärtsclub")
+    const clubMap=new Map(
+      clubs.map(c=>[c.id,c])
     );
 
-    const meta=document.createElement("p");
+    const proposals=await getGameProposals();
+    const proposalMap=new Map();
 
-    meta.textContent=
-      "Spielbeginn: "+
-      (valid
-        ?formatGameTime(game.scheduled_at)
-        :"Nicht festgelegt")+
-      " (Schweiz) · Modus: "+
-      (game.game_mode||"–")+
-      " · Status: "+(game.status||"–");
-
-    const state=document.createElement("p");
-
-    state.textContent=
-      "Dein Club: "+
-      (mine?"Bestätigt":"Offen")+
-      " · Gegner: "+
-      (other?"Bestätigt":"Offen");
-
-    item.append(matchup,meta,state);
-
-    if(!mine&&allowed){
-      const button=document.createElement("button");
-      button.type="button";
-
-      button.textContent=inTime
-        ?"Spieltermin bestätigen"
-        :"Bestätigungsfrist abgelaufen";
-
-      button.disabled=!inTime;
-
-      button.onclick=async()=>{
-        if(
-          gamesBusy||
-          !confirm(
-            "Diesen Spieltermin verbindlich bestätigen?"
-          )
-        )return;
-
-        gamesBusy=true;
-        button.disabled=true;
-
-        message("Bestätigung wird geprüft...");
-
-        try{
-          const {error:e}=await client.rpc(
-            "club_confirm_game",
-            {p_game_id:game.id}
-          );
-
-          if(e)throw e;
-
-          message("Spielbestätigung gespeichert.");
-        }catch(e){
-          message(
-            "Bestätigung fehlgeschlagen: "+
-            e.message
-          );
-        }finally{
-          gamesBusy=false;
-          await loadGames();
-        }
-      };
-
-      item.appendChild(button);
+    for(const proposal of proposals){
+      if(proposal.status==="pending"){
+        proposalMap.set(proposal.game_id,proposal);
+      }
     }
 
-    list.appendChild(item);
+    list.replaceChildren();
+
+    if(!games.length){
+      list.textContent=
+        "Noch keine Spiele für deinen Club vorhanden.";
+      return;
+    }
+
+    for(const game of games){
+      const home=clubMap.get(game.home_club_id);
+      const away=clubMap.get(game.away_club_id);
+
+      const isHome=
+        game.home_club_id===currentClub.id;
+
+      const mine=isHome
+        ?game.home_confirmed_at
+        :game.away_confirmed_at;
+
+      const other=isHome
+        ?game.away_confirmed_at
+        :game.home_confirmed_at;
+
+      const valid=
+        game.scheduled_at&&
+        !Number.isNaN(
+          new Date(game.scheduled_at).getTime()
+        );
+
+      const inTime=
+        valid&&
+        new Date(game.scheduled_at).getTime()
+          -Date.now()>=7200000;
+
+      const allowed=
+        ["scheduled","confirmed"].includes(game.status);
+
+      const item=document.createElement("div");
+      item.className="item";
+
+      const matchup=document.createElement("div");
+      matchup.className="matchup";
+
+      function clubDisplay(club,fallback){
+        const box=document.createElement("div");
+        box.className="match-club";
+
+        if(club?.logo_url){
+          const img=document.createElement("img");
+          img.src=club.logo_url;
+          img.alt="Clublogo";
+          img.className="match-logo";
+          img.loading="lazy";
+          box.appendChild(img);
+        }
+
+        const name=document.createElement("strong");
+        name.textContent=club?.name||fallback;
+        box.appendChild(name);
+
+        return box;
+      }
+
+      const vs=document.createElement("strong");
+      vs.className="match-vs";
+      vs.textContent="VS";
+
+      matchup.append(
+        clubDisplay(home,"Heimclub"),
+        vs,
+        clubDisplay(away,"Auswärtsclub")
+      );
+
+      const meta=document.createElement("p");
+      meta.textContent=
+        "Spielbeginn: "+
+        (valid
+          ?formatGameTime(game.scheduled_at)
+          :"Nicht festgelegt")+
+        " (Schweiz) · Modus: "+
+        (game.game_mode||"–")+
+        " · Status: "+(game.status||"–");
+
+      const state=document.createElement("p");
+      state.textContent=
+        "Dein Club: "+
+        (mine?"Bestätigt":"Offen")+
+        " · Gegner: "+
+        (other?"Bestätigt":"Offen");
+
+      item.append(matchup,meta,state);
+
+      if(!mine&&allowed){
+        const button=document.createElement("button");
+        button.type="button";
+
+        button.textContent=inTime
+          ?"Spieltermin bestätigen"
+          :"Bestätigungsfrist abgelaufen";
+
+        button.disabled=!inTime;
+
+        button.onclick=async()=>{
+          if(!confirm(
+            "Diesen Spieltermin verbindlich bestätigen?"
+          ))return;
+
+          button.disabled=true;
+          message("Bestätigung wird geprüft...");
+
+          try{
+            const {error:e}=await client.rpc(
+              "club_confirm_game",
+              {p_game_id:game.id}
+            );
+
+            if(e)throw e;
+
+            message("Spielbestätigung gespeichert.");
+          }catch(e){
+            message(
+              "Bestätigung fehlgeschlagen: "+e.message
+            );
+          }finally{
+            await loadGames();
+          }
+        };
+
+        item.appendChild(button);
+      }
+
+      const proposal=proposalMap.get(game.id)||null;
+
+      item.appendChild(
+        renderGameProposal(
+          game,proposal,isHome,inTime,allowed
+        )
+      );
+
+      list.appendChild(item);
+    }
+  }catch(e){
+    list.textContent=
+      "Spiele konnten nicht geladen werden: "+
+      e.message;
+  }finally{
+    gamesBusy=false;
   }
 }
+
+/* GM-VERWALTUNG */
 
 function gmMessage(text){
   $("gmStatus").textContent=text;
@@ -855,7 +1365,6 @@ async function loadGms(){
     item.className="item";
 
     const label=document.createElement("p");
-
     label.textContent=
       "General Manager · Benutzer-ID: "+
       gm.user_id;
@@ -952,6 +1461,8 @@ $("assignGmButton").onclick=async()=>{
   }
 };
 
+/* CLUBLOGO */
+
 async function uploadOwnerLogo(){
   if(logoBusy||!currentClub?.id)return;
 
@@ -1039,7 +1550,7 @@ async function uploadOwnerLogo(){
   }
 }
 
-// TRANSFERVERWALTUNG
+/* TRANSFERVERWALTUNG */
 
 function swissDate(value){
   if(!value)return "Nicht festgelegt";
@@ -1119,7 +1630,6 @@ async function loadTransfers(){
     item.className="item";
 
     const heading=document.createElement("h3");
-
     heading.textContent=
       (tr.from_club_name||"Alter Club")+
       " → "+
@@ -1129,13 +1639,11 @@ async function loadTransfers(){
     player.textContent="Spieler-ID: "+tr.player_id;
 
     const status=document.createElement("p");
-
     status.textContent=
       "Status: "+tr.transfer_status+
       (tr.completed?" · Abgeschlossen":"");
 
     const approvals=document.createElement("p");
-
     approvals.textContent=
       "Alter Club: "+
       (tr.old_club_approved?"Zugestimmt":"Offen")+
@@ -1161,9 +1669,6 @@ async function loadTransfers(){
       ?tr.old_club_approved
       :tr.new_club_approved;
 
-    // Die bestehende RPC erlaubt derzeit
-    // nur Clubinhabern die Zustimmung.
-    // GM-Rechte werden serverseitig ergänzt.
     const canReview=
       isClubOwner&&
       open&&
@@ -1240,7 +1745,7 @@ async function reviewTransfer(id,approve){
   }
 }
 
-// CLUBARCHIVIERUNG
+/* CLUBARCHIVIERUNG */
 
 $("archiveClubButton").onclick=async()=>{
   if(
@@ -1312,7 +1817,7 @@ $("archiveClubButton").onclick=async()=>{
   }
 };
 
-// BUTTONS
+/* BUTTONS */
 
 $("refreshTransfers").onclick=loadTransfers;
 $("uploadLogoButton").onclick=uploadOwnerLogo;
@@ -1328,6 +1833,7 @@ init().catch(e=>deny(e.message));
 </script>
 </body>
 </html>
+
 
 
 
