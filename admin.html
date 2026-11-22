@@ -461,7 +461,7 @@ Die Freigabe allein verschiebt keinen Spieler.
 </p>
 </div>
 
-<button id="refreshApprovals">
+<button id="refreshApprovals" type="button">
 Transferanträge aktualisieren
 </button>
 
@@ -667,6 +667,34 @@ Cup-Runde erstellen
 Runden aktualisieren
 </button>
 
+<!-- ERSTE CUP-AUSLOSUNG -->
+
+<div class="notice" id="firstCupDrawPanel">
+<h3>🏆 Erste Cup-Auslosung</h3>
+
+<p class="muted">
+Die Auslosung wird für 18:00 Uhr Schweizer Zeit
+terminiert. Eine erste Cup-Runde und mindestens
+zwei offiziell bestätigte Clubs sind erforderlich.
+</p>
+
+<label for="firstCupDrawDate">
+Datum der ersten Auslosung
+</label>
+<input id="firstCupDrawDate" type="date">
+
+<p><strong>Startzeit: 18:00 Uhr</strong></p>
+
+<button
+ id="scheduleFirstCupDraw"
+ type="button"
+>
+Erste Auslosung terminieren
+</button>
+
+<p id="firstCupDrawMessage" role="status"></p>
+</div>
+
 <div
  id="cupRoundsList"
  class="table-wrap"
@@ -676,8 +704,9 @@ Noch keine Runden geladen.
 </div>
 
 <p class="muted">
-Die Erstellung einer Runde startet keine Auslosung.
-Die Terminierung der ersten Auslosung wird separat eingerichtet.
+Die Erstellung einer Cup-Runde startet keine Auslosung.
+Die erste Auslosung wird erst am bestätigten Termin
+automatisch gestartet.
 </p>
 </section>
 
@@ -742,13 +771,13 @@ const $ = id => document.getElementById(id);
 const TZ = "Europe/Zurich";
 
 let client, currentUser, adminRole;
-let invitationToken = null;
-let approvalBusy = false;
-let gamingDecisionBusy = false;
-let securityDecisionBusy = false;
-let isLeagueController = false;
-let gamingRequests = [];
-let securityCases = [];
+let invitationToken=null;
+let approvalBusy=false;
+let gamingDecisionBusy=false;
+let securityDecisionBusy=false;
+let isLeagueController=false;
+let gamingRequests=[];
+let securityCases=[];
 
 function deny(reason){
  $("loading").classList.add("hidden");
@@ -2305,6 +2334,8 @@ async function loadCupRounds(){
 
 $("cupRefreshButton").onclick=()=>loadCupRounds();
 
+/* CUP-RUNDE ERSTELLEN */
+
 $("cupRoundForm").onsubmit=async event=>{
  event.preventDefault();
 
@@ -2334,7 +2365,9 @@ $("cupRoundForm").onsubmit=async event=>{
    !Number.isSafeInteger(roundNumber)||
    roundNumber<1
   ){
-   throw Error("Bitte gültige Rundendaten eingeben.");
+   throw Error(
+    "Bitte gültige Rundendaten eingeben."
+   );
   }
 
   if(new Date(end)<=new Date(start)){
@@ -2368,18 +2401,96 @@ $("cupRoundForm").onsubmit=async event=>{
   if(error)throw error;
 
   if(!data){
-   throw Error("Keine Bestätigung von Supabase.");
+   throw Error(
+    "Keine Bestätigung von Supabase."
+   );
   }
 
-  message.textContent="Cup-Runde erfolgreich erstellt.";
+  message.textContent=
+   "Cup-Runde erfolgreich erstellt.";
 
   await loadCupRounds();
 
  }catch(e){
-  message.textContent="Fehler: "+e.message;
+  message.textContent=
+   "Fehler: "+e.message;
 
  }finally{
   cupAdminBusy=false;
+  button.disabled=false;
+ }
+};
+
+/* ERSTE CUP-AUSLOSUNG TERMINIEREN */
+
+let firstCupDrawBusy=false;
+
+$("scheduleFirstCupDraw").onclick=async()=>{
+ if(!isLeagueController||firstCupDrawBusy)return;
+
+ const message=$("firstCupDrawMessage");
+ const button=$("scheduleFirstCupDraw");
+
+ try{
+  const season=$("cupSeason").value.trim();
+  const date=$("firstCupDrawDate").value;
+
+  if(!season||!date){
+   throw Error(
+    "Bitte Saison und Auslosungsdatum eingeben."
+   );
+  }
+
+  const drawAt=swissToISO(date,"18:00");
+
+  if(new Date(drawAt)<=new Date()){
+   throw Error(
+    "Das Auslosungsdatum muss in der Zukunft liegen."
+   );
+  }
+
+  if(!confirm(
+   "Erste Cup-Auslosung terminieren?\n\n"+
+   "Saison: "+season+"\n"+
+   "Datum: "+swissDisplay(drawAt)+" Uhr\n\n"+
+   "Die Auslosung startet am festgelegten Termin "+
+   "automatisch."
+  ))return;
+
+  firstCupDrawBusy=true;
+  button.disabled=true;
+
+  message.textContent=
+   "Auslosung wird terminiert...";
+
+  const {data,error}=await client.rpc(
+   "snhl_admin_schedule_first_cup_draw",
+   {
+    p_season:season,
+    p_draw_at:drawAt
+   }
+  );
+
+  if(error)throw error;
+
+  if(!data){
+   throw Error(
+    "Keine Bestätigung von Supabase."
+   );
+  }
+
+  message.textContent=
+   "Erste Cup-Auslosung erfolgreich terminiert: "+
+   swissDisplay(drawAt)+" Uhr.";
+
+  await loadCupRounds();
+
+ }catch(e){
+  message.textContent=
+   "Fehler: "+e.message;
+
+ }finally{
+  firstCupDrawBusy=false;
   button.disabled=false;
  }
 };
