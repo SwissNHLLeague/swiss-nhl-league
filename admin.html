@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -302,6 +300,11 @@ Prüfe Anmeldung und Admin-Berechtigung...
 <button data-tab="requests">Clubanträge</button>
 <button data-tab="transfers">Transferfenster</button>
 <button data-tab="approvals">Transferfreigaben</button>
+
+<button data-tab="cupAdmin" id="cupNav" class="hidden">
+🏆 Cup-Runden
+</button>
+
 <button data-tab="nameRequests" id="nameRequestsNav" class="hidden">
 Clubnamen-Anträge
 </button>
@@ -597,6 +600,87 @@ Noch nicht geladen.
 </div>
 </section>
 
+<!-- CUP-RUNDENVERWALTUNG -->
+
+<section class="panel hidden" data-section="cupAdmin">
+<h2>🏆 Cup-Rundenverwaltung</h2>
+<p class="muted">
+Nur die offizielle Liga-Leitung.
+Alle Zeiten gelten für Europe/Zurich.
+</p>
+
+<form id="cupRoundForm">
+
+<label for="cupSeason">Cup-Saison</label>
+<input
+ id="cupSeason"
+ value="2027/28"
+ required
+ maxlength="30"
+>
+
+<label for="cupRoundNumber">Rundennummer</label>
+<input
+ id="cupRoundNumber"
+ type="number"
+ min="1"
+ step="1"
+ required
+>
+
+<label for="cupRoundName">Rundenname</label>
+<input
+ id="cupRoundName"
+ required
+ maxlength="100"
+ placeholder="z. B. Erste Runde"
+>
+
+<div class="calendar-grid">
+
+<div class="calendar-box">
+<h3>Spielbeginn</h3>
+<label for="cupStartDate">Datum</label>
+<input id="cupStartDate" type="date" required>
+<label for="cupStartTime">Uhrzeit</label>
+<input id="cupStartTime" type="time" value="20:00" required>
+</div>
+
+<div class="calendar-box">
+<h3>Rundenende</h3>
+<label for="cupEndDate">Datum</label>
+<input id="cupEndDate" type="date" required>
+<label for="cupEndTime">Uhrzeit</label>
+<input id="cupEndTime" type="time" value="23:59" required>
+</div>
+
+</div>
+
+<button type="submit" id="cupCreateButton">
+Cup-Runde erstellen
+</button>
+</form>
+
+<p id="cupAdminMessage" role="status" class="muted"></p>
+
+<button id="cupRefreshButton" type="button" class="info">
+Runden aktualisieren
+</button>
+
+<div
+ id="cupRoundsList"
+ class="table-wrap"
+ style="margin-top:16px"
+>
+Noch keine Runden geladen.
+</div>
+
+<p class="muted">
+Die Erstellung einer Runde startet keine Auslosung.
+Die Terminierung der ersten Auslosung wird separat eingerichtet.
+</p>
+</section>
+
 <!-- LIGA-LEITUNG EINLADEN -->
 
 <section class="panel hidden" data-section="invitations">
@@ -706,6 +790,10 @@ function showTab(tab){
 
  if(tab==="nameRequests"){
   loadNameRequests();
+ }
+
+ if(tab==="cupAdmin"){
+  loadCupRounds();
  }
 }
 
@@ -1035,9 +1123,7 @@ function swissInputValues(value){
  };
 }
 
-// FORTSETZUNG FOLGT
-
-/* TRANSFERFENSTER */
+// TRANSFERFENSTER
 
 async function getTransferStatus(){
  const {data,error}=await client.rpc(
@@ -1398,8 +1484,6 @@ $("copyToken").onclick=async()=>{
    "Kopieren nicht möglich.";
  }
 };
-
-/* TEIL 2 ENDE – TEIL 3 FOLGT */
 
 /* GAMING-ID-ANTRAEGE */
 
@@ -1979,8 +2063,6 @@ $("refreshSecurity").onclick=async()=>{
  await loadSecurityCases();
 };
 
-/* TEIL 3 ENDE – TEIL 4 FOLGT */
-
 /* CLUBNAMEN-ANTRAEGE */
 
 let nameReviewBusy=false;
@@ -2149,6 +2231,159 @@ async function reviewNameRequest(request,approve){
 $("refreshNameRequests").onclick=
  loadNameRequests;
 
+/* CUP-RUNDENVERWALTUNG */
+
+let cupAdminBusy=false;
+
+async function loadCupRounds(){
+ if(!isLeagueController)return;
+
+ const host=$("cupRoundsList");
+ host.textContent="Lade Cup-Runden...";
+
+ const season=$("cupSeason").value.trim();
+
+ if(!season){
+  host.textContent="Bitte Saison angeben.";
+  return;
+ }
+
+ const {data,error}=await client.rpc(
+  "snhl_admin_list_cup_rounds",
+  {p_season:season}
+ );
+
+ if(error){
+  host.textContent="Fehler: "+error.message;
+  return;
+ }
+
+ if(!data?.length){
+  host.textContent="Noch keine Cup-Runden vorhanden.";
+  return;
+ }
+
+ const table=document.createElement("table");
+ const head=table.createTHead().insertRow();
+
+ [
+  "Nr.",
+  "Runde",
+  "Status",
+  "Spielbeginn",
+  "Frist",
+  "Auslosung",
+  "Spiele",
+  "Abgeschlossen"
+ ].forEach(label=>{
+  const th=document.createElement("th");
+  th.textContent=label;
+  head.appendChild(th);
+ });
+
+ const body=table.createTBody();
+
+ data.forEach(r=>{
+  const row=body.insertRow();
+
+  [
+   r.round_number,
+   r.round_name,
+   r.status,
+   swissDisplay(r.play_from),
+   swissDisplay(r.deadline_at),
+   swissDisplay(r.draw_at),
+   r.matches,
+   r.completed_matches
+  ].forEach(v=>{
+   row.insertCell().textContent=String(v??"–");
+  });
+ });
+
+ host.replaceChildren(table);
+}
+
+$("cupRefreshButton").onclick=()=>loadCupRounds();
+
+$("cupRoundForm").onsubmit=async event=>{
+ event.preventDefault();
+
+ if(!isLeagueController||cupAdminBusy)return;
+
+ const message=$("cupAdminMessage");
+ const button=$("cupCreateButton");
+
+ try{
+  const season=$("cupSeason").value.trim();
+  const roundNumber=Number($("cupRoundNumber").value);
+  const roundName=$("cupRoundName").value.trim();
+
+  const start=swissToISO(
+   $("cupStartDate").value,
+   $("cupStartTime").value
+  );
+
+  const end=swissToISO(
+   $("cupEndDate").value,
+   $("cupEndTime").value
+  );
+
+  if(
+   !season||
+   !roundName||
+   !Number.isSafeInteger(roundNumber)||
+   roundNumber<1
+  ){
+   throw Error("Bitte gültige Rundendaten eingeben.");
+  }
+
+  if(new Date(end)<=new Date(start)){
+   throw Error(
+    "Rundenende muss nach dem Spielbeginn liegen."
+   );
+  }
+
+  if(!confirm(
+   "Cup-Runde verbindlich erstellen?\n"+
+   season+" · "+roundName+
+   "\nStart: "+swissDisplay(start)+" Uhr"+
+   "\nEnde: "+swissDisplay(end)+" Uhr"
+  ))return;
+
+  cupAdminBusy=true;
+  button.disabled=true;
+  message.textContent="Erstelle Cup-Runde...";
+
+  const {data,error}=await client.rpc(
+   "snhl_admin_create_cup_round",
+   {
+    p_season:season,
+    p_round_number:roundNumber,
+    p_round_name:roundName,
+    p_play_from:start,
+    p_deadline_at:end
+   }
+  );
+
+  if(error)throw error;
+
+  if(!data){
+   throw Error("Keine Bestätigung von Supabase.");
+  }
+
+  message.textContent="Cup-Runde erfolgreich erstellt.";
+
+  await loadCupRounds();
+
+ }catch(e){
+  message.textContent="Fehler: "+e.message;
+
+ }finally{
+  cupAdminBusy=false;
+  button.disabled=false;
+ }
+};
+
 /* INITIALISIERUNG */
 
 async function init(){
@@ -2218,6 +2453,7 @@ async function init(){
   $("gamingNav").classList.remove("hidden");
   $("securityNav").classList.remove("hidden");
   $("nameRequestsNav").classList.remove("hidden");
+  $("cupNav").classList.remove("hidden");
  }
 
  $("logout").onclick=async()=>{
