@@ -6,434 +6,148 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07101d">
 <title>Swiss NHL League | Season 1</title>
-
 <style>
 :root{
- --bg:#07101d;
- --panel:#10233a;
- --blue:#1683ff;
- --line:#294767;
- --text:#f5f9ff;
- --muted:#a2b8d1;
+ --bg:#07101d;--panel:#10233a;--panel2:#1c3654;
+ --blue:#1683ff;--line:#294767;--text:#f5f9ff;
+ --muted:#a2b8d1;--green:#16834a;--lightgreen:#9be3a7;
+ --red:#d93838;--lightred:#f4a3a3
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{
- margin:0;
- background:var(--bg);
- color:var(--text);
- font:15px Arial,Helvetica,sans-serif;
-}
+body{margin:0;background:var(--bg);color:var(--text);font:15px Arial,Helvetica,sans-serif}
 a{color:inherit;text-decoration:none}
-button,select,input{font:inherit}
+button,select{font:inherit}
 button{cursor:pointer}
-button:focus-visible,
-a:focus-visible,
-select:focus-visible{
- outline:3px solid #8dc6ff;
- outline-offset:3px;
-}
+button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #8dc6ff;outline-offset:3px}
 [hidden]{display:none!important}
-
-header{
- background:#0c1b2e;
- border-bottom:1px solid var(--line);
-}
-.top{
- max-width:1300px;
- margin:auto;
- padding:16px 20px;
- display:flex;
- align-items:center;
- justify-content:space-between;
- gap:15px;
- flex-wrap:wrap;
-}
-.brand img{
- width:150px;
- max-width:100%;
- height:auto;
-}
-.actions{
- display:flex;
- gap:9px;
- flex-wrap:wrap;
-}
-.btn{
- border:1px solid #298aff;
- background:#086fe0;
- color:white;
- padding:11px 15px;
- border-radius:7px;
- font-weight:bold;
- display:inline-block;
-}
-.btn.secondary{
- background:#142b47;
- border-color:#40658c;
-}
-nav{
- display:flex;
- overflow-x:auto;
- background:#06101c;
- border-bottom:1px solid var(--line);
- padding:0 max(12px,calc((100vw - 1300px)/2));
-}
-nav a{
- padding:16px;
- white-space:nowrap;
- font-weight:bold;
- font-size:13px;
-}
+header{background:#0c1b2e;border-bottom:1px solid var(--line)}
+.top{max-width:1300px;margin:auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.brand img{width:150px;max-width:100%;height:auto}
+.actions,.hero-links,.mode-row,.tabs{display:flex;gap:9px;flex-wrap:wrap}
+.btn,.tab{border:1px solid #298aff;background:#086fe0;color:white;padding:11px 15px;border-radius:7px;font-weight:bold;display:inline-block}
+.btn.secondary,.tab{background:#142b47;border-color:#40658c}
+.tab.active{background:#086fe0;border-color:#63aaff}
+nav{display:flex;overflow-x:auto;background:#06101c;border-bottom:1px solid var(--line);padding:0 max(12px,calc((100vw - 1300px)/2))}
+nav a{padding:16px 13px;white-space:nowrap;font-weight:bold;font-size:13px}
 nav a:hover{background:#126bd0}
-main{
- max-width:1300px;
- margin:auto;
- padding:18px;
-}
-.section{margin-bottom:24px}
-.heading{
- display:flex;
- justify-content:space-between;
- align-items:center;
- gap:10px;
- flex-wrap:wrap;
- margin-bottom:12px;
-}
+main{max-width:1300px;margin:auto;padding:18px}
+.section{margin-bottom:26px;scroll-margin-top:12px}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px}
 h1,h2,h3,p{margin-top:0}
 h1{font-size:clamp(27px,5vw,46px)}
 h2{font-size:21px;margin-bottom:0}
 h3{font-size:17px}
 .muted{color:var(--muted)}
-.panel{
- background:linear-gradient(145deg,#142b45,#0c1b2e);
- border:1px solid var(--line);
- border-radius:12px;
- padding:18px;
- min-width:0;
-}
-.hero{
- background:linear-gradient(120deg,#102b4e,#091726);
- border:1px solid #2d5680;
- border-radius:15px;
- padding:32px 25px;
- margin:15px 0 24px;
-}
-.eyebrow{
- color:#81bdff;
- font-weight:bold;
- letter-spacing:2px;
- font-size:12px;
-}
-.hero p{
- max-width:650px;
- color:#bfd1e8;
- line-height:1.7;
-}
-.hero-links{
- display:flex;
- gap:10px;
- flex-wrap:wrap;
-}
-.score-strip{
- display:flex;
- gap:12px;
- overflow-x:auto;
- padding-bottom:6px;
-}
-.score{
- flex:0 0 260px;
- background:#173351;
- border:1px solid #335a80;
- border-radius:10px;
- padding:16px;
-}
-.score .meta{
- font-size:12px;
- color:#a5c7eb;
- margin-bottom:12px;
-}
-.score .teams{
- display:flex;
- justify-content:space-between;
- align-items:center;
- gap:8px;
- font-size:15px;
- font-weight:bold;
-}
-.score .status{
- font-size:12px;
- margin-top:12px;
- color:#c2d4e9;
-}
-.live{
- color:#ff7474!important;
- font-weight:bold;
-}
-.grid{
- display:grid;
- grid-template-columns:repeat(3,minmax(0,1fr));
- gap:16px;
-}
-.two{
- display:grid;
- grid-template-columns:1.5fr 1fr;
- gap:16px;
-}
-.tag{
- display:inline-block;
- padding:5px 9px;
- border-radius:5px;
- background:#1c436e;
- color:#b9dfff;
- font-size:11px;
- font-weight:bold;
-}
-.stream-preview{
- background:#081320;
- border:1px solid #365b81;
- border-radius:9px;
- min-height:145px;
- display:flex;
- flex-direction:column;
- align-items:center;
- justify-content:center;
- gap:12px;
- text-align:center;
- padding:18px;
-}
+.panel{background:linear-gradient(145deg,#142b45,#0c1b2e);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.hero{background:linear-gradient(120deg,#102b4e,#091726);border:1px solid #2d5680;border-radius:15px;padding:32px 25px;margin:15px 0 24px}
+.eyebrow{color:#81bdff;font-weight:bold;letter-spacing:2px;font-size:12px}
+.hero p{max-width:650px;color:#bfd1e8;line-height:1.7}
+.score-strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+.score{flex:0 0 260px;background:#173351;border:1px solid #335a80;border-radius:10px;padding:16px}
+.score .meta{font-size:12px;color:#a5c7eb;margin-bottom:12px}
+.score .teams{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;font-weight:bold}
+.score .status{font-size:12px;margin-top:12px;color:#c2d4e9}
+.live{color:#ff7474!important;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.two{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.tag{display:inline-block;padding:5px 9px;border-radius:5px;background:#1c436e;color:#b9dfff;font-size:11px;font-weight:bold}
+.stream-preview{background:#081320;border:1px solid #365b81;border-radius:9px;min-height:145px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:18px}
 .stream-icon{font-size:38px}
-table{
- border-collapse:collapse;
- width:100%;
- font-size:13px;
-}
-th,td{
- padding:12px 9px;
- border-bottom:1px solid #29415b;
- text-align:left;
- white-space:nowrap;
-}
-th{color:#9cc6f1}
-.table-wrap{overflow-x:auto}
-select{
- background:#183756;
- border:1px solid #47719b;
- color:white;
- padding:9px;
- border-radius:6px;
-}
-
-/* CLUBÜBERSICHT – NEUES DESIGN */
-
-.club-grid{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));
- gap:16px;
-}
-.club{
- display:flex;
- align-items:center;
- gap:22px;
- width:100%;
- min-width:0;
- padding:22px;
- background:#1c3654;
- border:none;
- border-radius:20px;
-}
-.club-logo{
- width:120px;
- height:120px;
- min-width:120px;
- flex-shrink:0;
- background:transparent;
- border:none;
- border-radius:0;
- overflow:visible;
- display:flex;
- align-items:center;
- justify-content:center;
-}
-.club-logo img{
- display:block;
- width:100%;
- height:100%;
- object-fit:contain;
- background:transparent;
- border:none;
- border-radius:0;
-}
-.club-info{
- flex:1;
- min-width:0;
-}
-.club strong{
- display:block;
- font-size:20px;
- line-height:1.3;
- overflow-wrap:anywhere;
-}
-.club small{
- display:block;
- font-size:15px;
- margin-top:9px;
- color:#b7cce5;
-}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+th,td{padding:12px 9px;border-bottom:1px solid #29415b;text-align:left;white-space:nowrap;background:#10233a}
+th{color:#9cc6f1;background:#173451}
+.table-wrap{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}
+.rank-table{min-width:920px}
+.rank-table th:first-child,.rank-table td:first-child{position:sticky;left:0;z-index:2;min-width:48px}
+.rank-table th:nth-child(2),.rank-table td:nth-child(2){position:sticky;left:48px;z-index:2;min-width:155px;max-width:155px}
+.rank-table th:first-child,.rank-table th:nth-child(2){z-index:3;background:#173451}
+.rank-table td:first-child,.rank-table td:nth-child(2){background:#10233a}
+.rank-club{display:flex;align-items:center;gap:8px;white-space:normal}
+.rank-club img{width:30px;height:30px;object-fit:contain;flex-shrink:0}
+.rank-club span{overflow-wrap:anywhere;font-weight:bold}
+.rank-table tr.final-green td:first-child,.rank-table tr.final-green td:nth-child(2){background:var(--green)}
+.rank-table tr.final-lightgreen td:first-child,.rank-table tr.final-lightgreen td:nth-child(2){background:var(--lightgreen);color:#123c22}
+.rank-table tr.final-red td:first-child,.rank-table tr.final-red td:nth-child(2){background:var(--red)}
+select{background:#183756;border:1px solid #47719b;color:white;padding:9px;border-radius:6px}
+.club-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.club{display:flex;align-items:center;gap:22px;width:100%;min-width:0;padding:22px;background:#1c3654;border:none;border-radius:20px}
+.club-logo{width:120px;height:120px;min-width:120px;flex-shrink:0;background:transparent;border:none;border-radius:0;overflow:visible;display:flex;align-items:center;justify-content:center;font-size:32px}
+.club-logo img{display:block;width:100%;height:100%;object-fit:contain;background:transparent;border:none;border-radius:0}
+.club-info{flex:1;min-width:0}
+.club strong{display:block;font-size:20px;line-height:1.3;overflow-wrap:anywhere}
+.club small{display:block;font-size:15px;margin-top:9px;color:#b7cce5}
 .good{color:#70e6a0!important}
 .bad{color:#ff8b8b!important}
-
-.empty{
- padding:18px;
- color:#b4c7dd;
- background:#112640;
- border:1px dashed #385b7d;
- border-radius:8px;
-}
-.video-center{
- position:fixed;
- inset:0;
- z-index:100;
- background:#07101d;
- overflow-y:auto;
- padding:20px;
-}
-.video-inner{
- max-width:1150px;
- margin:auto;
-}
-.video-top{
- display:flex;
- justify-content:space-between;
- align-items:center;
- gap:10px;
- flex-wrap:wrap;
- margin-bottom:20px;
-}
-.player{
- background:black;
- border-radius:10px;
- overflow:hidden;
- margin-bottom:20px;
-}
-.player iframe{
- display:block;
- width:100%;
- aspect-ratio:16/9;
- border:0;
-}
-.video-item{
- padding:16px;
- background:#17314f;
- border:1px solid #365777;
- border-radius:9px;
- margin-bottom:10px;
-}
-footer{
- border-top:1px solid var(--line);
- padding:30px 20px;
- text-align:center;
- color:#a2b8d1;
-}
-.language-gate{
- position:fixed;
- inset:0;
- z-index:1000;
- background:#06101c;
- display:flex;
- align-items:center;
- justify-content:center;
- padding:20px;
- overflow-y:auto;
-}
-.language-box{
- width:min(100%,530px);
- background:#10233a;
- border:1px solid #37659b;
- border-radius:16px;
- padding:25px;
- text-align:center;
-}
+.empty{padding:18px;color:#b4c7dd;background:#112640;border:1px dashed #385b7d;border-radius:8px}
+.video-center{position:fixed;inset:0;z-index:100;background:#07101d;overflow-y:auto;padding:20px}
+.video-inner{max-width:1150px;margin:auto}
+.video-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.player{background:black;border-radius:10px;overflow:hidden;margin-bottom:20px}
+.player iframe{display:block;width:100%;aspect-ratio:16/9;border:0}
+.video-item{padding:16px;background:#17314f;border:1px solid #365777;border-radius:9px;margin-bottom:10px}
+footer{border-top:1px solid var(--line);padding:30px 20px;text-align:center;color:#a2b8d1}
+.language-gate{position:fixed;inset:0;z-index:1000;background:#06101c;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.language-box{width:min(100%,530px);background:#10233a;border:1px solid #37659b;border-radius:16px;padding:25px;text-align:center}
 .language-box h1{font-size:26px}
-.language-box select{
- width:100%;
- margin:12px 0 18px;
- padding:14px;
-}
+.language-box select{width:100%;margin:12px 0 18px;padding:14px}
 .language-box .btn{width:100%}
 .language-box p{line-height:1.6}
-.small-note{
- font-size:12px;
- color:#9db3cf;
-}
-.mode-row{
- display:flex;
- gap:8px;
- flex-wrap:wrap;
- margin:12px 0;
-}
-.mode-row button{
- background:#183756;
- color:white;
- border:1px solid #47719b;
- border-radius:6px;
- padding:8px 12px;
-}
-.mode-row button.active{
- background:#086fe0;
- border-color:#63aaff;
-}
-.game-card{
- padding:12px;
- border-bottom:1px solid #29415b;
-}
+.small-note{font-size:12px;color:#9db3cf}
+.mode-row button{background:#183756;color:white;border:1px solid #47719b;border-radius:6px;padding:8px 12px}
+.mode-row button.active{background:#086fe0;border-color:#63aaff}
+.game-card{padding:12px;border-bottom:1px solid #29415b}
 .game-card:last-child{border-bottom:0}
-.game-card strong{
- display:block;
- margin:7px 0;
-}
+.game-card strong{display:block;margin:7px 0}
 .game-card small{color:#9db3cf}
-
+.center-header{background:linear-gradient(110deg,#12365b,#091a2e);border:1px solid #315a85;border-radius:12px;padding:22px;margin-bottom:15px}
+.center-header h2{font-size:25px;margin-bottom:9px}
+.center-header p{color:#b5cce6;margin-bottom:0;line-height:1.6}
+.center-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.center-controls label{font-weight:bold}
+.round-card{background:#142d49;border:1px solid #315579;border-radius:10px;padding:16px;margin-bottom:12px}
+.round-card .round-title{color:#93c8ff;font-weight:bold;font-size:12px;margin-bottom:12px}
+.duel{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.duel-team{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;min-width:0}
+.duel-team img{width:58px;height:58px;object-fit:contain}
+.duel-team strong{overflow-wrap:anywhere}
+.duel-vs{font-size:20px;font-weight:bold;color:#83bfff}
+.cup-info{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:15px}
+.info-tile{background:#142d49;border:1px solid #315579;border-radius:10px;padding:15px}
+.info-tile strong{display:block;margin-bottom:8px}
+.info-tile small{color:#b7cce5;line-height:1.6}
+.stage-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:15px}
+.stage{background:#142d49;border:1px solid #315579;border-radius:9px;padding:12px;text-align:center;font-weight:bold;font-size:12px}
+.stage span{display:block;color:#b0cbe7;font-weight:normal;margin-top:7px}
+.note{font-size:12px;color:#a8c1dd;line-height:1.6}
 @media(max-width:800px){
  .grid,.two{grid-template-columns:1fr}
+ .cup-info{grid-template-columns:1fr}
+ .stage-row{grid-template-columns:repeat(2,minmax(0,1fr))}
  .hero{padding:24px 18px}
  nav a{padding:14px 12px}
 }
-
 @media(max-width:480px){
- .club{
-  padding:15px;
-  gap:14px;
- }
- .club-logo{
-  width:95px;
-  height:95px;
-  min-width:95px;
- }
+ .club{padding:15px;gap:14px}
+ .club-logo{width:95px;height:95px;min-width:95px}
  .club strong{font-size:17px}
  .club small{font-size:13px}
+ .duel-team img{width:45px;height:45px}
+ .duel-team strong{font-size:12px}
+ .center-header h2{font-size:21px}
 }
 </style>
 </head>
-
 <body>
 
 <div id="languageGate" class="language-gate" hidden>
  <div class="language-box">
   <h1>🌍 SWISS NHL LEAGUE</h1>
-  <p>
-   Welcome! Please select your language.<br>
-   Bitte wähle deine Sprache.
-  </p>
+  <p>Welcome! Please select your language.<br>Bitte wähle deine Sprache.</p>
   <label for="firstLanguage">Language / Sprache</label>
   <select id="firstLanguage"></select>
-  <button class="btn" id="confirmLanguage">
-   Continue / Weiter
-  </button>
-  <p class="small-note">
-   Your language can be changed later.<br>
-   Die Sprache kann später geändert werden.
-  </p>
+  <button class="btn" id="confirmLanguage">Continue / Weiter</button>
+  <p class="small-note">Your language can be changed later.<br>Die Sprache kann später geändert werden.</p>
  </div>
 </div>
 
@@ -452,28 +166,26 @@ footer{
 
 <nav>
  <a href="#home" data-i18n="home">Home</a>
- <a href="#live" data-i18n="live">Live Center</a>
+ <a href="#live">Live Center</a>
  <a href="#ligen" data-i18n="leagues">Ligen</a>
  <a href="#spiele" data-i18n="schedule">Spielplan</a>
  <a href="#tabellen" data-i18n="standings">Tabellen</a>
+ <a href="#cup">🏆 Cup</a>
+ <a href="#playoff-center">🏒 Playoffs</a>
  <a href="#clubs" data-i18n="clubs">Clubs</a>
  <a href="#scorer" data-i18n="statistics">Statistiken</a>
  <a href="#news">News</a>
- <a href="#about" data-i18n="about">Über uns</a>
 </nav>
 
 <main id="home">
 <section class="hero">
  <p class="eyebrow">SWISS NHL LEAGUE · SEASON 1</p>
  <h1>YOUR LEAGUE.<br>YOUR GAME.</h1>
- <p data-i18n="hero">
-  Die internationale E-Sport-Liga für NHL 27.
-  Spiele in 1vs1, 3vs3 und 6vs6.
-  Verfolge Ergebnisse, Clubs, Spielpläne und offizielle Twitch-Übertragungen.
- </p>
+ <p data-i18n="hero">Die internationale E-Sport-Liga für NHL 27. Spiele in 1vs1, 3vs3 und 6vs6. Verfolge Ergebnisse, Clubs, Spielpläne und offizielle Twitch-Übertragungen.</p>
  <div class="hero-links">
   <a class="btn" href="#live">Live Center</a>
-  <a class="btn secondary" href="#ligen" data-i18n="discover">Ligen entdecken</a>
+  <a class="btn secondary" href="#cup">🏆 Cup-Center</a>
+  <a class="btn secondary" href="#playoff-center">Playoff-Center</a>
  </div>
 </section>
 
@@ -494,99 +206,135 @@ footer{
   <div class="stream-preview">
    <div class="stream-icon">▶</div>
    <strong>Swiss NHL League Video Center</strong>
-   <p class="muted" data-i18n="streamsDescription">
-    Alle offiziellen Liga-Streams und verfügbaren Match-Replays.
-   </p>
-   <button class="btn" id="openStreams" data-i18n="watch">
-    Alle Spiele ansehen
-   </button>
+   <p class="muted" data-i18n="streamsDescription">Alle offiziellen Liga-Streams und verfügbaren Match-Replays.</p>
+   <button class="btn" id="openStreams" data-i18n="watch">Alle Spiele ansehen</button>
   </div>
  </section>
-
  <section class="panel" id="ligen">
-  <div class="heading">
-   <h2 data-i18n="ourLeagues">🏆 Unsere Ligen</h2>
-  </div>
-  <div class="video-item">
-   <strong>1vs1</strong>
-   <p class="muted" data-i18n="solo">Einzelwettbewerb</p>
-  </div>
-  <div class="video-item">
-   <strong>3vs3</strong>
-   <p class="muted" data-i18n="three">Dreier-Teams</p>
-  </div>
-  <div class="video-item">
-   <strong>6vs6</strong>
-   <p class="muted" data-i18n="six">Club-Wettbewerb</p>
-  </div>
+  <div class="heading"><h2 data-i18n="ourLeagues">🏆 Unsere Ligen</h2></div>
+  <div class="video-item"><strong>1vs1</strong><p class="muted" data-i18n="solo">Einzelwettbewerb</p></div>
+  <div class="video-item"><strong>3vs3</strong><p class="muted" data-i18n="three">Dreier-Teams</p></div>
+  <div class="video-item"><strong>6vs6</strong><p class="muted" data-i18n="six">Club-Wettbewerb</p></div>
  </section>
 </div>
 
-<div class="grid section">
+<div class="two section">
  <section class="panel" id="spiele">
-  <div class="heading">
-   <h2 data-i18n="scheduleTitle">📅 Spielplan</h2>
-  </div>
+  <div class="heading"><h2 data-i18n="scheduleTitle">📅 Qualifikation – Spielplan</h2></div>
   <div id="schedule"></div>
  </section>
-
  <section class="panel" id="tabellen">
   <div class="heading">
-   <h2 data-i18n="standingsTitle">📊 Tabellen</h2>
-   <select id="leagueSelect" aria-label="Liga auswählen">
+   <h2 data-i18n="standingsTitle">📊 Meisterschaftstabelle</h2>
+   <select id="leagueSelect" aria-label="Liga">
     <option value="1v1">1vs1</option>
     <option value="3v3">3vs3</option>
     <option value="6v6">6vs6</option>
    </select>
   </div>
+  <p class="note">Rang und Club bleiben beim seitlichen Verschieben sichtbar.</p>
   <div class="table-wrap">
-   <table>
+   <table class="rank-table">
     <thead>
      <tr>
-      <th>#</th><th>Club</th><th>Sp.</th>
-      <th>W</th><th>OTW</th><th>SOW</th>
-      <th>L</th><th>OTL</th><th>SOL</th>
-      <th>GF</th><th>GA</th><th>+/-</th><th>PTS</th>
+      <th>#</th><th>Club</th><th>GP</th><th>PTS</th>
+      <th>W</th><th>OTW</th><th>SOW</th><th>SOL</th>
+      <th>OTL</th><th>L</th><th>GF</th><th>GA</th><th>GDF</th>
      </tr>
     </thead>
     <tbody id="standings"></tbody>
    </table>
   </div>
  </section>
-
- <section class="panel" id="scorer">
-  <div class="heading">
-   <h2 data-i18n="statisticsTitle">🥅 Spielerstatistiken</h2>
-  </div>
-  <div class="mode-row">
-   <button class="active" data-stats-mode="3v3">3vs3</button>
-   <button data-stats-mode="6v6">6vs6</button>
-  </div>
-  <div class="table-wrap">
-   <table>
-    <thead>
-     <tr>
-      <th>#</th><th>Spieler</th><th>Club</th>
-      <th>Sp.</th><th>T</th><th>A</th><th>PTS</th>
-     </tr>
-    </thead>
-    <tbody id="playerStats"></tbody>
-   </table>
-  </div>
-  <h3 style="margin-top:22px" data-i18n="goalies">Torhüterstatistiken</h3>
-  <div class="table-wrap">
-   <table>
-    <thead>
-     <tr>
-      <th>Torhüter</th><th>Club</th><th>Sp.</th>
-      <th>Siege</th><th>SV%</th><th>GAA</th><th>SO</th>
-     </tr>
-    </thead>
-    <tbody id="goalieStats"></tbody>
-   </table>
-  </div>
- </section>
 </div>
+
+<section class="section" id="cup">
+ <div class="center-header">
+  <p class="eyebrow">SWISS NHL LEAGUE · SEASON 1</p>
+  <h2>🏆 SWISS NHL LEAGUE CUP</h2>
+  <p>Alle zugelassenen Clubs nehmen automatisch teil. Ein Spiel pro Begegnung. Der Sieger erreicht die nächste Runde. Nach jeder Runde erfolgt eine neue Auslosung bis zum Halbfinal.</p>
+ </div>
+
+ <div class="cup-info">
+  <div class="info-tile">
+   <strong>🎲 Live-Auslosung</strong>
+   <small>Am Tag nach dem offiziellen Rundenabschluss um 18:00 Uhr Schweizer Zeit.</small>
+  </div>
+  <div class="info-tile">
+   <strong>🕛 Rundenfrist</strong>
+   <small>Alle Spiele müssen bis 23:59 Uhr des festgelegten letzten Rundentags beendet und eingetragen sein.</small>
+  </div>
+  <div class="info-tile">
+   <strong>🤝 Spielorganisation</strong>
+   <small>Clubs vereinbaren ihre Termine selbst. Ergebnisse werden von beiden Seiten bestätigt.</small>
+  </div>
+ </div>
+
+ <div class="panel">
+  <div class="heading">
+   <h2>🏆 Cup-Spielplan</h2>
+   <span class="tag">K.-O.-SYSTEM</span>
+  </div>
+  <div class="stage-row">
+   <div class="stage">Frühe Runden<span>Neue Auslosung</span></div>
+   <div class="stage">Viertelfinal<span>8 Clubs</span></div>
+   <div class="stage">Halbfinal<span>4 Clubs</span></div>
+   <div class="stage">Final & Platz 3<span>Entscheidung</span></div>
+  </div>
+  <div class="center-controls">
+   <label for="cupRound">Cup-Runde:</label>
+   <select id="cupRound">
+    <option value="all">Alle Runden</option>
+    <option value="early">Frühe Runden</option>
+    <option value="round16">Achtelfinal</option>
+    <option value="quarter">Viertelfinal</option>
+    <option value="semi">Halbfinal</option>
+    <option value="third">Spiel um Platz 3</option>
+    <option value="final">Final</option>
+   </select>
+  </div>
+  <div id="cupFixtures"></div>
+ </div>
+
+ <div class="panel" style="margin-top:15px">
+  <div class="heading">
+   <h2>🎲 Cup-Auslosung</h2>
+   <span class="tag">18:00 UHR</span>
+  </div>
+  <div id="cupDraw">
+   <div class="empty">Noch keine offizielle Cup-Auslosung veröffentlicht.</div>
+  </div>
+  <p class="note" style="margin-top:12px">Freilose werden nur bei Bedarf vergeben, öffentlich angezeigt und bevorzugt an Clubs ohne bisheriges Freilos verteilt. Ab dem Viertelfinal gibt es keine Freilose mehr.</p>
+ </div>
+</section>
+
+<section class="section" id="playoff-center">
+ <div class="center-header">
+  <p class="eyebrow">SWISS NHL LEAGUE · SEASON 1</p>
+  <h2>🏒 PLAYOFF-CENTER</h2>
+  <p>Alle Entscheidungsspiele an einem Ort. Play-ins, Playoffs, Play-out-Final und Auf-/Abstieg sind klar voneinander getrennt.</p>
+ </div>
+ <div class="panel">
+  <div class="center-controls">
+   <label for="playoffGroup">Gruppe:</label>
+   <select id="playoffGroup">
+    <option value="A">Gruppe A</option>
+    <option value="B">Gruppe B</option>
+    <option value="C">Gruppe C</option>
+   </select>
+  </div>
+  <div class="tabs" id="playoffTabs">
+   <button class="tab active" data-phase="playins">Play-ins</button>
+   <button class="tab" data-phase="playoffs">Playoffs</button>
+   <button class="tab" data-phase="playout">Play-out-Final</button>
+   <button class="tab" data-phase="promotion">Auf-/Abstieg</button>
+  </div>
+  <div style="margin-top:16px">
+   <h3 id="playoffTitle">Play-ins · Gruppe A</h3>
+   <div id="playoffFixtures"></div>
+  </div>
+ </div>
+</section>
 
 <section class="section" id="clubs">
  <div class="heading">
@@ -596,21 +344,38 @@ footer{
  <div class="club-grid" id="clubList"></div>
 </section>
 
-<section class="section" id="news">
- <div class="heading">
-  <h2>📰 Swiss NHL League News</h2>
+<section class="section" id="scorer">
+ <div class="heading"><h2 data-i18n="statisticsTitle">🥅 Spielerstatistiken</h2></div>
+ <div class="panel">
+  <div class="mode-row">
+   <button class="active" data-stats-mode="3v3">3vs3</button>
+   <button data-stats-mode="6v6">6vs6</button>
+  </div>
+  <div class="table-wrap">
+   <table>
+    <thead><tr><th>#</th><th>Spieler</th><th>Club</th><th>Sp.</th><th>T</th><th>A</th><th>PTS</th></tr></thead>
+    <tbody id="playerStats"></tbody>
+   </table>
+  </div>
+  <h3 style="margin-top:22px" data-i18n="goalies">Torhüterstatistiken</h3>
+  <div class="table-wrap">
+   <table>
+    <thead><tr><th>Torhüter</th><th>Club</th><th>Sp.</th><th>Siege</th><th>SV%</th><th>GAA</th><th>SO</th></tr></thead>
+    <tbody id="goalieStats"></tbody>
+   </table>
+  </div>
  </div>
+</section>
+
+<section class="section" id="news">
+ <div class="heading"><h2>📰 Swiss NHL League News</h2></div>
  <div class="panel" id="newsList"></div>
 </section>
 
 <section class="section" id="about">
  <div class="panel">
   <h2 data-i18n="aboutTitle">Über die Swiss NHL League</h2>
-  <p class="muted" data-i18n="aboutText">
-   Die Swiss NHL League wurde 2022 gegründet und organisiert
-   internationale Online-Eishockeywettbewerbe in NHL 27
-   mit 1vs1, 3vs3 und 6vs6.
-  </p>
+  <p class="muted" data-i18n="aboutText">Die Swiss NHL League wurde 2022 gegründet und organisiert internationale Online-Eishockeywettbewerbe in NHL 27 mit 1vs1, 3vs3 und 6vs6.</p>
  </div>
 </section>
 </main>
@@ -627,9 +392,7 @@ footer{
     <p class="eyebrow">SWISS NHL LEAGUE</p>
     <h2 data-i18n="streams">Live-Streams & Replays</h2>
    </div>
-   <button class="btn secondary" id="closeStreams" data-i18n="back">
-    Zurück zur Startseite
-   </button>
+   <button class="btn secondary" id="closeStreams" data-i18n="back">Zurück zur Startseite</button>
   </div>
   <div id="videoPlayer"></div>
   <div id="videoList"></div>
@@ -644,15 +407,14 @@ const KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
 const HEADERS={apikey:KEY};
 
 const $=id=>document.getElementById(id);
-
 const make=(tag,text,cls)=>{
  const n=document.createElement(tag);
  if(text!==undefined)n.textContent=String(text);
  if(cls)n.className=cls;
  return n;
 };
-
 const empty=text=>make("div",text,"empty");
+const num=v=>Number(v)||0;
 
 const LANGUAGES=[
  ["de","Deutsch"],["en","English"],["fr","Français"],
@@ -669,23 +431,17 @@ const LANGUAGES=[
 const TRANSLATIONS={
  de:{
   login:"Login",register:"Registrieren",home:"Home",
-  live:"Live Center",leagues:"Ligen",schedule:"Spielplan",
-  standings:"Tabellen",clubs:"Clubs",statistics:"Statistiken",
-  about:"Über uns",
+  leagues:"Ligen",schedule:"Spielplan",standings:"Tabellen",
+  clubs:"Clubs",statistics:"Statistiken",
   hero:"Die internationale E-Sport-Liga für NHL 27. Spiele in 1vs1, 3vs3 und 6vs6. Verfolge Ergebnisse, Clubs, Spielpläne und offizielle Twitch-Übertragungen.",
-  discover:"Ligen entdecken",
   streams:"📺 Live-Streams & Replays",
   streamsDescription:"Alle offiziellen Liga-Streams und verfügbaren Match-Replays.",
-  watch:"Alle Spiele ansehen",
-  ourLeagues:"🏆 Unsere Ligen",
-  solo:"Einzelwettbewerb",
-  three:"Dreier-Teams",
-  six:"Club-Wettbewerb",
-  scheduleTitle:"📅 Spielplan",
-  standingsTitle:"📊 Tabellen",
+  watch:"Alle Spiele ansehen",ourLeagues:"🏆 Unsere Ligen",
+  solo:"Einzelwettbewerb",three:"Dreier-Teams",six:"Club-Wettbewerb",
+  scheduleTitle:"📅 Qualifikation – Spielplan",
+  standingsTitle:"📊 Meisterschaftstabelle",
   statisticsTitle:"🥅 Spielerstatistiken",
-  goalies:"Torhüterstatistiken",
-  clubsTitle:"🛡️ Clubübersicht",
+  goalies:"Torhüterstatistiken",clubsTitle:"🛡️ Clubübersicht",
   aboutTitle:"Über die Swiss NHL League",
   aboutText:"Die Swiss NHL League wurde 2022 gegründet und organisiert internationale Online-Eishockeywettbewerbe in NHL 27 mit 1vs1, 3vs3 und 6vs6.",
   back:"Zurück zur Startseite",
@@ -697,30 +453,21 @@ const TRANSLATIONS={
   noNews:"Noch keine offiziellen News.",
   noStreams:"Noch keine offiziellen Streams oder Replays verfügbar.",
   error:"Daten konnten nicht geladen werden.",
-  active:"aktive Spieler",
-  registered:"Angemeldet",
-  confirmed:"Offiziell bestätigt",
-  loading:"Daten werden geladen …"
+  active:"aktive Spieler"
  },
  en:{
   login:"Login",register:"Register",home:"Home",
-  live:"Live Center",leagues:"Leagues",schedule:"Schedule",
-  standings:"Standings",clubs:"Clubs",statistics:"Statistics",
-  about:"About us",
+  leagues:"Leagues",schedule:"Schedule",standings:"Standings",
+  clubs:"Clubs",statistics:"Statistics",
   hero:"The international NHL 27 esports league. Compete in 1vs1, 3vs3 and 6vs6. Follow results, clubs, schedules and official Twitch broadcasts.",
-  discover:"Explore leagues",
   streams:"📺 Live Streams & Replays",
   streamsDescription:"All official league streams and available match replays.",
-  watch:"Watch all matches",
-  ourLeagues:"🏆 Our Leagues",
-  solo:"Individual competition",
-  three:"Three-player teams",
-  six:"Club competition",
-  scheduleTitle:"📅 Schedule",
-  standingsTitle:"📊 Standings",
+  watch:"Watch all matches",ourLeagues:"🏆 Our Leagues",
+  solo:"Individual competition",three:"Three-player teams",six:"Club competition",
+  scheduleTitle:"📅 Qualification – Schedule",
+  standingsTitle:"📊 League Standings",
   statisticsTitle:"🥅 Player Statistics",
-  goalies:"Goalie Statistics",
-  clubsTitle:"🛡️ Clubs",
+  goalies:"Goalie Statistics",clubsTitle:"🛡️ Clubs",
   aboutTitle:"About Swiss NHL League",
   aboutText:"Founded in 2022, Swiss NHL League organizes international online NHL 27 hockey competitions in 1vs1, 3vs3 and 6vs6.",
   back:"Back to homepage",
@@ -728,65 +475,51 @@ const TRANSLATIONS={
   noStandings:"No official standings available yet.",
   noPlayers:"No official player statistics available yet.",
   noGoalies:"No official goalie statistics available yet.",
-  noClubs:"No clubs published yet.",
-  noNews:"No official news yet.",
+  noClubs:"No clubs published yet.",noNews:"No official news yet.",
   noStreams:"No official streams or replays available yet.",
-  error:"Data could not be loaded.",
-  active:"active players",
-  registered:"Registered",
-  confirmed:"Officially confirmed",
-  loading:"Loading data …"
+  error:"Data could not be loaded.",active:"active players"
  }
 };
 
 let currentLanguage="de";
 let statsMode="3v3";
+let playoffPhase="playins";
 
 const DATA={
- matches:[],
- clubs:[],
- standings:[],
- players:[],
- goalies:[],
- streams:[],
- news:[],
- errors:{}
+ matches:[],clubs:[],standings:[],players:[],goalies:[],
+ streams:[],news:[],cupFixtures:[],cupDraws:[],
+ playoffFixtures:[],errors:{}
 };
+
+/*
+ CUP UND PLAYOFF BACKEND:
+ Diese Arrays bleiben leer, bis die offiziellen Cup- und
+ Entscheidungsrunden-Tabellen/RPCs in Supabase angelegt sind.
+ Keine Testspiele werden als echte Begegnungen angezeigt.
+*/
 
 function t(key){
  return TRANSLATIONS[currentLanguage]?.[key]||
  TRANSLATIONS.en[key]||
- TRANSLATIONS.de[key]||
- key;
+ TRANSLATIONS.de[key]||key;
 }
 
 function saveLanguage(lang){
- try{
-  localStorage.setItem("snhl_language",lang);
- }catch(e){}
+ try{localStorage.setItem("snhl_language",lang)}catch(e){}
 }
-
 function storedLanguage(){
- try{
-  return localStorage.getItem("snhl_language");
- }catch(e){
-  return null;
- }
+ try{return localStorage.getItem("snhl_language")}catch(e){return null}
 }
-
 function applyLanguage(lang){
  currentLanguage=LANGUAGES.some(x=>x[0]===lang)?lang:"de";
  document.documentElement.lang=currentLanguage;
  $("headerLanguage").value=currentLanguage;
  $("firstLanguage").value=currentLanguage;
-
  document.querySelectorAll("[data-i18n]").forEach(node=>{
   node.textContent=t(node.dataset.i18n);
  });
-
  renderAll();
 }
-
 function setupLanguages(){
  for(const select of [$("headerLanguage"),$("firstLanguage")]){
   LANGUAGES.forEach(([code,name])=>{
@@ -796,9 +529,7 @@ function setupLanguages(){
    select.appendChild(option);
   });
  }
-
  const saved=storedLanguage();
-
  if(saved&&LANGUAGES.some(x=>x[0]===saved)){
   applyLanguage(saved);
  }else{
@@ -806,7 +537,6 @@ function setupLanguages(){
   $("languageGate").hidden=false;
   document.body.style.overflow="hidden";
  }
-
  $("confirmLanguage").onclick=()=>{
   const lang=$("firstLanguage").value;
   saveLanguage(lang);
@@ -814,7 +544,6 @@ function setupLanguages(){
   $("languageGate").hidden=true;
   document.body.style.overflow="";
  };
-
  $("headerLanguage").onchange=e=>{
   saveLanguage(e.target.value);
   applyLanguage(e.target.value);
@@ -823,25 +552,21 @@ function setupLanguages(){
 
 async function api(path){
  const response=await fetch(BASE+"/rest/v1/"+path,{
-  headers:HEADERS,
-  cache:"no-store"
+  headers:HEADERS,cache:"no-store"
  });
- if(!response.ok){
-  throw Error("HTTP "+response.status);
- }
+ if(!response.ok)throw Error("HTTP "+response.status);
  return response.json();
 }
-
 async function loadPart(name,path){
  try{
-  DATA[name]=await api(path);
+  const result=await api(path);
+  DATA[name]=Array.isArray(result)?result:[];
   delete DATA.errors[name];
  }catch(error){
   DATA.errors[name]=error.message;
   console.warn("Swiss NHL League:",name,error);
  }
 }
-
 async function loadData(){
  await Promise.all([
   loadPart("clubs",
@@ -853,42 +578,23 @@ async function loadData(){
   loadPart("players","rpc/get_public_player_stats"),
   loadPart("goalies","rpc/get_public_goalie_stats")
  ]);
-
  renderAll();
 }
-
 function clubById(id){
  return DATA.clubs.find(c=>c.club_id===id);
 }
-
 function clubName(id){
  return clubById(id)?.name||"–";
 }
-
 function gameMode(value){
- return {
-  "1vs1":"1v1",
-  "3vs3":"3v3",
-  "6vs6":"6v6"
- }[value]||value;
+ return {"1vs1":"1v1","3vs3":"3v3","6vs6":"6v6"}[value]||value;
 }
-
 function displayMode(value){
- return {
-  "1v1":"1vs1",
-  "3v3":"3vs3",
-  "6v6":"6vs6"
- }[value]||value||"–";
+ return {"1v1":"1vs1","3v3":"3vs3","6v6":"6vs6"}[value]||value||"–";
 }
-
-function num(value){
- return Number(value)||0;
-}
-
 function cell(tr,value){
  tr.appendChild(make("td",value??"–"));
 }
-
 function messageRow(host,text,count){
  host.replaceChildren();
  const tr=make("tr");
@@ -897,68 +603,43 @@ function messageRow(host,text,count){
  tr.appendChild(td);
  host.appendChild(tr);
 }
-
 function dateText(value){
  if(!value)return "–";
  const d=new Date(value);
  if(!Number.isFinite(d.getTime()))return "–";
-
  return new Intl.DateTimeFormat(
   currentLanguage==="de"?"de-CH":currentLanguage,
-  {
-   timeZone:"Europe/Zurich",
-   day:"2-digit",
-   month:"2-digit",
-   year:"numeric",
-   hour:"2-digit",
-   minute:"2-digit"
-  }
+  {timeZone:"Europe/Zurich",day:"2-digit",month:"2-digit",
+   year:"numeric",hour:"2-digit",minute:"2-digit"}
  ).format(d);
 }
 
 function renderScores(){
  const box=$("scoreboard");
  box.replaceChildren();
-
  const games=DATA.matches.filter(g=>
   g.match_type!=="friendly"&&
   ["in_progress","completed"].includes(g.status)
  ).slice(0,12);
-
  if(!games.length){
-  box.appendChild(empty(
-   DATA.errors.matches?t("error"):t("noGames")
-  ));
+  box.appendChild(empty(DATA.errors.matches?t("error"):t("noGames")));
   return;
  }
-
  games.forEach(g=>{
   const card=make("article",undefined,"score");
   const meta=make("div",
-   displayMode(g.game_mode)+" · "+dateText(g.scheduled_at),
-   "meta"
-  );
-
+   displayMode(g.game_mode)+" · "+dateText(g.scheduled_at),"meta");
   const teams=make("div",undefined,"teams");
   teams.append(
    make("span",clubName(g.home_club_id)),
    make("span",num(g.home_score)+" : "+num(g.away_score)),
    make("span",clubName(g.away_club_id))
   );
-
   const status=make("div",
    g.status==="in_progress"?"● LIVE":
-   "FINAL"+(
-    g.decision_type&&g.decision_type!=="REG"
-    ?" · "+g.decision_type:""
-   ),
-   "status"
-  );
-
-  if(g.status==="in_progress"){
-   status.classList.add("live");
-  }
-
+   "FINAL"+(g.decision_type&&g.decision_type!=="REG"?
+   " · "+g.decision_type:""),"status");
+  if(g.status==="in_progress")status.classList.add("live");
   card.append(meta,teams,status);
   box.appendChild(card);
  });
@@ -967,21 +648,15 @@ function renderScores(){
 function renderSchedule(){
  const box=$("schedule");
  box.replaceChildren();
-
  const games=DATA.matches.filter(g=>
-  g.match_type!=="friendly"&&
+  (g.match_type==="league"||!g.match_type)&&
   ["scheduled","confirmed","in_progress"].includes(g.status)
- ).sort(
-  (a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at)
- ).slice(0,15);
-
+ ).sort((a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at))
+  .slice(0,15);
  if(!games.length){
-  box.appendChild(empty(
-   DATA.errors.matches?t("error"):t("noGames")
-  ));
+  box.appendChild(empty(DATA.errors.matches?t("error"):t("noGames")));
   return;
  }
-
  games.forEach(g=>{
   const card=make("article",undefined,"game-card");
   card.append(
@@ -996,179 +671,126 @@ function renderSchedule(){
 function renderStandings(){
  const box=$("standings");
  const mode=$("leagueSelect").value;
-
- const rows=DATA.standings.filter(
-  r=>gameMode(r.game_mode)===mode
- ).sort((a,b)=>num(a.platz)-num(b.platz));
-
+ const rows=DATA.standings.filter(r=>gameMode(r.game_mode)===mode)
+  .sort((a,b)=>num(a.platz)-num(b.platz));
  if(!rows.length){
-  messageRow(
-   box,
-   DATA.errors.standings?t("error"):t("noStandings"),
-   13
-  );
+  messageRow(box,DATA.errors.standings?t("error"):t("noStandings"),13);
   return;
  }
-
  box.replaceChildren();
-
  rows.forEach(r=>{
   const tr=make("tr");
+  cell(tr,r.platz);
+  const td=make("td");
+  const wrap=make("div",undefined,"rank-club");
+  const club=clubById(r.club_id);
+  if(club?.logo_url&&/^https:\/\//i.test(club.logo_url)){
+   const img=document.createElement("img");
+   img.src=club.logo_url;
+   img.alt="";
+   img.loading="lazy";
+   wrap.appendChild(img);
+  }
+  wrap.appendChild(make("span",clubName(r.club_id)));
+  td.appendChild(wrap);
+  tr.appendChild(td);
   [
-   r.platz,clubName(r.club_id),r.spiele,
-   r.w,r.otw,r.sow,r.l,r.otl,r.sol,
-   r.tore,r.gegentore,r.tordifferenz,r.punkte
+   r.spiele,r.punkte,r.w,r.otw,r.sow,
+   r.sol,r.otl,r.l,r.tore,r.gegentore,r.tordifferenz
   ].forEach(v=>cell(tr,v));
-
   box.appendChild(tr);
  });
 }
 
+/*
+ Die endgültigen Tabellenfarben werden erst aktiviert,
+ wenn die serverseitige mathematische Qualifikationsprüfung
+ und das Freischaltdatum der Liga-Leitung implementiert sind.
+ Es werden keine Farben anhand des aktuellen Rangs geraten.
+*/
+
 function renderPlayers(){
  const host=$("playerStats");
-
- const rows=DATA.players.filter(
-  p=>gameMode(p.game_mode)===statsMode
- ).sort((a,b)=>num(b.points)-num(a.points));
-
+ const rows=DATA.players.filter(p=>gameMode(p.game_mode)===statsMode)
+  .sort((a,b)=>num(b.points)-num(a.points));
  if(!rows.length){
-  messageRow(
-   host,
-   DATA.errors.players?t("error"):t("noPlayers"),
-   7
-  );
+  messageRow(host,DATA.errors.players?t("error"):t("noPlayers"),7);
   return;
  }
-
  host.replaceChildren();
-
  rows.slice(0,50).forEach((p,i)=>{
   const tr=make("tr");
   [
-   i+1,
-   p.gamer_name||p.player_name||"–",
-   p.club_name||"–",
-   p.games_played??0,
-   p.goals??0,
-   p.assists??0,
-   p.points??0
+   i+1,p.gamer_name||p.player_name||"–",
+   p.club_name||"–",p.games_played??0,
+   p.goals??0,p.assists??0,p.points??0
   ].forEach(v=>cell(tr,v));
-
   host.appendChild(tr);
  });
 }
 
 function renderGoalies(){
  const host=$("goalieStats");
-
- const rows=DATA.goalies.filter(
-  g=>gameMode(g.game_mode)===statsMode
- ).sort(
-  (a,b)=>num(b.save_percentage)-num(a.save_percentage)
- );
-
+ const rows=DATA.goalies.filter(g=>gameMode(g.game_mode)===statsMode)
+  .sort((a,b)=>num(b.save_percentage)-num(a.save_percentage));
  if(!rows.length){
-  messageRow(
-   host,
-   DATA.errors.goalies?t("error"):t("noGoalies"),
-   7
-  );
+  messageRow(host,DATA.errors.goalies?t("error"):t("noGoalies"),7);
   return;
  }
-
  host.replaceChildren();
-
  rows.slice(0,50).forEach(g=>{
   const tr=make("tr");
   [
    g.gamer_name||g.player_name||"–",
-   g.club_name||"–",
-   g.games_played??0,
-   g.wins??0,
-   g.save_percentage??"–",
-   g.goals_against_average??"–",
-   g.shutouts??0
+   g.club_name||"–",g.games_played??0,
+   g.wins??0,g.save_percentage??"–",
+   g.goals_against_average??"–",g.shutouts??0
   ].forEach(v=>cell(tr,v));
-
   host.appendChild(tr);
  });
 }
 
 function countryName(code){
  if(!code)return "–";
-
  try{
   return new Intl.DisplayNames(
-   [currentLanguage],
-   {type:"region"}
+   [currentLanguage],{type:"region"}
   ).of(code.toUpperCase());
- }catch(e){
-  return code;
- }
+ }catch(e){return code}
 }
-
 function flag(code){
- if(!/^[a-z]{2}$/i.test(code||"")){
-  return "";
- }
-
+ if(!/^[a-z]{2}$/i.test(code||""))return "";
  return [...code.toUpperCase()].map(c=>
-  String.fromCodePoint(
-   127397+c.charCodeAt(0)
-  )
+  String.fromCodePoint(127397+c.charCodeAt(0))
  ).join("");
 }
-
-/* CLUBS – GROSSE LOGOS OHNE HINTERGRUND */
 
 function renderClubs(){
  const box=$("clubList");
  box.replaceChildren();
-
  if(!DATA.clubs.length){
-  box.appendChild(empty(
-   DATA.errors.clubs?t("error"):t("noClubs")
-  ));
+  box.appendChild(empty(DATA.errors.clubs?t("error"):t("noClubs")));
   return;
  }
-
  DATA.clubs.forEach(c=>{
   const card=make("article",undefined,"club");
   const logo=make("div",undefined,"club-logo");
-
   if(c.logo_url&&/^https:\/\//i.test(c.logo_url)){
    const img=document.createElement("img");
    img.src=c.logo_url;
    img.alt="Clublogo "+(c.name||"");
    img.loading="lazy";
-   img.onerror=()=>{
-    logo.replaceChildren(make("span","🛡️"));
-   };
+   img.onerror=()=>logo.replaceChildren(make("span","🛡️"));
    logo.appendChild(img);
-  }else{
-   logo.textContent="🛡️";
-  }
-
+  }else logo.textContent="🛡️";
   const info=make("div",undefined,"club-info");
-
   info.append(
    make("strong",c.name||"–"),
-   make(
-    "small",
-    flag(c.country_code)+" "+countryName(c.country_code)
-   )
+   make("small",flag(c.country_code)+" "+countryName(c.country_code))
   );
-
   const count=num(c.player_count);
-
-  info.appendChild(
-   make(
-    "small",
-    count+" "+t("active"),
-    count>=7?"good":"bad"
-   )
-  );
-
+  info.appendChild(make("small",
+   count+" "+t("active"),count>=7?"good":"bad"));
   card.append(logo,info);
   box.appendChild(card);
  });
@@ -1177,18 +799,14 @@ function renderClubs(){
 function renderNews(){
  const box=$("newsList");
  box.replaceChildren();
-
  if(!DATA.news.length){
   box.appendChild(make("p",t("noNews"),"muted"));
   return;
  }
-
  DATA.news.forEach(n=>{
   const card=make("article",undefined,"video-item");
-  card.append(
-   make("h3",n.title||"News"),
-   make("p",n.text||"","muted")
-  );
+  card.append(make("h3",n.title||"News"),
+   make("p",n.text||"","muted"));
   box.appendChild(card);
  });
 }
@@ -1196,59 +814,127 @@ function renderNews(){
 function showStream(s){
  const host=$("videoPlayer");
  host.replaceChildren();
-
- const channel=String(s.channel||"")
-  .replace(/[^a-zA-Z0-9_]/g,"");
-
- const vod=String(s.vodId||"")
-  .replace(/[^0-9]/g,"");
-
+ const channel=String(s.channel||"").replace(/[^a-zA-Z0-9_]/g,"");
+ const vod=String(s.vodId||"").replace(/[^0-9]/g,"");
  if((!channel&&!vod)||!location.hostname){
   host.appendChild(empty(t("noStreams")));
   return;
  }
-
  const frame=document.createElement("iframe");
  frame.title=s.title||"Twitch";
  frame.allow="autoplay; fullscreen";
  frame.allowFullscreen=true;
-
  frame.src="https://player.twitch.tv/?"+
-  (vod
-   ?"video=v"+encodeURIComponent(vod)
-   :"channel="+encodeURIComponent(channel)
-  )+
+  (vod?"video=v"+encodeURIComponent(vod):
+   "channel="+encodeURIComponent(channel))+
   "&parent="+encodeURIComponent(location.hostname)+
   "&autoplay=false";
-
  const player=make("div",undefined,"player");
  player.appendChild(frame);
  host.appendChild(player);
 }
-
 function renderStreams(){
  const box=$("videoList");
  box.replaceChildren();
-
  if(!DATA.streams.length){
   box.appendChild(empty(t("noStreams")));
   return;
  }
-
  DATA.streams.forEach(s=>{
   const card=make("article",undefined,"video-item");
   const btn=make("button",t("watch"),"btn");
-
   btn.onclick=()=>showStream(s);
-
-  card.append(
-   make("h3",s.title||"Swiss NHL League"),
-   make("p",s.vodId?"REPLAY":s.status||"LIVE","muted"),
-   btn
-  );
-
+  card.append(make("h3",s.title||"Swiss NHL League"),
+   make("p",s.vodId?"REPLAY":s.status||"LIVE","muted"),btn);
   box.appendChild(card);
  });
+}
+
+function teamNode(name,logo){
+ const box=make("div",undefined,"duel-team");
+ if(logo&&/^https:\/\//i.test(logo)){
+  const img=document.createElement("img");
+  img.src=logo;img.alt="";img.loading="lazy";
+  box.appendChild(img);
+ }else{
+  box.appendChild(make("div","🛡️","stream-icon"));
+ }
+ box.appendChild(make("strong",name||"–"));
+ return box;
+}
+
+function fixtureCard(f){
+ const card=make("article",undefined,"round-card");
+ card.appendChild(make("div",
+  (f.round_label||"Begegnung")+" · "+dateText(f.scheduled_at),
+  "round-title"));
+ const duel=make("div",undefined,"duel");
+ const home=clubById(f.home_club_id);
+ const away=clubById(f.away_club_id);
+ duel.append(
+  teamNode(home?.name||f.home_name||"Noch offen",home?.logo_url),
+  make("div",
+   f.status==="completed"?
+   num(f.home_score)+" : "+num(f.away_score):"VS",
+   "duel-vs"),
+  teamNode(away?.name||f.away_name||"Noch offen",away?.logo_url)
+ );
+ card.appendChild(duel);
+ if(f.status)card.appendChild(make("p",f.status,"note"));
+ return card;
+}
+
+function renderCup(){
+ const host=$("cupFixtures");
+ host.replaceChildren();
+ const round=$("cupRound").value;
+ const rows=DATA.cupFixtures.filter(f=>
+  round==="all"||f.round_code===round
+ );
+ if(!rows.length){
+  host.appendChild(empty("Noch keine offiziellen Cup-Begegnungen veröffentlicht."));
+ }else{
+  rows.forEach(f=>host.appendChild(fixtureCard(f)));
+ }
+ const draw=$("cupDraw");
+ draw.replaceChildren();
+ if(!DATA.cupDraws.length){
+  draw.appendChild(empty("Noch keine offizielle Cup-Auslosung veröffentlicht."));
+ }else{
+  DATA.cupDraws.forEach(d=>{
+   const card=make("div",undefined,"round-card");
+   card.append(
+    make("strong",d.title||"Cup-Auslosung"),
+    make("p",d.description||"","muted")
+   );
+   draw.appendChild(card);
+  });
+ }
+}
+
+function renderPlayoffs(){
+ const group=$("playoffGroup").value;
+ const names={
+  playins:"Play-ins",playoffs:"Playoffs",
+  playout:"Play-out-Final",promotion:"Auf-/Abstieg"
+ };
+ $("playoffTitle").textContent=names[playoffPhase]+" · Gruppe "+group;
+ const host=$("playoffFixtures");
+ host.replaceChildren();
+ const rows=DATA.playoffFixtures.filter(f=>
+  f.phase===playoffPhase&&
+  (f.group_code===group||
+   (playoffPhase==="promotion"&&
+    (f.from_group===group||f.to_group===group)))
+ );
+ if(!rows.length){
+  host.appendChild(empty(
+   "Für "+names[playoffPhase]+
+   " sind noch keine offiziellen Begegnungen veröffentlicht."
+  ));
+  return;
+ }
+ rows.forEach(f=>host.appendChild(fixtureCard(f)));
 }
 
 function renderAll(){
@@ -1260,18 +946,28 @@ function renderAll(){
  renderClubs();
  renderNews();
  renderStreams();
+ renderCup();
+ renderPlayoffs();
 }
 
 $("leagueSelect").onchange=renderStandings;
+$("cupRound").onchange=renderCup;
+$("playoffGroup").onchange=renderPlayoffs;
+
+document.querySelectorAll("[data-phase]").forEach(btn=>{
+ btn.onclick=()=>{
+  playoffPhase=btn.dataset.phase;
+  document.querySelectorAll("[data-phase]").forEach(b=>
+   b.classList.toggle("active",b===btn));
+  renderPlayoffs();
+ };
+});
 
 document.querySelectorAll("[data-stats-mode]").forEach(btn=>{
  btn.onclick=()=>{
   statsMode=btn.dataset.statsMode;
-
-  document.querySelectorAll("[data-stats-mode]").forEach(b=>{
-   b.classList.toggle("active",b===btn);
-  });
-
+  document.querySelectorAll("[data-stats-mode]").forEach(b=>
+   b.classList.toggle("active",b===btn));
   renderPlayers();
   renderGoalies();
  };
@@ -1282,7 +978,6 @@ $("openStreams").onclick=()=>{
  document.body.style.overflow="hidden";
  renderStreams();
 };
-
 $("closeStreams").onclick=()=>{
  $("videoCenter").hidden=true;
  document.body.style.overflow="";
@@ -1294,8 +989,8 @@ window.addEventListener("snhl:data-updated",renderAll);
 setupLanguages();
 loadData();
 setInterval(loadData,60000);
-
 </script>
 </body>
 </html>
+
 
