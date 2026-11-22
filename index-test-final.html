@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -120,6 +119,16 @@ footer{border-top:1px solid var(--line);padding:30px 20px;text-align:center;colo
 .stage{background:#142d49;border:1px solid #315579;border-radius:9px;padding:12px;text-align:center;font-weight:bold;font-size:12px}
 .stage span{display:block;color:#b0cbe7;font-weight:normal;margin-top:7px}
 .note{font-size:12px;color:#a8c1dd;line-height:1.6}
+.cup-live-card{background:#112b48;border:1px solid #34699b;border-radius:12px;padding:18px;margin-bottom:15px}
+.cup-live-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.cup-live-status{font-weight:bold;color:#85c2ff}
+.cup-live-status.live{color:#ff8585}
+.cup-live-countdown{font-size:25px;font-weight:900;font-variant-numeric:tabular-nums}
+.cup-live-events{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:15px}
+.cup-live-club{display:flex;align-items:center;gap:12px;background:#1b3958;border:1px solid #37628b;border-radius:10px;padding:12px}
+.cup-live-club img{width:58px;height:58px;object-fit:contain}
+.cup-live-club strong{overflow-wrap:anywhere}
+.cup-live-club small{display:block;color:#a9c7e6;margin-top:5px}
 @media(max-width:800px){
  .grid,.two{grid-template-columns:1fr}
  .cup-info{grid-template-columns:1fr}
@@ -475,9 +484,11 @@ const TRANSLATIONS={
   noStandings:"No official standings available yet.",
   noPlayers:"No official player statistics available yet.",
   noGoalies:"No official goalie statistics available yet.",
-  noClubs:"No clubs published yet.",noNews:"No official news yet.",
+  noClubs:"No clubs published yet.",
+  noNews:"No official news yet.",
   noStreams:"No official streams or replays available yet.",
-  error:"Data could not be loaded.",active:"active players"
+  error:"Data could not be loaded.",
+  active:"active players"
  }
 };
 
@@ -490,13 +501,6 @@ const DATA={
  streams:[],news:[],cupFixtures:[],cupDraws:[],
  playoffFixtures:[],errors:{}
 };
-
-/*
- CUP UND PLAYOFF BACKEND:
- Diese Arrays bleiben leer, bis die offiziellen Cup- und
- Entscheidungsrunden-Tabellen/RPCs in Supabase angelegt sind.
- Keine Testspiele werden als echte Begegnungen angezeigt.
-*/
 
 function t(key){
  return TRANSLATIONS[currentLanguage]?.[key]||
@@ -702,13 +706,6 @@ function renderStandings(){
  });
 }
 
-/*
- Die endgültigen Tabellenfarben werden erst aktiviert,
- wenn die serverseitige mathematische Qualifikationsprüfung
- und das Freischaltdatum der Liga-Leitung implementiert sind.
- Es werden keine Farben anhand des aktuellen Rangs geraten.
-*/
-
 function renderPlayers(){
  const host=$("playerStats");
  const rows=DATA.players.filter(p=>gameMode(p.game_mode)===statsMode)
@@ -896,20 +893,7 @@ function renderCup(){
  }else{
   rows.forEach(f=>host.appendChild(fixtureCard(f)));
  }
- const draw=$("cupDraw");
- draw.replaceChildren();
- if(!DATA.cupDraws.length){
-  draw.appendChild(empty("Noch keine offizielle Cup-Auslosung veröffentlicht."));
- }else{
-  DATA.cupDraws.forEach(d=>{
-   const card=make("div",undefined,"round-card");
-   card.append(
-    make("strong",d.title||"Cup-Auslosung"),
-    make("p",d.description||"","muted")
-   );
-   draw.appendChild(card);
-  });
- }
+ renderCupDraw();
 }
 
 function renderPlayoffs(){
@@ -935,6 +919,208 @@ function renderPlayoffs(){
   return;
  }
  rows.forEach(f=>host.appendChild(fixtureCard(f)));
+}
+
+/* CUP LIVE-AUSLOSUNG */
+
+const CUP_LIVE={
+ draws:[],
+ events:[],
+ selected:null,
+ error:null
+};
+
+async function cupRpc(name,body){
+ const response=await fetch(BASE+"/rest/v1/rpc/"+name,{
+  method:"POST",
+  headers:{
+   apikey:KEY,
+   "Content-Type":"application/json"
+  },
+  body:JSON.stringify(body),
+  cache:"no-store"
+ });
+ if(!response.ok)throw Error("HTTP "+response.status);
+ return response.json();
+}
+
+async function loadCupLive(){
+ try{
+  const draws=await cupRpc("snhl_cup_public_draws",{});
+  CUP_LIVE.draws=Array.isArray(draws)?draws:[];
+  CUP_LIVE.error=null;
+
+  const selected=CUP_LIVE.draws.find(d=>
+   d.draw_id===CUP_LIVE.selected
+  )||CUP_LIVE.draws[0];
+
+  CUP_LIVE.selected=selected?.draw_id||null;
+
+  if(CUP_LIVE.selected){
+   const events=await cupRpc(
+    "snhl_cup_public_live_clubs",
+    {p_draw_id:CUP_LIVE.selected}
+   );
+   CUP_LIVE.events=Array.isArray(events)?events:[];
+  }else{
+   CUP_LIVE.events=[];
+  }
+
+  renderCupDraw();
+ }catch(error){
+  CUP_LIVE.error=error.message;
+  console.warn("Cup-Live:",error);
+  renderCupDraw();
+ }
+}
+
+function cupCountdown(value){
+ if(!value)return "–";
+ const seconds=Math.max(
+  0,Math.ceil((new Date(value)-Date.now())/1000)
+ );
+ const hours=Math.floor(seconds/3600);
+ const minutes=Math.floor((seconds%3600)/60);
+ const secs=seconds%60;
+ return [hours,minutes,secs]
+  .map(x=>String(x).padStart(2,"0"))
+  .join(":");
+}
+
+function cupStatus(status){
+ return {
+  scheduled:"GEPLANT",
+  live:"🔴 LIVE",
+  completed:"ABGESCHLOSSEN"
+ }[status]||status||"–";
+}
+
+function renderCupDraw(){
+ const host=$("cupDraw");
+ host.replaceChildren();
+
+ if(CUP_LIVE.error){
+  host.appendChild(empty(
+   "Cup-Auslosung konnte nicht geladen werden."
+  ));
+  return;
+ }
+
+ if(!CUP_LIVE.draws.length){
+  host.appendChild(empty(
+   "Noch keine offizielle Cup-Auslosung veröffentlicht."
+  ));
+  return;
+ }
+
+ const select=document.createElement("select");
+ select.setAttribute("aria-label","Cup-Auslosung auswählen");
+
+ CUP_LIVE.draws.forEach(d=>{
+  const option=document.createElement("option");
+  option.value=d.draw_id;
+  option.textContent=
+   d.season+" · "+d.round_name+" · "+
+   cupStatus(d.draw_status);
+  select.appendChild(option);
+ });
+
+ select.value=CUP_LIVE.selected;
+ select.onchange=()=>{
+  CUP_LIVE.selected=select.value;
+  CUP_LIVE.events=[];
+  loadCupLive();
+ };
+
+ host.appendChild(select);
+
+ const draw=CUP_LIVE.draws.find(d=>
+  d.draw_id===CUP_LIVE.selected
+ );
+
+ if(!draw)return;
+
+ const card=make("div",undefined,"cup-live-card");
+ card.style.marginTop="15px";
+
+ const top=make("div",undefined,"cup-live-top");
+ const status=make(
+  "div",cupStatus(draw.draw_status),
+  "cup-live-status"
+ );
+ if(draw.draw_status==="live"){
+  status.classList.add("live");
+ }
+
+ const countdown=make(
+  "div","–","cup-live-countdown"
+ );
+
+ if(draw.draw_status==="scheduled"){
+  countdown.textContent=cupCountdown(draw.scheduled_at);
+ }else if(draw.draw_status==="live"){
+  const end=new Date(draw.started_at);
+  end.setMinutes(end.getMinutes()+12);
+  countdown.textContent=cupCountdown(end.toISOString());
+ }else{
+  countdown.textContent="00:00:00";
+ }
+
+ top.append(status,countdown);
+ card.appendChild(top);
+
+ card.appendChild(make(
+  "p",
+  draw.draw_status==="scheduled"
+   ?"Beginn: "+dateText(draw.scheduled_at)
+   :draw.draw_status==="live"
+   ?"Die Clubs werden während 12 Minuten einzeln gezogen."
+   :"Diese Auslosung ist abgeschlossen.",
+  "note"
+ ));
+
+ const eventBox=make("div",undefined,"cup-live-events");
+
+ if(!CUP_LIVE.events.length){
+  eventBox.appendChild(empty(
+   draw.draw_status==="scheduled"
+    ?"Die Auslosung beginnt zum geplanten Zeitpunkt."
+    :"Noch keine Clubs veröffentlicht."
+  ));
+ }else{
+  CUP_LIVE.events.forEach(e=>{
+   const club=make("article",undefined,"cup-live-club");
+
+   if(e.logo_url&&/^https:\/\//i.test(e.logo_url)){
+    const img=document.createElement("img");
+    img.src=e.logo_url;
+    img.alt="";
+    img.onerror=()=>img.remove();
+    club.appendChild(img);
+   }else{
+    club.appendChild(make("span","🛡️"));
+   }
+
+   const info=make("div");
+   info.append(
+    make("strong",e.club_name||"Club"),
+    make(
+     "small",
+     e.event_type==="bye"
+      ?"FREILOS"
+      :e.event_type==="home_drawn"
+      ?"HEIMCLUB · Paarung "+e.draw_position
+      :"GASTCLUB · Paarung "+e.draw_position
+    )
+   );
+
+   club.appendChild(info);
+   eventBox.appendChild(club);
+  });
+ }
+
+ card.appendChild(eventBox);
+ host.appendChild(card);
 }
 
 function renderAll(){
@@ -988,9 +1174,15 @@ window.addEventListener("snhl:data-updated",renderAll);
 
 setupLanguages();
 loadData();
+loadCupLive();
+
 setInterval(loadData,60000);
+setInterval(loadCupLive,5000);
+setInterval(renderCupDraw,1000);
+
 </script>
 </body>
 </html>
+
 
 
