@@ -7,7 +7,14 @@
 <meta name="theme-color" content="#07101d">
 <title>Swiss NHL League | Season 1</title>
 <style>
-:root{--bg:#07101d;--panel:#10233a;--blue:#1683ff;--line:#294767;--text:#f5f9ff;--muted:#a2b8d1}
+:root{
+ --bg:#07101d;
+ --panel:#10233a;
+ --blue:#1683ff;
+ --line:#294767;
+ --text:#f5f9ff;
+ --muted:#a2b8d1
+}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--text);font:15px Arial,sans-serif}
@@ -103,9 +110,83 @@ th{color:#9cc6f1;background:#173451}
 .cup-live-club img{width:58px;height:58px;object-fit:contain}
 .cup-live-club strong{overflow-wrap:anywhere}
 .cup-live-club small{display:block;color:#a9c7e6;margin-top:5px}
+
+/* CUP PODEST */
+
+.cup-podium{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:12px;
+ align-items:stretch;
+ margin-top:18px
+}
+.podium-card{
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ text-align:center;
+ gap:12px;
+ min-width:0;
+ padding:22px 12px;
+ background:#142d49;
+ border:2px solid #365777;
+ border-radius:14px
+}
+.podium-card.place-1{
+ border-color:#eac45a;
+ background:linear-gradient(145deg,#40361b,#13243b)
+}
+.podium-card.place-2{
+ border-color:#b9c6d6
+}
+.podium-card.place-3{
+ border-color:#bc8655
+}
+.podium-medal{
+ font-size:42px
+}
+.podium-card img{
+ width:85px;
+ height:85px;
+ object-fit:contain
+}
+.podium-card strong{
+ font-size:18px;
+ overflow-wrap:anywhere
+}
+.podium-card small{
+ color:#b7cce5;
+ font-weight:bold
+}
+.podium-card.place-1 small{
+ color:#f5d779
+}
+.cup-season-title{
+ color:#93c8ff;
+ margin-top:20px;
+ margin-bottom:10px
+}
+.cup-winner{
+ color:#70e6a0;
+ font-weight:bold;
+ text-align:center;
+ margin-top:12px
+}
 footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:#a2b8d1}
-@media(max-width:800px){.two,.cup-info{grid-template-columns:1fr}.stage-row{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:480px){.club{padding:15px;gap:14px}.club-logo{width:95px;height:95px;min-width:95px}.club strong{font-size:17px}.duel-team img{width:45px;height:45px}}
+@media(max-width:800px){
+ .two,.cup-info{grid-template-columns:1fr}
+ .stage-row{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+ .club{padding:15px;gap:14px}
+ .club-logo{width:95px;height:95px;min-width:95px}
+ .club strong{font-size:17px}
+ .duel-team img{width:45px;height:45px}
+ .cup-podium{grid-template-columns:1fr}
+ .podium-card{padding:18px}
+ .podium-card img{width:75px;height:75px}
+}
 </style>
 </head>
 <body>
@@ -119,13 +200,18 @@ footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:#a2
 </div>
 </div>
 
-<header><div class="top">
-<a class="brand" href="#home"><img src="Photoroom_20261020_001711.png" alt="Swiss NHL League"></a>
+<header>
+<div class="top">
+<a class="brand" href="#home">
+<img src="Photoroom_20261020_001711.png" alt="Swiss NHL League">
+</a>
 <div class="actions">
 <select id="headerLanguage" aria-label="Sprache"></select>
 <a class="btn secondary" href="login.html" data-i18n="login">Login</a>
 <a class="btn" href="login.html?mode=register" data-i18n="register">Registrieren</a>
-</div></div></header>
+</div>
+</div>
+</header>
 
 <nav>
 <a href="#home">Home</a>
@@ -141,6 +227,7 @@ footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:#a2
 </nav>
 
 <main id="home">
+
 <section class="hero">
 <p class="eyebrow">SWISS NHL LEAGUE · SEASON 1</p>
 <h1>YOUR LEAGUE.<br>YOUR GAME.</h1>
@@ -153,13 +240,20 @@ footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:#a2
 </section>
 
 <section class="section" id="live">
-<div class="heading"><h2>🔴 LIVE SCOREBOARD</h2><span class="tag">SWISS NHL LEAGUE</span></div>
+<div class="heading">
+<h2>🔴 LIVE SCOREBOARD</h2>
+<span class="tag">SWISS NHL LEAGUE</span>
+</div>
 <div class="score-strip" id="scoreboard"></div>
 </section>
 
 <div class="two section">
+
 <section class="panel">
-<div class="heading"><h2 data-i18n="streams">📺 Live-Streams & Replays</h2><span class="tag">TWITCH</span></div>
+<div class="heading">
+<h2 data-i18n="streams">📺 Live-Streams & Replays</h2>
+<span class="tag">TWITCH</span>
+</div>
 <div class="stream-preview">
 <div class="stream-icon">▶</div>
 <strong>Swiss NHL League Video Center</strong>
@@ -167,19 +261,32 @@ footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:#a2
 <button class="btn" id="openStreams">Alle Spiele ansehen</button>
 </div>
 </section>
+
 <section class="panel" id="ligen">
 <h2>🏆 Unsere Ligen</h2>
-<div class="video-item"><strong>1vs1</strong><p>Einzelwettbewerb</p></div>
-<div class="video-item"><strong>3vs3</strong><p>Dreier-Teams</p></div>
-<div class="video-item"><strong>6vs6</strong><p>Club-Wettbewerb</p></div>
+<div class="video-item">
+<strong>1vs1</strong>
+<p>Einzelwettbewerb</p>
+</div>
+<div class="video-item">
+<strong>3vs3</strong>
+<p>Dreier-Teams</p>
+</div>
+<div class="video-item">
+<strong>6vs6</strong>
+<p>Club-Wettbewerb</p>
+</div>
 </section>
+
 </div>
 
 <div class="two section">
+
 <section class="panel" id="spiele">
 <h2>📅 Qualifikation – Spielplan</h2>
 <div id="schedule"></div>
 </section>
+
 <section class="panel" id="tabellen">
 <div class="heading">
 <h2>📊 Meisterschaftstabelle</h2>
@@ -189,67 +296,189 @@ footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:#a2
 <option value="6v6">6vs6</option>
 </select>
 </div>
+
 <p class="note">Rang und Club bleiben beim seitlichen Verschieben sichtbar.</p>
+
 <div class="table-wrap">
 <table class="rank-table">
-<thead><tr>
-<th>#</th><th>Club</th><th>GP</th><th>PTS</th>
-<th>W</th><th>OTW</th><th>SOW</th><th>SOL</th>
-<th>OTL</th><th>L</th><th>GF</th><th>GA</th><th>GDF</th>
-</tr></thead>
+<thead>
+<tr>
+<th>#</th>
+<th>Club</th>
+<th>GP</th>
+<th>PTS</th>
+<th>W</th>
+<th>OTW</th>
+<th>SOW</th>
+<th>SOL</th>
+<th>OTL</th>
+<th>L</th>
+<th>GF</th>
+<th>GA</th>
+<th>GDF</th>
+</tr>
+</thead>
 <tbody id="standings"></tbody>
 </table>
 </div>
 </section>
+
 </div>
 
+<!-- SWISS NHL LEAGUE CUP -->
+
 <section class="section" id="cup">
+
 <div class="center-header">
 <p class="eyebrow">SWISS NHL LEAGUE · SEASON 1</p>
 <h2>🏆 SWISS NHL LEAGUE CUP</h2>
-<p>Alle zugelassenen Clubs nehmen automatisch teil. Ein Spiel pro Begegnung. Sieger kommen weiter. Nach jeder Runde erfolgt eine neue Auslosung.</p>
+<p>
+Alle zugelassenen Clubs nehmen automatisch teil.
+Ein Spiel pro Begegnung. Die Sieger qualifizieren
+sich für die nächste Runde. Bis einschliesslich
+Viertelfinale werden die Paarungen ausgelost.
+Ab dem Halbfinale stehen die Paarungen fest.
+</p>
 </div>
+
 <div class="cup-info">
-<div class="info-tile"><strong>🎲 Live-Auslosung</strong><small>Am Folgetag des offiziellen Rundenabschlusses um 18:00 Uhr Schweizer Zeit.</small></div>
-<div class="info-tile"><strong>🕛 Rundenfrist</strong><small>Spiele und Ergebnisse spätestens am festgelegten letzten Rundentag um 23:59 Uhr.</small></div>
-<div class="info-tile"><strong>🤝 Spielorganisation</strong><small>Clubs vereinbaren Termine selbst. Beide Clubs bestätigen das Ergebnis.</small></div>
+
+<div class="info-tile">
+<strong>🎲 Live-Auslosung</strong>
+<small>
+Am Folgetag des offiziellen Rundenabschlusses
+um 18:00 Uhr Schweizer Zeit.
+Die Live-Auslosung dauert 12 Minuten.
+Ab dem Halbfinale findet keine neue Auslosung statt.
+</small>
 </div>
+
+<div class="info-tile">
+<strong>🕛 Rundenfrist</strong>
+<small>
+Alle Spiele müssen spätestens am festgelegten
+letzten Rundentag um 23:59 Uhr Schweizer Zeit
+beendet und die Ergebnisse eingetragen sein.
+Offene Resultatkonflikte müssen vor der nächsten
+Auslosung geklärt werden.
+</small>
+</div>
+
+<div class="info-tile">
+<strong>🤝 Spielorganisation</strong>
+<small>
+Die Clubs vereinbaren ihre Spieltermine selbst.
+Beide Clubs bestätigen den Termin und das Ergebnis.
+Die Liga-Leitung legt die Spielfristen fest.
+</small>
+</div>
+
+</div>
+
 <div class="panel">
-<div class="heading"><h2>🏆 Cup-Spielplan</h2><span class="tag">K.-O.-SYSTEM</span></div>
-<div class="stage-row">
-<div class="stage">Frühe Runden<span>Neue Auslosung</span></div>
-<div class="stage">Viertelfinal<span>8 Clubs</span></div>
-<div class="stage">Halbfinal<span>4 Clubs</span></div>
-<div class="stage">Final & Platz 3<span>Entscheidung</span></div>
+
+<div class="heading">
+<h2>🏆 Cup-Spielplan</h2>
+<span class="tag">K.-O.-SYSTEM</span>
 </div>
+
+<div class="stage-row">
+
+<div class="stage">
+Frühe Runden
+<span>Neue Auslosung</span>
+</div>
+
+<div class="stage">
+Viertelfinale
+<span>8 Clubs · Letzte Auslosung</span>
+</div>
+
+<div class="stage">
+Halbfinale
+<span>4 Clubs · Feste Paarungen</span>
+</div>
+
+<div class="stage">
+Finale & Platz 3
+<span>Feste Paarungen · Entscheidung</span>
+</div>
+
+</div>
+
 <div class="center-controls">
 <label for="cupRound">Cup-Runde:</label>
 <select id="cupRound">
 <option value="all">Alle Runden</option>
 <option value="early">Frühe Runden</option>
-<option value="round16">Achtelfinal</option>
-<option value="quarter">Viertelfinal</option>
-<option value="semi">Halbfinal</option>
+<option value="round16">Achtelfinale</option>
+<option value="quarter">Viertelfinale</option>
+<option value="semi">Halbfinale</option>
 <option value="third">Spiel um Platz 3</option>
-<option value="final">Final</option>
+<option value="final">Finale</option>
 </select>
 </div>
+
 <div id="cupFixtures"></div>
+
 </div>
+
 <div class="panel" style="margin-top:15px">
-<div class="heading"><h2>🎲 Cup-Auslosung</h2><span class="tag">18:00 UHR</span></div>
-<div id="cupDraw"></div>
-<p class="note">Freilose werden öffentlich angezeigt und bevorzugt an Clubs ohne bisheriges Freilos vergeben. Ab dem Viertelfinal gibt es keine Freilose.</p>
+
+<div class="heading">
+<h2>🎲 Cup-Auslosung</h2>
+<span class="tag">18:00 UHR CH</span>
 </div>
+
+<div id="cupDraw"></div>
+
+<p class="note">
+Freilose werden öffentlich angezeigt und bevorzugt
+an Clubs ohne bisheriges Freilos vergeben.
+Ab dem Viertelfinale gibt es keine Freilose.
+Ab dem Halbfinale werden die Paarungen
+automatisch ohne Auslosung erstellt.
+</p>
+
+</div>
+
+<!-- OEFFENTLICHE CUP-PLATZIERUNGEN -->
+
+<div class="panel" style="margin-top:15px">
+
+<div class="heading">
+<h2>🏆 Cup-Podest</h2>
+<span class="tag">OFFIZIELLE PLATZIERUNGEN</span>
+</div>
+
+<p class="note">
+Nach dem offiziellen Abschluss der Cup-Saison
+werden hier der Cup-Sieger sowie der zweite
+und dritte Platz veröffentlicht.
+</p>
+
+<div id="cupPodium" aria-live="polite">
+<div class="empty">
+Noch keine offiziellen Cup-Platzierungen veröffentlicht.
+</div>
+</div>
+
+</div>
+
 </section>
 
+<!-- PLAYOFF-CENTER -->
+
 <section class="section" id="playoff-center">
+
 <div class="center-header">
 <p class="eyebrow">SWISS NHL LEAGUE · SEASON 1</p>
 <h2>🏒 PLAYOFF-CENTER</h2>
 <p>Play-ins, Playoffs, Play-out-Final und Auf-/Abstieg.</p>
 </div>
+
 <div class="panel">
+
 <div class="center-controls">
 <label for="playoffGroup">Gruppe:</label>
 <select id="playoffGroup">
@@ -258,55 +487,113 @@ footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:#a2
 <option value="C">Gruppe C</option>
 </select>
 </div>
+
 <div class="tabs">
 <button class="tab active" data-phase="playins">Play-ins</button>
 <button class="tab" data-phase="playoffs">Playoffs</button>
 <button class="tab" data-phase="playout">Play-out-Final</button>
 <button class="tab" data-phase="promotion">Auf-/Abstieg</button>
 </div>
-<h3 id="playoffTitle" style="margin-top:18px">Play-ins · Gruppe A</h3>
+
+<h3 id="playoffTitle" style="margin-top:18px">
+Play-ins · Gruppe A
+</h3>
+
 <div id="playoffFixtures"></div>
+
 </div>
 </section>
 
+<!-- CLUBUEBERSICHT -->
+
 <section class="section" id="clubs">
-<div class="heading"><h2>🛡️ Clubübersicht</h2><span class="tag">SEASON 1</span></div>
+
+<div class="heading">
+<h2>🛡️ Clubübersicht</h2>
+<span class="tag">SEASON 1</span>
+</div>
+
 <div class="club-grid" id="clubList"></div>
+
 </section>
 
+<!-- SPIELERSTATISTIKEN -->
+
 <section class="section" id="scorer">
+
 <h2>🥅 Spielerstatistiken</h2>
+
 <div class="panel">
+
 <div class="mode-row">
 <button class="active" data-stats-mode="3v3">3vs3</button>
 <button data-stats-mode="6v6">6vs6</button>
 </div>
+
 <div class="table-wrap">
+
 <table>
-<thead><tr><th>#</th><th>Spieler</th><th>Club</th><th>Sp.</th><th>T</th><th>A</th><th>PTS</th></tr></thead>
+<thead>
+<tr>
+<th>#</th>
+<th>Spieler</th>
+<th>Club</th>
+<th>Sp.</th>
+<th>T</th>
+<th>A</th>
+<th>PTS</th>
+</tr>
+</thead>
 <tbody id="playerStats"></tbody>
 </table>
+
 </div>
-<h3 style="margin-top:22px">Torhüterstatistiken</h3>
+
+<h3 style="margin-top:22px">
+Torhüterstatistiken
+</h3>
+
 <div class="table-wrap">
+
 <table>
-<thead><tr><th>Torhüter</th><th>Club</th><th>Sp.</th><th>Siege</th><th>SV%</th><th>GAA</th><th>SO</th></tr></thead>
+<thead>
+<tr>
+<th>Torhüter</th>
+<th>Club</th>
+<th>Sp.</th>
+<th>Siege</th>
+<th>SV%</th>
+<th>GAA</th>
+<th>SO</th>
+</tr>
+</thead>
 <tbody id="goalieStats"></tbody>
 </table>
+
 </div>
 </div>
 </section>
+
+<!-- NEWS -->
 
 <section class="section" id="news">
 <h2>📰 Swiss NHL League News</h2>
 <div class="panel" id="newsList"></div>
 </section>
+
 <section class="section" id="about">
+
 <div class="panel">
 <h2>Über die Swiss NHL League</h2>
-<p>Die Swiss NHL League wurde 2022 gegründet und organisiert internationale Online-Eishockeywettbewerbe in NHL 27 mit 1vs1, 3vs3 und 6vs6.</p>
+<p>
+Die Swiss NHL League wurde 2022 gegründet und
+organisiert internationale Online-Eishockeywettbewerbe
+in NHL 27 mit 1vs1, 3vs3 und 6vs6.
+</p>
 </div>
+
 </section>
+
 </main>
 
 <footer>
@@ -314,14 +601,22 @@ footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:#a2
 <p>NHL 27 · SEASON 1 · EST. 2022</p>
 </footer>
 
+<!-- VIDEO-CENTER -->
+
 <div class="video-center" id="videoCenter" hidden>
+
 <div class="video-inner">
+
 <div class="heading">
 <h2>📺 Live-Streams & Replays</h2>
-<button class="btn secondary" id="closeStreams">Zurück zur Startseite</button>
+<button class="btn secondary" id="closeStreams">
+Zurück zur Startseite
+</button>
 </div>
+
 <div id="videoPlayer"></div>
 <div id="videoList"></div>
+
 </div>
 </div>
 
@@ -330,33 +625,62 @@ footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:#a2
 
 const BASE="https://avvsnfgdmamhabcyngds.supabase.co";
 const KEY="sb_publishable_xqTS7nztFKXTeyD7W-96QA_-7OCZ7Nt";
-const HEADERS={apikey:KEY};
+
+const HEADERS={
+ apikey:KEY
+};
+
 const $=id=>document.getElementById(id);
+
 const make=(tag,text,cls)=>{
  const n=document.createElement(tag);
  if(text!==undefined)n.textContent=String(text);
  if(cls)n.className=cls;
  return n;
 };
+
 const empty=text=>make("div",text,"empty");
 const num=v=>Number(v)||0;
 
 const LANGUAGES=[
- ["de","Deutsch"],["en","English"],["fr","Français"],
- ["it","Italiano"],["rm","Rumantsch"],["fi","Suomi"],
- ["sv","Svenska"],["no","Norsk"],["da","Dansk"],
- ["cs","Čeština"],["sk","Slovenčina"],["pl","Polski"],
- ["nl","Nederlands"],["es","Español"],["pt","Português"],
- ["hu","Magyar"],["sl","Slovenščina"],["hr","Hrvatski"],
- ["ro","Română"],["et","Eesti"],["lv","Latviešu"],
- ["lt","Lietuvių"],["uk","Українська"],["tr","Türkçe"],
- ["ja","日本語"],["ko","한국어"],["zh","中文"]
+ ["de","Deutsch"],
+ ["en","English"],
+ ["fr","Français"],
+ ["it","Italiano"],
+ ["rm","Rumantsch"],
+ ["fi","Suomi"],
+ ["sv","Svenska"],
+ ["no","Norsk"],
+ ["da","Dansk"],
+ ["cs","Čeština"],
+ ["sk","Slovenčina"],
+ ["pl","Polski"],
+ ["nl","Nederlands"],
+ ["es","Español"],
+ ["pt","Português"],
+ ["hu","Magyar"],
+ ["sl","Slovenščina"],
+ ["hr","Hrvatski"],
+ ["ro","Română"],
+ ["et","Eesti"],
+ ["lv","Latviešu"],
+ ["lt","Lietuvių"],
+ ["uk","Українська"],
+ ["tr","Türkçe"],
+ ["ja","日本語"],
+ ["ko","한국어"],
+ ["zh","中文"]
 ];
 
 const TRANSLATIONS={
+
  de:{
-  login:"Login",register:"Registrieren",leagues:"Ligen",
-  schedule:"Spielplan",standings:"Tabellen",statistics:"Statistiken",
+  login:"Login",
+  register:"Registrieren",
+  leagues:"Ligen",
+  schedule:"Spielplan",
+  standings:"Tabellen",
+  statistics:"Statistiken",
   hero:"Die internationale E-Sport-Liga für NHL 27. Spiele in 1vs1, 3vs3 und 6vs6. Verfolge Ergebnisse, Clubs, Spielpläne und offizielle Twitch-Übertragungen.",
   streams:"📺 Live-Streams & Replays",
   noGames:"Noch keine offiziellen Spiele verfügbar.",
@@ -365,11 +689,22 @@ const TRANSLATIONS={
   noGoalies:"Noch keine offiziellen Torhüterstatistiken verfügbar.",
   noClubs:"Noch keine Clubs veröffentlicht.",
   error:"Daten konnten nicht geladen werden.",
-  active:"aktive Spieler"
+  active:"aktive Spieler",
+  noCupPodium:"Noch keine offiziellen Cup-Platzierungen veröffentlicht.",
+  cupPodiumError:"Cup-Platzierungen konnten nicht geladen werden.",
+  cupWinner:"Cup-Sieger",
+  cupSecond:"2. Platz",
+  cupThird:"3. Platz",
+  cupSeason:"Cup-Saison"
  },
+
  en:{
-  login:"Login",register:"Register",leagues:"Leagues",
-  schedule:"Schedule",standings:"Standings",statistics:"Statistics",
+  login:"Login",
+  register:"Register",
+  leagues:"Leagues",
+  schedule:"Schedule",
+  standings:"Standings",
+  statistics:"Statistics",
   hero:"The international NHL 27 esports league. Compete in 1vs1, 3vs3 and 6vs6. Follow results, clubs, schedules and official Twitch broadcasts.",
   streams:"📺 Live Streams & Replays",
   noGames:"No official games available yet.",
@@ -378,8 +713,15 @@ const TRANSLATIONS={
   noGoalies:"No official goalie statistics available yet.",
   noClubs:"No clubs published yet.",
   error:"Data could not be loaded.",
-  active:"active players"
+  active:"active players",
+  noCupPodium:"No official cup standings published yet.",
+  cupPodiumError:"Cup standings could not be loaded.",
+  cupWinner:"Cup Champion",
+  cupSecond:"2nd Place",
+  cupThird:"3rd Place",
+  cupSeason:"Cup Season"
  }
+
 };
 
 let currentLanguage="de";
@@ -387,11 +729,22 @@ let statsMode="3v3";
 let playoffPhase="playins";
 let cupSelected=null;
 let cupBusy=false;
+let dataBusy=false;
 
 const DATA={
- matches:[],clubs:[],standings:[],players:[],goalies:[],
- streams:[],news:[],cupFixtures:[],cupDraws:[],
- cupEvents:[],playoffFixtures:[],errors:{}
+ matches:[],
+ clubs:[],
+ standings:[],
+ players:[],
+ goalies:[],
+ streams:[],
+ news:[],
+ cupFixtures:[],
+ cupDraws:[],
+ cupEvents:[],
+ cupPodium:[],
+ playoffFixtures:[],
+ errors:{}
 };
 
 function t(key){
@@ -400,570 +753,1752 @@ function t(key){
 }
 
 function setupLanguages(){
- for(const select of [$("headerLanguage"),$("firstLanguage")]){
+
+ for(const select of [
+  $("headerLanguage"),
+  $("firstLanguage")
+ ]){
+
   LANGUAGES.forEach(([code,name])=>{
    const option=make("option",name);
    option.value=code;
    select.appendChild(option);
   });
+
  }
+
  let saved=null;
- try{saved=localStorage.getItem("snhl_language")}catch(e){}
+
+ try{
+  saved=localStorage.getItem("snhl_language");
+ }catch(e){}
+
  if(!saved||!LANGUAGES.some(x=>x[0]===saved)){
   $("languageGate").hidden=false;
   document.body.style.overflow="hidden";
   saved="de";
  }
+
  applyLanguage(saved);
+
  $("confirmLanguage").onclick=()=>{
   applyLanguage($("firstLanguage").value);
   $("languageGate").hidden=true;
   document.body.style.overflow="";
  };
- $("headerLanguage").onchange=e=>applyLanguage(e.target.value);
+
+ $("headerLanguage").onchange=e=>
+  applyLanguage(e.target.value);
+
 }
 
 function applyLanguage(lang){
+
  currentLanguage=lang;
  document.documentElement.lang=lang;
+
  $("headerLanguage").value=lang;
  $("firstLanguage").value=lang;
- try{localStorage.setItem("snhl_language",lang)}catch(e){}
+
+ try{
+  localStorage.setItem("snhl_language",lang);
+ }catch(e){}
+
  document.querySelectorAll("[data-i18n]").forEach(n=>{
   n.textContent=t(n.dataset.i18n);
  });
+
  renderAll();
+
 }
 
 async function api(path){
- const response=await fetch(BASE+"/rest/v1/"+path,{
-  headers:HEADERS,cache:"no-store"
- });
- if(!response.ok)throw Error("HTTP "+response.status);
+
+ const response=await fetch(
+  BASE+"/rest/v1/"+path,
+  {
+   headers:HEADERS,
+   cache:"no-store"
+  }
+ );
+
+ if(!response.ok){
+  throw Error("HTTP "+response.status);
+ }
+
  return response.json();
+
 }
 
 async function rpc(name,params={}){
- const response=await fetch(BASE+"/rest/v1/rpc/"+name,{
-  method:"POST",
-  headers:{...HEADERS,"Content-Type":"application/json"},
-  body:JSON.stringify(params),
-  cache:"no-store"
- });
- if(!response.ok)throw Error("HTTP "+response.status);
+
+ const response=await fetch(
+  BASE+"/rest/v1/rpc/"+name,
+  {
+   method:"POST",
+   headers:{
+    ...HEADERS,
+    "Content-Type":"application/json"
+   },
+   body:JSON.stringify(params),
+   cache:"no-store"
+  }
+ );
+
+ if(!response.ok){
+  throw Error("HTTP "+response.status);
+ }
+
  return response.json();
+
 }
 
 async function loadPart(name,path){
+
  try{
+
   const result=await api(path);
   DATA[name]=Array.isArray(result)?result:[];
   delete DATA.errors[name];
+
  }catch(error){
+
   DATA.errors[name]=error.message;
   console.warn("Swiss NHL League:",name,error);
+
  }
+
+}
+
+async function loadRpcPart(name,functionName,params={}){
+
+ try{
+
+  const result=await rpc(functionName,params);
+  DATA[name]=Array.isArray(result)?result:[];
+  delete DATA.errors[name];
+
+ }catch(error){
+
+  DATA.errors[name]=error.message;
+  console.warn("Swiss NHL League:",name,error);
+
+ }
+
 }
 
 async function loadData(){
- await Promise.all([
-  loadPart("clubs",
-   "public_clubs?select=club_id,name,logo_url,country_code,player_count&order=name.asc"),
-  loadPart("standings",
-   "snhl_league_ranking?select=*&order=platz.asc&limit=1000"),
-  loadPart("matches",
-   "games?select=id,season,game_mode,match_type,status,home_club_id,away_club_id,scheduled_at,home_score,away_score,decision_type&order=scheduled_at.desc&limit=200"),
-  loadPart("players","rpc/get_public_player_stats"),
-  loadPart("goalies","rpc/get_public_goalie_stats"),
-  loadPart("cupFixtures","rpc/snhl_cup_public_fixtures")
- ]);
- renderAll();
+
+ if(dataBusy)return;
+ dataBusy=true;
+
+ try{
+
+  await Promise.all([
+
+   loadPart(
+    "clubs",
+    "public_clubs?select=club_id,name,logo_url,country_code,player_count&order=name.asc"
+   ),
+
+   loadPart(
+    "standings",
+    "snhl_league_ranking?select=*&order=platz.asc&limit=1000"
+   ),
+
+   loadPart(
+    "matches",
+    "games?select=id,season,game_mode,match_type,status,home_club_id,away_club_id,scheduled_at,home_score,away_score,decision_type&order=scheduled_at.desc&limit=200"
+   ),
+
+   loadPart(
+    "players",
+    "rpc/get_public_player_stats"
+   ),
+
+   loadPart(
+    "goalies",
+    "rpc/get_public_goalie_stats"
+   ),
+
+   loadRpcPart(
+    "cupFixtures",
+    "snhl_cup_public_fixtures"
+   ),
+
+   loadRpcPart(
+    "cupPodium",
+    "snhl_cup_public_final_standings"
+   )
+
+  ]);
+
+  renderAll();
+
+ }finally{
+
+  dataBusy=false;
+
+ }
+
 }
 
 async function loadCupLive(){
+
  if(cupBusy)return;
  cupBusy=true;
+
  try{
-  const draws=await rpc("snhl_cup_public_draws");
+
+  const draws=await rpc(
+   "snhl_cup_public_draws"
+  );
+
   DATA.cupDraws=Array.isArray(draws)?draws:[];
+
   delete DATA.errors.cupDraws;
+
   if(!DATA.cupDraws.some(d=>d.draw_id===cupSelected)){
+
    cupSelected=DATA.cupDraws[0]?.draw_id||null;
+
   }
+
   if(cupSelected){
-   const events=await rpc("snhl_cup_public_live_clubs",{
-    p_draw_id:cupSelected
-   });
-   DATA.cupEvents=Array.isArray(events)?events:[];
-  }else DATA.cupEvents=[];
+
+   const selectedDraw=cupSelected;
+
+   const events=await rpc(
+    "snhl_cup_public_live_clubs",
+    {
+     p_draw_id:selectedDraw
+    }
+   );
+
+   if(cupSelected===selectedDraw){
+
+    DATA.cupEvents=Array.isArray(events)?events:[];
+
+   }
+
+  }else{
+
+   DATA.cupEvents=[];
+
+  }
+
  }catch(error){
+
   DATA.errors.cupDraws=error.message;
   console.warn("Cup Live:",error);
+
  }finally{
+
   cupBusy=false;
   renderCupDraw();
+
  }
+
 }
 
 function clubById(id){
  return DATA.clubs.find(c=>c.club_id===id);
 }
+
 function clubName(id){
  return clubById(id)?.name||"–";
 }
+
 function gameMode(v){
- return {"1vs1":"1v1","3vs3":"3v3","6vs6":"6v6"}[v]||v;
+ return {
+  "1vs1":"1v1",
+  "3vs3":"3v3",
+  "6vs6":"6v6"
+ }[v]||v;
 }
+
 function displayMode(v){
- return {"1v1":"1vs1","3v3":"3vs3","6v6":"6vs6"}[v]||v||"–";
+ return {
+  "1v1":"1vs1",
+  "3v3":"3vs3",
+  "6v6":"6vs6"
+ }[v]||v||"–";
 }
+
 function cell(tr,v){
  tr.appendChild(make("td",v??"–"));
 }
+
 function messageRow(host,text,count){
+
  host.replaceChildren();
+
  const tr=make("tr");
  const td=make("td",text);
+
  td.colSpan=count;
+
  tr.appendChild(td);
  host.appendChild(tr);
+
 }
 
 function dateText(value){
+
  if(!value)return "–";
+
  const d=new Date(value);
+
  if(!Number.isFinite(d.getTime()))return "–";
+
  try{
+
   return new Intl.DateTimeFormat(
    currentLanguage==="de"?"de-CH":currentLanguage,
-   {timeZone:"Europe/Zurich",day:"2-digit",month:"2-digit",
-    year:"numeric",hour:"2-digit",minute:"2-digit"}
+   {
+    timeZone:"Europe/Zurich",
+    day:"2-digit",
+    month:"2-digit",
+    year:"numeric",
+    hour:"2-digit",
+    minute:"2-digit"
+   }
   ).format(d);
- }catch(e){return d.toLocaleString("de-CH")}
+
+ }catch(e){
+
+  return d.toLocaleString(
+   "de-CH",
+   {timeZone:"Europe/Zurich"}
+  );
+
+ }
+
 }
 
 function renderScores(){
+
  const box=$("scoreboard");
  box.replaceChildren();
+
  const games=DATA.matches.filter(g=>
   g.match_type!=="friendly"&&
   ["in_progress","completed"].includes(g.status)
  ).slice(0,12);
+
  if(!games.length){
-  box.appendChild(empty(DATA.errors.matches?t("error"):t("noGames")));
+
+  box.appendChild(empty(
+   DATA.errors.matches?t("error"):t("noGames")
+  ));
+
   return;
+
  }
+
  games.forEach(g=>{
+
   const card=make("article",undefined,"score");
+
   card.append(
-   make("div",displayMode(g.game_mode)+" · "+dateText(g.scheduled_at),"meta"),
-   make("div",
+
+   make(
+    "div",
+    displayMode(g.game_mode)+" · "+
+    dateText(g.scheduled_at),
+    "meta"
+   ),
+
+   make(
+    "div",
     clubName(g.home_club_id)+"  "+
-    num(g.home_score)+" : "+num(g.away_score)+"  "+
-    clubName(g.away_club_id),"teams"),
-   make("div",g.status==="in_progress"?"🔴 LIVE":"FINAL","status")
+    num(g.home_score)+" : "+
+    num(g.away_score)+"  "+
+    clubName(g.away_club_id),
+    "teams"
+   ),
+
+   make(
+    "div",
+    g.status==="in_progress"?"🔴 LIVE":"FINAL",
+    "status"
+   )
+
   );
+
   box.appendChild(card);
+
  });
+
 }
 
 function renderSchedule(){
+
  const box=$("schedule");
  box.replaceChildren();
+
  const games=DATA.matches.filter(g=>
   (g.match_type==="league"||!g.match_type)&&
   ["scheduled","confirmed","in_progress"].includes(g.status)
- ).sort((a,b)=>new Date(a.scheduled_at)-new Date(b.scheduled_at))
-  .slice(0,15);
+ ).sort((a,b)=>
+  new Date(a.scheduled_at)-new Date(b.scheduled_at)
+ ).slice(0,15);
+
  if(!games.length){
-  box.appendChild(empty(DATA.errors.matches?t("error"):t("noGames")));
+
+  box.appendChild(empty(
+   DATA.errors.matches?t("error"):t("noGames")
+  ));
+
   return;
+
  }
+
  games.forEach(g=>{
-  const card=make("article",undefined,"game-card");
-  card.append(
-   make("small",dateText(g.scheduled_at)+" · "+displayMode(g.game_mode)),
-   make("strong",clubName(g.home_club_id)+" vs. "+clubName(g.away_club_id)),
-   make("small",g.status)
+
+  const card=make(
+   "article",
+   undefined,
+   "game-card"
   );
+
+  card.append(
+
+   make(
+    "small",
+    dateText(g.scheduled_at)+" · "+
+    displayMode(g.game_mode)
+   ),
+
+   make(
+    "strong",
+    clubName(g.home_club_id)+" vs. "+
+    clubName(g.away_club_id)
+   ),
+
+   make("small",g.status)
+
+  );
+
   box.appendChild(card);
+
  });
+
 }
 
 function renderStandings(){
+
  const host=$("standings");
  const mode=$("leagueSelect").value;
+
  const rows=DATA.standings.filter(r=>
   gameMode(r.game_mode)===mode
- ).sort((a,b)=>num(a.platz)-num(b.platz));
+ ).sort((a,b)=>
+  num(a.platz)-num(b.platz)
+ );
+
  if(!rows.length){
-  messageRow(host,DATA.errors.standings?t("error"):t("noStandings"),13);
+
+  messageRow(
+   host,
+   DATA.errors.standings?
+    t("error"):t("noStandings"),
+   13
+  );
+
   return;
+
  }
+
  host.replaceChildren();
+
  rows.forEach(r=>{
+
   const tr=make("tr");
+
   cell(tr,r.platz);
+
   const td=make("td");
   const wrap=make("div",undefined,"rank-club");
   const club=clubById(r.club_id);
-  if(club?.logo_url&&/^https:\/\//i.test(club.logo_url)){
+
+  if(
+   club?.logo_url&&
+   /^https:\/\//i.test(club.logo_url)
+  ){
+
    const img=make("img");
+
    img.src=club.logo_url;
    img.alt="";
+   img.loading="lazy";
+
    wrap.appendChild(img);
+
   }
-  wrap.appendChild(make("span",clubName(r.club_id)));
+
+  wrap.appendChild(
+   make("span",clubName(r.club_id))
+  );
+
   td.appendChild(wrap);
   tr.appendChild(td);
+
   [
-   r.spiele,r.punkte,r.w,r.otw,r.sow,
-   r.sol,r.otl,r.l,r.tore,r.gegentore,r.tordifferenz
+   r.spiele,
+   r.punkte,
+   r.w,
+   r.otw,
+   r.sow,
+   r.sol,
+   r.otl,
+   r.l,
+   r.tore,
+   r.gegentore,
+   r.tordifferenz
   ].forEach(v=>cell(tr,v));
+
   host.appendChild(tr);
+
  });
+
 }
 
 function renderPlayers(){
+
  const host=$("playerStats");
+
  const rows=DATA.players.filter(p=>
   gameMode(p.game_mode)===statsMode
- ).sort((a,b)=>num(b.points)-num(a.points));
+ ).sort((a,b)=>
+  num(b.points)-num(a.points)
+ );
+
  if(!rows.length){
-  messageRow(host,DATA.errors.players?t("error"):t("noPlayers"),7);
+
+  messageRow(
+   host,
+   DATA.errors.players?
+    t("error"):t("noPlayers"),
+   7
+  );
+
   return;
+
  }
+
  host.replaceChildren();
+
  rows.slice(0,50).forEach((p,i)=>{
+
   const tr=make("tr");
+
   [
-   i+1,p.gamer_name||p.player_name||"–",
-   p.club_name||"–",p.games_played??0,
-   p.goals??0,p.assists??0,p.points??0
+   i+1,
+   p.gamer_name||p.player_name||"–",
+   p.club_name||"–",
+   p.games_played??0,
+   p.goals??0,
+   p.assists??0,
+   p.points??0
   ].forEach(v=>cell(tr,v));
+
   host.appendChild(tr);
+
  });
+
 }
 
 function renderGoalies(){
+
  const host=$("goalieStats");
+
  const rows=DATA.goalies.filter(g=>
   gameMode(g.game_mode)===statsMode
- ).sort((a,b)=>num(b.save_percentage)-num(a.save_percentage));
+ ).sort((a,b)=>
+  num(b.save_percentage)-
+  num(a.save_percentage)
+ );
+
  if(!rows.length){
-  messageRow(host,DATA.errors.goalies?t("error"):t("noGoalies"),7);
+
+  messageRow(
+   host,
+   DATA.errors.goalies?
+    t("error"):t("noGoalies"),
+   7
+  );
+
   return;
+
  }
+
  host.replaceChildren();
+
  rows.slice(0,50).forEach(g=>{
+
   const tr=make("tr");
+
   [
    g.gamer_name||g.player_name||"–",
-   g.club_name||"–",g.games_played??0,
-   g.wins??0,g.save_percentage??"–",
-   g.goals_against_average??"–",g.shutouts??0
+   g.club_name||"–",
+   g.games_played??0,
+   g.wins??0,
+   g.save_percentage??"–",
+   g.goals_against_average??"–",
+   g.shutouts??0
   ].forEach(v=>cell(tr,v));
+
   host.appendChild(tr);
+
  });
+
 }
 
 function countryName(code){
+
  if(!code)return "–";
+
  try{
-  return new Intl.DisplayNames([currentLanguage],{
-   type:"region"
-  }).of(code.toUpperCase());
- }catch(e){return code}
+
+  return new Intl.DisplayNames(
+   [currentLanguage],
+   {type:"region"}
+  ).of(code.toUpperCase());
+
+ }catch(e){
+
+  return code;
+
+ }
+
 }
 
 function flag(code){
+
  if(!/^[a-z]{2}$/i.test(code||""))return "";
+
  return [...code.toUpperCase()].map(c=>
-  String.fromCodePoint(127397+c.charCodeAt(0))
+  String.fromCodePoint(
+   127397+c.charCodeAt(0)
+  )
  ).join("");
+
 }
 
 function renderClubs(){
+
  const box=$("clubList");
  box.replaceChildren();
+
  if(!DATA.clubs.length){
-  box.appendChild(empty(DATA.errors.clubs?t("error"):t("noClubs")));
+
+  box.appendChild(empty(
+   DATA.errors.clubs?t("error"):t("noClubs")
+  ));
+
   return;
+
  }
+
  DATA.clubs.forEach(c=>{
-  const card=make("article",undefined,"club");
-  const logo=make("div",undefined,"club-logo");
-  if(c.logo_url&&/^https:\/\//i.test(c.logo_url)){
+
+  const card=make(
+   "article",
+   undefined,
+   "club"
+  );
+
+  const logo=make(
+   "div",
+   undefined,
+   "club-logo"
+  );
+
+  if(
+   c.logo_url&&
+   /^https:\/\//i.test(c.logo_url)
+  ){
+
    const img=make("img");
+
    img.src=c.logo_url;
    img.alt="Clublogo "+c.name;
    img.loading="lazy";
-   img.onerror=()=>logo.replaceChildren(make("span","🛡️"));
+
+   img.onerror=()=>
+    logo.replaceChildren(make("span","🛡️"));
+
    logo.appendChild(img);
-  }else logo.textContent="🛡️";
-  const info=make("div",undefined,"club-info");
-  info.append(
-   make("strong",c.name||"–"),
-   make("small",flag(c.country_code)+" "+countryName(c.country_code)),
-   make("small",num(c.player_count)+" "+t("active"),
-    num(c.player_count)>=7?"good":"bad")
+
+  }else{
+
+   logo.textContent="🛡️";
+
+  }
+
+  const info=make(
+   "div",
+   undefined,
+   "club-info"
   );
+
+  info.append(
+
+   make(
+    "strong",
+    c.name||"–"
+   ),
+
+   make(
+    "small",
+    flag(c.country_code)+" "+
+    countryName(c.country_code)
+   ),
+
+   make(
+    "small",
+    num(c.player_count)+" "+t("active"),
+    num(c.player_count)>=7?"good":"bad"
+   )
+
+  );
+
   card.append(logo,info);
   box.appendChild(card);
+
  });
+
 }
 
 function renderNews(){
+
  const box=$("newsList");
  box.replaceChildren();
+
  if(!DATA.news.length){
-  box.appendChild(empty("Noch keine offiziellen News."));
+
+  box.appendChild(empty(
+   "Noch keine offiziellen News."
+  ));
+
   return;
+
  }
+
  DATA.news.forEach(n=>{
-  const card=make("article",undefined,"video-item");
-  card.append(make("h3",n.title||"News"),make("p",n.text||""));
+
+  const card=make(
+   "article",
+   undefined,
+   "video-item"
+  );
+
+  card.append(
+   make("h3",n.title||"News"),
+   make("p",n.text||"")
+  );
+
   box.appendChild(card);
+
  });
+
 }
 
 function showStream(s){
+
  const host=$("videoPlayer");
  host.replaceChildren();
- const channel=String(s.channel||"").replace(/[^a-zA-Z0-9_]/g,"");
- const vod=String(s.vodId||"").replace(/[^0-9]/g,"");
+
+ const channel=String(
+  s.channel||""
+ ).replace(/[^a-zA-Z0-9_]/g,"");
+
+ const vod=String(
+  s.vodId||""
+ ).replace(/[^0-9]/g,"");
+
  if((!channel&&!vod)||!location.hostname){
-  host.appendChild(empty("Kein Twitch-Stream verfügbar."));
+
+  host.appendChild(empty(
+   "Kein Twitch-Stream verfügbar."
+  ));
+
   return;
+
  }
+
  const frame=make("iframe");
+
  frame.title=s.title||"Twitch";
  frame.allow="autoplay; fullscreen";
  frame.allowFullscreen=true;
+
  frame.src="https://player.twitch.tv/?"+
-  (vod?"video=v"+encodeURIComponent(vod):
-   "channel="+encodeURIComponent(channel))+
+  (
+   vod?
+   "video=v"+encodeURIComponent(vod):
+   "channel="+encodeURIComponent(channel)
+  )+
   "&parent="+encodeURIComponent(location.hostname)+
   "&autoplay=false";
- const player=make("div",undefined,"player");
+
+ const player=make(
+  "div",
+  undefined,
+  "player"
+ );
+
  player.appendChild(frame);
  host.appendChild(player);
+
 }
 
 function renderStreams(){
+
  const host=$("videoList");
  host.replaceChildren();
+
  if(!DATA.streams.length){
-  host.appendChild(empty("Noch keine Streams oder Replays."));
+
+  host.appendChild(empty(
+   "Noch keine Streams oder Replays."
+  ));
+
   return;
+
  }
+
  DATA.streams.forEach(s=>{
-  const card=make("article",undefined,"video-item");
-  const btn=make("button","Gross ansehen","btn");
+
+  const card=make(
+   "article",
+   undefined,
+   "video-item"
+  );
+
+  const btn=make(
+   "button",
+   "Gross ansehen",
+   "btn"
+  );
+
   btn.onclick=()=>showStream(s);
-  card.append(make("h3",s.title||"Match"),btn);
+
+  card.append(
+   make("h3",s.title||"Match"),
+   btn
+  );
+
   host.appendChild(card);
+
  });
+
 }
 
 function teamNode(name,logo){
- const box=make("div",undefined,"duel-team");
+
+ const box=make(
+  "div",
+  undefined,
+  "duel-team"
+ );
+
  if(logo&&/^https:\/\//i.test(logo)){
+
   const img=make("img");
+
   img.src=logo;
   img.alt="";
   img.loading="lazy";
+
+  img.onerror=()=>
+   img.replaceWith(
+    make("div","🛡️","stream-icon")
+   );
+
   box.appendChild(img);
- }else box.appendChild(make("div","🛡️","stream-icon"));
- box.appendChild(make("strong",name||"–"));
+
+ }else{
+
+  box.appendChild(
+   make("div","🛡️","stream-icon")
+  );
+
+ }
+
+ box.appendChild(
+  make("strong",name||"–")
+ );
+
  return box;
+
+}
+
+function fixtureStatus(status){
+
+ const labels={
+
+  pending:"In Vorbereitung",
+  scheduled:"Termin offen / geplant",
+  confirmed:"Termin bestätigt",
+  in_progress:"🔴 LIVE",
+  result_pending:"Resultatbestätigung ausstehend",
+  disputed:"Resultat in Prüfung",
+  completed:"Spiel beendet"
+
+ };
+
+ return labels[status]||status||"–";
+
 }
 
 function fixtureCard(f){
- const card=make("article",undefined,"round-card");
- card.appendChild(make("div",
-  (f.round_label||"Begegnung")+
-  " · "+(f.season||"")+
-  " · "+dateText(f.scheduled_at),"round-title"
- ));
+
+ const card=make(
+  "article",
+  undefined,
+  "round-card"
+ );
+
+ card.appendChild(
+
+  make(
+   "div",
+   (f.round_label||f.round_name||"Begegnung")+
+   " · "+(f.season||"")+
+   " · "+
+   (
+    f.scheduled_at?
+    dateText(f.scheduled_at):
+    "Termin noch offen"
+   ),
+   "round-title"
+  )
+
+ );
+
  if(f.is_bye){
-  card.appendChild(teamNode(
-   f.home_name||clubName(f.home_club_id),
-   f.home_logo_url||clubById(f.home_club_id)?.logo_url
-  ));
-  card.appendChild(make("p",
-   "🎟️ FREILOS – automatisch für die nächste Runde qualifiziert",
-   "note"
-  ));
+
+  card.appendChild(
+
+   teamNode(
+    f.home_name||clubName(f.home_club_id),
+    f.home_logo_url||
+    clubById(f.home_club_id)?.logo_url
+   )
+
+  );
+
+  card.appendChild(
+
+   make(
+    "p",
+    "🎟️ FREILOS – automatisch für die nächste Runde qualifiziert",
+    "note"
+   )
+
+  );
+
   return card;
+
  }
+
  const home=clubById(f.home_club_id);
  const away=clubById(f.away_club_id);
- const duel=make("div",undefined,"duel");
- duel.append(
-  teamNode(f.home_name||home?.name||"Noch offen",
-   f.home_logo_url||home?.logo_url),
-  make("div",
-   f.status==="completed"&&
-   f.home_score!=null&&f.away_score!=null
-    ?f.home_score+" : "+f.away_score:"VS",
-   "duel-vs"),
-  teamNode(f.away_name||away?.name||"Noch offen",
-   f.away_logo_url||away?.logo_url)
+
+ const duel=make(
+  "div",
+  undefined,
+  "duel"
  );
+
+ const completed=
+  f.status==="completed"&&
+  f.home_score!=null&&
+  f.away_score!=null;
+
+ duel.append(
+
+  teamNode(
+   f.home_name||home?.name||"Noch offen",
+   f.home_logo_url||home?.logo_url
+  ),
+
+  make(
+   "div",
+   completed?
+    f.home_score+" : "+f.away_score:
+    "VS",
+   "duel-vs"
+  ),
+
+  teamNode(
+   f.away_name||away?.name||"Noch offen",
+   f.away_logo_url||away?.logo_url
+  )
+
+ );
+
  card.appendChild(duel);
- if(f.status)card.appendChild(make("p","Status: "+f.status,"note"));
+
+ if(f.status){
+
+  card.appendChild(
+
+   make(
+    "p",
+    "Status: "+fixtureStatus(f.status),
+    f.status==="in_progress"?"note live":"note"
+   )
+
+  );
+
+ }
+
+ if(completed){
+
+  let winner=null;
+
+  if(Number(f.home_score)>Number(f.away_score)){
+
+   winner=f.home_name||home?.name;
+
+  }else if(
+   Number(f.away_score)>Number(f.home_score)
+  ){
+
+   winner=f.away_name||away?.name;
+
+  }
+
+  if(winner){
+
+   card.appendChild(
+
+    make(
+     "div",
+     "✓ Sieger: "+winner,
+     "cup-winner"
+    )
+
+   );
+
+  }
+
+ }
+
  return card;
+
+}
+
+function cupRoundCode(f){
+
+ const name=String(
+  f.round_name||f.round_label||""
+ ).trim().toLowerCase();
+
+ if(
+  name.includes("viertelfinal")||
+  name.includes("quarter")
+ )return "quarter";
+
+ if(
+  name.includes("halbfinal")||
+  name.includes("semifinal")||
+  name.includes("semi-final")
+ )return "semi";
+
+ if(
+  name.includes("platz 3")||
+  name.includes("platz drei")||
+  name.includes("third place")
+ )return "third";
+
+ if(
+  name.includes("achtelfinal")||
+  name.includes("round of 16")
+ )return "round16";
+
+ if(
+  ["final","finale","cup-final","cup-finale"]
+  .includes(name)
+ )return "final";
+
+ const code=String(
+  f.round_code||""
+ ).toLowerCase();
+
+ const aliases={
+
+  quarterfinal:"quarter",
+  quarterfinals:"quarter",
+  semifinal:"semi",
+  semifinals:"semi",
+  third_place:"third",
+  round_of_16:"round16",
+  final:"final",
+  quarter:"quarter",
+  semi:"semi",
+  third:"third",
+  round16:"round16",
+  early:"early"
+
+ };
+
+ return aliases[code]||"early";
+
 }
 
 function renderCup(){
+
  const host=$("cupFixtures");
+
  host.replaceChildren();
+
  const selected=$("cupRound").value;
- const rows=DATA.cupFixtures.filter(f=>
-  selected==="all"||f.round_code===selected
- ).sort((a,b)=>
-  num(a.round_number)-num(b.round_number)||
-  num(a.match_number)-num(b.match_number)
- );
- if(!rows.length){
+
+ if(DATA.errors.cupFixtures){
+
   host.appendChild(empty(
-   DATA.errors.cupFixtures
-    ?"Cup-Spielplan konnte nicht geladen werden."
-    :"Noch keine offiziellen Cup-Begegnungen veröffentlicht."
+   "Cup-Spielplan konnte nicht geladen werden."
   ));
- }else rows.forEach(f=>host.appendChild(fixtureCard(f)));
+
+ }else{
+
+  const rows=DATA.cupFixtures.filter(f=>
+
+   selected==="all"||
+   cupRoundCode(f)===selected
+
+  ).sort((a,b)=>
+
+   String(b.season||"").localeCompare(
+    String(a.season||"")
+   )||
+
+   num(a.round_number)-
+   num(b.round_number)||
+
+   num(a.match_number)-
+   num(b.match_number)
+
+  );
+
+  if(!rows.length){
+
+   host.appendChild(empty(
+    "Noch keine offiziellen Cup-Begegnungen veröffentlicht."
+   ));
+
+  }else{
+
+   let lastRound=null;
+
+   rows.forEach(f=>{
+
+    const roundKey=
+     String(f.season||"")+"|"+
+     String(f.round_number||"")+"|"+
+     String(f.round_label||f.round_name||"");
+
+    if(roundKey!==lastRound){
+
+     host.appendChild(
+
+      make(
+       "h3",
+       (f.round_label||f.round_name||"Cup-Runde")+
+       (f.season?" · "+f.season:""),
+       "cup-season-title"
+      )
+
+     );
+
+     lastRound=roundKey;
+
+    }
+
+    host.appendChild(
+     fixtureCard(f)
+    );
+
+   });
+
+  }
+
+ }
+
  renderCupDraw();
+ renderCupPodium();
+
+}
+
+function renderCupPodium(){
+
+ const host=$("cupPodium");
+
+ host.replaceChildren();
+
+ if(DATA.errors.cupPodium){
+
+  host.appendChild(empty(
+   t("cupPodiumError")
+  ));
+
+  return;
+
+ }
+
+ const rows=DATA.cupPodium.filter(p=>
+
+  [1,2,3].includes(Number(p.platz))
+
+ );
+
+ if(!rows.length){
+
+  host.appendChild(empty(
+   t("noCupPodium")
+  ));
+
+  return;
+
+ }
+
+ const seasons=[
+
+  ...new Set(
+   rows.map(p=>String(p.season||""))
+  )
+
+ ].sort((a,b)=>b.localeCompare(a));
+
+ seasons.forEach(season=>{
+
+  const placements=rows.filter(p=>
+
+   String(p.season||"")===season
+
+  ).sort((a,b)=>
+
+   Number(a.platz)-Number(b.platz)
+
+  );
+
+  host.appendChild(
+
+   make(
+    "h3",
+    t("cupSeason")+" "+season,
+    "cup-season-title"
+   )
+
+  );
+
+  const podium=make(
+   "div",
+   undefined,
+   "cup-podium"
+  );
+
+  placements.forEach(p=>{
+
+   const place=Number(p.platz);
+
+   const medals={
+    1:"🥇",
+    2:"🥈",
+    3:"🥉"
+   };
+
+   const labels={
+    1:t("cupWinner"),
+    2:t("cupSecond"),
+    3:t("cupThird")
+   };
+
+   const card=make(
+    "article",
+    undefined,
+    "podium-card place-"+place
+   );
+
+   card.appendChild(
+
+    make(
+     "div",
+     medals[place],
+     "podium-medal"
+    )
+
+   );
+
+   const logo=
+    p.logo_url||
+    clubById(p.club_id)?.logo_url;
+
+   if(logo&&/^https:\/\//i.test(logo)){
+
+    const img=make("img");
+
+    img.src=logo;
+    img.alt="";
+    img.loading="lazy";
+
+    img.onerror=()=>
+
+     img.replaceWith(
+      make("div","🛡️","stream-icon")
+     );
+
+    card.appendChild(img);
+
+   }else{
+
+    card.appendChild(
+
+     make(
+      "div",
+      "🛡️",
+      "stream-icon"
+     )
+
+    );
+
+   }
+
+   card.append(
+
+    make(
+     "strong",
+     p.club_name||clubName(p.club_id)
+    ),
+
+    make(
+     "small",
+     labels[place]
+    )
+
+   );
+
+   podium.appendChild(card);
+
+  });
+
+  host.appendChild(podium);
+
+ });
+
 }
 
 function countdown(date){
+
  if(!date)return "–";
- const ms=new Date(date).getTime()-Date.now();
+
+ const ms=
+  new Date(date).getTime()-Date.now();
+
  if(!Number.isFinite(ms))return "–";
- const s=Math.max(0,Math.ceil(ms/1000));
+
+ const s=Math.max(
+  0,
+  Math.ceil(ms/1000)
+ );
+
  return [
+
   Math.floor(s/3600),
   Math.floor((s%3600)/60),
   s%60
- ].map(x=>String(x).padStart(2,"0")).join(":");
+
+ ].map(x=>
+
+  String(x).padStart(2,"0")
+
+ ).join(":");
+
 }
 
 function renderCupDraw(){
+
  const host=$("cupDraw");
+
  host.replaceChildren();
+
  if(DATA.errors.cupDraws){
-  host.appendChild(empty("Cup-Auslosung konnte nicht geladen werden."));
+
+  host.appendChild(empty(
+   "Cup-Auslosung konnte nicht geladen werden."
+  ));
+
   return;
+
  }
+
  if(!DATA.cupDraws.length){
-  host.appendChild(empty("Noch keine offizielle Cup-Auslosung veröffentlicht."));
+
+  host.appendChild(empty(
+   "Noch keine offizielle Cup-Auslosung veröffentlicht."
+  ));
+
   return;
+
  }
+
  const select=make("select");
- select.setAttribute("aria-label","Cup-Auslosung auswählen");
+
+ select.setAttribute(
+  "aria-label",
+  "Cup-Auslosung auswählen"
+ );
+
  DATA.cupDraws.forEach(d=>{
-  const option=make("option",
-   d.season+" · "+d.round_name+" · "+d.draw_status);
+
+  const labels={
+   scheduled:"Geplant",
+   live:"🔴 LIVE",
+   completed:"Abgeschlossen"
+  };
+
+  const option=make(
+   "option",
+   d.season+" · "+
+   d.round_name+" · "+
+   (labels[d.draw_status]||d.draw_status)
+  );
+
   option.value=d.draw_id;
+
   select.appendChild(option);
+
  });
+
  select.value=cupSelected||"";
+
  select.onchange=()=>{
+
   cupSelected=select.value;
   DATA.cupEvents=[];
+
+  renderCupDraw();
   loadCupLive();
+
  };
+
  host.appendChild(select);
 
- const d=DATA.cupDraws.find(x=>x.draw_id===cupSelected);
+ const d=DATA.cupDraws.find(
+  x=>x.draw_id===cupSelected
+ );
+
  if(!d)return;
- const card=make("div",undefined,"cup-live-card");
- const top=make("div",undefined,"cup-live-top");
- const status=make("strong",
-  d.draw_status==="live"?"🔴 LIVE":
-  d.draw_status==="scheduled"?"GEPLANT":"ABGESCHLOSSEN"
+
+ const card=make(
+  "div",
+  undefined,
+  "cup-live-card"
  );
- if(d.draw_status==="live")status.className="live";
- let until=d.scheduled_at;
- if(d.draw_status==="live"&&d.started_at){
-  until=new Date(new Date(d.started_at).getTime()+720000).toISOString();
+
+ const top=make(
+  "div",
+  undefined,
+  "cup-live-top"
+ );
+
+ const status=make(
+
+  "strong",
+
+  d.draw_status==="live"?
+   "🔴 LIVE":
+  d.draw_status==="scheduled"?
+   "GEPLANT":
+   "ABGESCHLOSSEN"
+
+ );
+
+ if(d.draw_status==="live"){
+
+  status.className="live";
+
  }
- top.append(
-  status,
-  make("div",
-   d.draw_status==="completed"?"00:00:00":countdown(until),
-   "cup-live-countdown")
+
+ let until=d.scheduled_at;
+
+ if(
+  d.draw_status==="live"&&
+  d.started_at
+ ){
+
+  until=new Date(
+   new Date(d.started_at).getTime()+720000
+  ).toISOString();
+
+ }
+
+ const clock=make(
+
+  "div",
+
+  d.draw_status==="completed"?
+   "00:00:00":
+   countdown(until),
+
+  "cup-live-countdown"
+
  );
+
+ clock.id="cupLiveCountdown";
+
+ if(d.draw_status!=="completed"){
+
+  clock.dataset.until=until||"";
+
+ }
+
+ top.append(status,clock);
+
  card.appendChild(top);
- card.appendChild(make("p",
-  d.draw_status==="scheduled"
-   ?"Beginn: "+dateText(d.scheduled_at)
-   :d.draw_status==="live"
-   ?"Die Clubs werden während 12 Minuten einzeln gezogen."
-   :"Die Auslosung ist abgeschlossen.",
-  "note"
- ));
- const events=make("div",undefined,"cup-live-events");
+
+ card.appendChild(
+
+  make(
+
+   "h3",
+
+   d.round_name||"Cup-Auslosung"
+
+  )
+
+ );
+
+ card.appendChild(
+
+  make(
+
+   "p",
+
+   d.draw_status==="scheduled"?
+
+    "Beginn: "+
+    dateText(d.scheduled_at)+
+    " Uhr · Schweizer Zeit":
+
+   d.draw_status==="live"?
+
+    "Die Clubs werden während 12 Minuten einzeln gezogen.":
+
+    "Die Auslosung ist abgeschlossen.",
+
+   "note"
+
+  )
+
+ );
+
+ const events=make(
+  "div",
+  undefined,
+  "cup-live-events"
+ );
+
  if(!DATA.cupEvents.length){
-  events.appendChild(empty(
-   d.draw_status==="scheduled"
-    ?"Die Auslosung beginnt zum geplanten Zeitpunkt."
-    :"Noch keine Clubs veröffentlicht."
-  ));
+
+  events.appendChild(
+
+   empty(
+
+    d.draw_status==="scheduled"?
+
+     "Die Auslosung beginnt zum geplanten Zeitpunkt.":
+
+     "Noch keine Clubs veröffentlicht."
+
+   )
+
+  );
+
  }else{
+
   DATA.cupEvents.forEach(e=>{
-   const item=make("article",undefined,"cup-live-club");
-   if(e.logo_url&&/^https:\/\//i.test(e.logo_url)){
+
+   const item=make(
+    "article",
+    undefined,
+    "cup-live-club"
+   );
+
+   if(
+    e.logo_url&&
+    /^https:\/\//i.test(e.logo_url)
+   ){
+
     const img=make("img");
+
     img.src=e.logo_url;
     img.alt="";
-    img.onerror=()=>img.remove();
+
+    img.onerror=()=>
+
+     img.replaceWith(
+      make("span","🛡️")
+     );
+
     item.appendChild(img);
-   }else item.appendChild(make("span","🛡️"));
+
+   }else{
+
+    item.appendChild(
+     make("span","🛡️")
+    );
+
+   }
+
+   const labels={
+
+    bye:"FREILOS",
+    home_drawn:"HEIMCLUB",
+    away_drawn:"GASTCLUB"
+
+   };
+
    const label=
-    e.event_type==="bye"?"FREILOS":
-    e.event_type==="home_drawn"?"HEIMCLUB":
-    e.event_type==="away_drawn"?"GASTCLUB":
-    e.event_type;
+    labels[e.event_type]||
+    e.event_type||
+    "CLUB";
+
    const info=make("div");
+
    info.append(
-    make("strong",e.club_name||"Club"),
-    make("small",label+" · Paarung "+e.draw_position)
+
+    make(
+     "strong",
+     e.club_name||"Club"
+    ),
+
+    make(
+
+     "small",
+
+     label+
+     (
+      e.draw_position!=null?
+       " · Paarung "+e.draw_position:
+       ""
+     )
+
+    )
+
    );
+
    item.appendChild(info);
+
    events.appendChild(item);
+
   });
+
  }
+
  card.appendChild(events);
+
  host.appendChild(card);
+
+}
+
+function updateCupCountdown(){
+
+ const clock=$("cupLiveCountdown");
+
+ if(!clock)return;
+
+ const until=clock.dataset.until;
+
+ if(until){
+
+  clock.textContent=countdown(until);
+
+ }
+
 }
 
 function renderPlayoffs(){
+
  const group=$("playoffGroup").value;
+
  const names={
-  playins:"Play-ins",playoffs:"Playoffs",
-  playout:"Play-out-Final",promotion:"Auf-/Abstieg"
+
+  playins:"Play-ins",
+  playoffs:"Playoffs",
+  playout:"Play-out-Final",
+  promotion:"Auf-/Abstieg"
+
  };
- $("playoffTitle").textContent=names[playoffPhase]+" · Gruppe "+group;
+
+ $("playoffTitle").textContent=
+
+  names[playoffPhase]+
+  " · Gruppe "+group;
+
  const host=$("playoffFixtures");
+
  host.replaceChildren();
+
  const rows=DATA.playoffFixtures.filter(f=>
+
   f.phase===playoffPhase&&
-  (f.group_code===group||
-   (playoffPhase==="promotion"&&
-    (f.from_group===group||f.to_group===group)))
+
+  (
+
+   f.group_code===group||
+
+   (
+
+    playoffPhase==="promotion"&&
+
+    (
+
+     f.from_group===group||
+     f.to_group===group
+
+    )
+
+   )
+
+  )
+
  );
+
  if(!rows.length){
-  host.appendChild(empty(
-   "Für "+names[playoffPhase]+
-   " sind noch keine offiziellen Begegnungen veröffentlicht."
-  ));
+
+  host.appendChild(
+
+   empty(
+
+    "Für "+names[playoffPhase]+
+
+    " sind noch keine offiziellen Begegnungen veröffentlicht."
+
+   )
+
+  );
+
   return;
+
  }
- rows.forEach(f=>host.appendChild(fixtureCard(f)));
+
+ rows.forEach(f=>
+
+  host.appendChild(
+   fixtureCard(f)
+  )
+
+ );
+
 }
 
 function renderAll(){
+
  renderScores();
  renderSchedule();
  renderStandings();
@@ -974,56 +2509,147 @@ function renderAll(){
  renderStreams();
  renderCup();
  renderPlayoffs();
+
 }
 
-$("leagueSelect").onchange=renderStandings;
-$("cupRound").onchange=renderCup;
-$("playoffGroup").onchange=renderPlayoffs;
+$("leagueSelect").onchange=
+ renderStandings;
 
-document.querySelectorAll("[data-phase]").forEach(btn=>{
+$("cupRound").onchange=
+ renderCup;
+
+$("playoffGroup").onchange=
+ renderPlayoffs;
+
+document.querySelectorAll(
+ "[data-phase]"
+).forEach(btn=>{
+
  btn.onclick=()=>{
+
   playoffPhase=btn.dataset.phase;
-  document.querySelectorAll("[data-phase]").forEach(b=>
-   b.classList.toggle("active",b===btn));
+
+  document.querySelectorAll(
+   "[data-phase]"
+  ).forEach(b=>
+
+   b.classList.toggle(
+    "active",
+    b===btn
+   )
+
+  );
+
   renderPlayoffs();
+
  };
+
 });
 
-document.querySelectorAll("[data-stats-mode]").forEach(btn=>{
+document.querySelectorAll(
+ "[data-stats-mode]"
+).forEach(btn=>{
+
  btn.onclick=()=>{
+
   statsMode=btn.dataset.statsMode;
-  document.querySelectorAll("[data-stats-mode]").forEach(b=>
-   b.classList.toggle("active",b===btn));
+
+  document.querySelectorAll(
+   "[data-stats-mode]"
+  ).forEach(b=>
+
+   b.classList.toggle(
+    "active",
+    b===btn
+   )
+
+  );
+
   renderPlayers();
   renderGoalies();
+
  };
+
 });
 
 $("openStreams").onclick=()=>{
+
  $("videoCenter").hidden=false;
+
  document.body.style.overflow="hidden";
+
  renderStreams();
+
 };
 
 $("closeStreams").onclick=()=>{
+
  $("videoCenter").hidden=true;
+
  document.body.style.overflow="";
+
  $("videoPlayer").replaceChildren();
+
 };
 
-window.addEventListener("snhl:data-updated",renderAll);
+window.addEventListener(
+
+ "snhl:data-updated",
+
+ renderAll
+
+);
 
 setupLanguages();
+
 loadData();
 loadCupLive();
 
-setInterval(loadData,60000);
-setInterval(loadCupLive,5000);
-setInterval(renderCupDraw,1000);
+// Allgemeine Daten und Cup-Podest
+// jede Minute aktualisieren.
+
+setInterval(
+ loadData,
+ 60000
+);
+
+// Live-Auslosung alle 5 Sekunden
+// aktualisieren.
+
+setInterval(
+ loadCupLive,
+ 5000
+);
+
+// Countdown jede Sekunde aktualisieren,
+// ohne die gesamte Anzeige neu aufzubauen.
+
+setInterval(
+ updateCupCountdown,
+ 1000
+);
+
+// Nach Rueckkehr zur Website
+// aktuelle Daten abrufen.
+
+document.addEventListener(
+
+ "visibilitychange",
+
+ ()=>{
+
+  if(!document.hidden){
+
+   loadData();
+   loadCupLive();
+   updateCupCountdown();
+
+  }
+
+ }
+
+);
+
 </script>
 </body>
 </html>
-
-
-
-
