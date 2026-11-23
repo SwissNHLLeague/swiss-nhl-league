@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -195,6 +194,7 @@ Maximaler Kader
 <button data-tab="overview" class="active">Übersicht</button>
 <button data-tab="roster">Kader</button>
 <button data-tab="games">Meine Spiele</button>
+<button data-tab="cup">🏆 Cup-Spiele</button>
 <button data-tab="requests">Spieleranfragen</button>
 <button data-tab="transfers">Transfers</button>
 <button data-tab="logo">Clublogo</button>
@@ -251,6 +251,22 @@ Spiele aktualisieren
 <div id="gamesList">Lade Spiele...</div>
 </section>
 
+<!-- CUP-SPIELE UND RESULTATBESTAETIGUNG -->
+<section class="panel hidden" data-section="cup">
+<h2>🏆 Meine Cup-Spiele</h2>
+<p class="muted">
+Clubinhaber und GMs können Cup-Resultate melden
+und bestätigen. Beide Clubs müssen übereinstimmen.
+</p>
+<button id="refreshCupMatches" type="button">
+Cup-Spiele aktualisieren
+</button>
+<p id="cupMatchesMessage" role="status" class="muted"></p>
+<div id="cupMatchesList">
+Noch keine Cup-Spiele geladen.
+</div>
+</section>
+
 <section class="panel hidden" data-section="requests">
 <h2>Spieleranfragen</h2>
 <div id="requestList">Lade Anfragen...</div>
@@ -261,7 +277,9 @@ Spiele aktualisieren
 
 <div class="notice">
 <h3>Transferfenster</h3>
-<p id="transferWindowStatus">Lade Transferstatus...</p>
+<p id="transferWindowStatus">
+Lade Transferstatus...
+</p>
 <p id="transferWindowDates" class="muted"></p>
 </div>
 
@@ -275,7 +293,9 @@ Transfers aktualisieren
 </button>
 
 <h3>Transferanträge</h3>
-<div id="transferList">Lade Transfers...</div>
+<div id="transferList">
+Lade Transfers...
+</div>
 
 <div class="notice">
 Ein Spieler darf nur einem Club angehören.
@@ -287,7 +307,11 @@ des Transferfensters gesperrt.
 
 <section class="panel hidden" data-section="logo">
 <h2>Clublogo</h2>
-<input type="file" id="clubLogoFile" accept="image/png,image/jpeg">
+<input
+ type="file"
+ id="clubLogoFile"
+ accept="image/png,image/jpeg"
+>
 <button id="uploadLogoButton" type="button">
 Logo hochladen
 </button>
@@ -321,6 +345,7 @@ E-Mail-Adresse des registrierten Benutzers
 GM ernennen
 </button>
 </div>
+
 <p id="gmStatus" role="status" class="muted"></p>
 </section>
 
@@ -354,6 +379,8 @@ let logoBusy=false;
 let transferBusy=false;
 let archiveBusy=false;
 let proposalBusy=false;
+let cupBusy=false;
+let cupSubmitBusy=false;
 
 function message(text){
   $("status").textContent=text;
@@ -380,6 +407,7 @@ function showTab(tab){
 
   if(tab==="gm")loadGms();
   if(tab==="games")loadGames();
+  if(tab==="cup")loadCupMatches();
   if(tab==="transfers")loadTransfers();
 }
 
@@ -484,9 +512,12 @@ async function init(){
   await Promise.allSettled([
     loadRoster(),
     loadRequests(),
-    loadGames()
+    loadGames(),
+    loadCupMatches()
   ]);
 }
+
+/* KADERVERWALTUNG */
 
 async function loadRoster(){
   const list=$("rosterList");
@@ -602,6 +633,8 @@ async function loadRoster(){
     list.appendChild(div);
   }
 }
+
+/* SPIELERANFRAGEN */
 
 async function loadRequests(){
   const list=$("requestList");
@@ -725,6 +758,8 @@ async function reviewRequest(id,approve){
   ]);
 }
 
+/* SPIELTERMINE UND GAMEDAY-VEREINBARUNG */
+
 const formatGameTime=value=>
   new Intl.DateTimeFormat("de-CH",{
     timeZone:"Europe/Zurich",
@@ -734,8 +769,6 @@ const formatGameTime=value=>
     hour:"2-digit",
     minute:"2-digit"
   }).format(new Date(value));
-
-/* GAMEDAY-TERMINVEREINBARUNG */
 
 const swissParts=value=>{
   const parts=new Intl.DateTimeFormat("en-GB",{
@@ -1150,6 +1183,7 @@ async function loadGames(){
       const response=await client.from("clubs")
         .select("id,name,logo_url")
         .in("id",ids);
+
       if(response.error)throw response.error;
       clubs=response.data||[];
     }
@@ -1316,6 +1350,199 @@ async function loadGames(){
     gamesBusy=false;
   }
 }
+
+/* CUP-SPIELE UND RESULTATBESTAETIGUNG */
+
+async function loadCupMatches(){
+  if(!currentClub?.id||cupBusy)return;
+
+  cupBusy=true;
+
+  const list=$("cupMatchesList");
+  const info=$("cupMatchesMessage");
+
+  list.textContent="Lade Cup-Spiele...";
+  info.textContent="";
+
+  try{
+    const {data,error}=await client.rpc(
+      "snhl_cup_my_matches"
+    );
+
+    if(error)throw error;
+
+    const matches=(data||[]).filter(m=>
+      m.home_club_id===currentClub.id||
+      m.away_club_id===currentClub.id
+    );
+
+    list.replaceChildren();
+
+    if(!matches.length){
+      list.textContent=
+        "Noch keine Cup-Spiele für deinen Club vorhanden.";
+      return;
+    }
+
+    for(const m of matches){
+      const item=document.createElement("article");
+      item.className="game-proposal";
+
+      const heading=document.createElement("h3");
+      heading.textContent=
+        (m.round_name||"Cup")+": "+
+        (m.home_name||"Heimclub")+
+        " – "+
+        (m.away_name||"Gastclub");
+
+      const details=document.createElement("p");
+      details.textContent=
+        "Spiel: "+
+        (m.scheduled_at
+          ?formatGameTime(m.scheduled_at)+" Uhr"
+          :"Termin offen")+
+        " · Status: "+(m.status||"–");
+
+      const result=document.createElement("p");
+      result.textContent=
+        "Resultat: "+
+        (m.home_score==null||m.away_score==null
+          ?"Noch nicht gemeldet"
+          :m.home_score+":"+m.away_score)+
+        " · Dein Club: "+
+        (m.my_result_confirmed?"Bestätigt":"Offen")+
+        " · Gegner: "+
+        (m.opponent_result_confirmed?"Bestätigt":"Offen");
+
+      item.append(heading,details,result);
+
+      if(m.status==="disputed"){
+        const warning=document.createElement("p");
+        warning.className="notice";
+        warning.textContent=
+          "Abweichende Resultate – Prüfung durch "+
+          "die Liga-Leitung erforderlich.";
+        item.appendChild(warning);
+      }
+
+      const canSubmit=[
+        "scheduled",
+        "confirmed",
+        "in_progress",
+        "result_pending"
+      ].includes(m.status)&&!m.my_result_confirmed;
+
+      if(canSubmit){
+        const form=document.createElement("form");
+
+        const label=document.createElement("p");
+        label.textContent=m.opponent_result_confirmed
+          ?"Gemeldetes Resultat bestätigen oder "+
+           "abweichendes Resultat melden:"
+          :"Resultat aus Sicht Heimclub : Gastclub eingeben:";
+
+        const home=document.createElement("input");
+        home.type="number";
+        home.min="0";
+        home.step="1";
+        home.placeholder="Heimtore";
+        home.required=true;
+
+        const away=document.createElement("input");
+        away.type="number";
+        away.min="0";
+        away.step="1";
+        away.placeholder="Gasttore";
+        away.required=true;
+
+        if(m.home_score!=null){
+          home.value=m.home_score;
+        }
+
+        if(m.away_score!=null){
+          away.value=m.away_score;
+        }
+
+        const submit=document.createElement("button");
+        submit.type="submit";
+        submit.textContent=m.opponent_result_confirmed
+          ?"Resultat bestätigen / Abweichung melden"
+          :"Cup-Resultat melden";
+
+        form.append(label,home,away,submit);
+
+        form.onsubmit=async event=>{
+          event.preventDefault();
+
+          if(cupSubmitBusy)return;
+
+          const hs=Number(home.value);
+          const as=Number(away.value);
+
+          if(
+            !Number.isSafeInteger(hs)||
+            !Number.isSafeInteger(as)||
+            hs<0||
+            as<0||
+            hs===as
+          ){
+            info.textContent=
+              "Bitte gültige Tore eingeben. "+
+              "Unentschieden sind nicht erlaubt.";
+            return;
+          }
+
+          if(!confirm(
+            "Cup-Resultat "+hs+":"+as+
+            " verbindlich melden?"
+          ))return;
+
+          cupSubmitBusy=true;
+          submit.disabled=true;
+          info.textContent="Resultat wird übermittelt...";
+
+          try{
+            const {data:reply,error:e}=
+              await client.rpc(
+                "snhl_cup_submit_result",
+                {
+                  p_match_id:m.match_id,
+                  p_home_score:hs,
+                  p_away_score:as
+                }
+              );
+
+            if(e)throw e;
+
+            await loadCupMatches();
+
+            info.textContent=String(
+              reply||"Resultat gespeichert."
+            );
+          }catch(e){
+            info.textContent=
+              "Fehler: "+e.message;
+          }finally{
+            cupSubmitBusy=false;
+            submit.disabled=false;
+          }
+        };
+
+        item.appendChild(form);
+      }
+
+      list.appendChild(item);
+    }
+  }catch(e){
+    list.textContent=
+      "Cup-Spiele konnten nicht geladen werden: "+
+      e.message;
+  }finally{
+    cupBusy=false;
+  }
+}
+
+$("refreshCupMatches").onclick=loadCupMatches;
 
 /* GM-VERWALTUNG */
 
@@ -1817,7 +2044,7 @@ $("archiveClubButton").onclick=async()=>{
   }
 };
 
-/* BUTTONS */
+/* BUTTONS UND START */
 
 $("refreshTransfers").onclick=loadTransfers;
 $("uploadLogoButton").onclick=uploadOwnerLogo;
