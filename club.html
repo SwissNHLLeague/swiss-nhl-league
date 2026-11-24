@@ -2134,7 +2134,7 @@ async function loadCupMatches(){
   try{
 
     const {data,error}=await client.rpc(
-      "snhl_cup_my_matches"
+            "snhl_cup_my_matches_v2"
     );
 
     if(error)throw error;
@@ -2191,7 +2191,64 @@ async function loadCupMatches(){
       status.textContent=
         "Status: "+cupStatusLabel(match.status);
 
+      
       item.append(heading,pairing,side,status);
+
+      const releaseBox=document.createElement("div");
+      releaseBox.className="cup-date-box";
+
+      const releaseHeading=document.createElement("h4");
+      releaseHeading.textContent="Offizielle Cup-Startfreigabe";
+
+      const releaseStatus=document.createElement("p");
+
+      releaseStatus.className=
+        match.start_released===true
+          ?"cup-confirmed"
+          :"cup-pending";
+
+      releaseStatus.textContent=
+        match.start_released===true
+          ?"✓ Cup-Runde offiziell freigegeben"
+          :"Startfreigabe noch nicht erteilt.";
+
+      releaseBox.append(releaseHeading,releaseStatus);
+
+      if(match.start_released_at){
+        const releasedAt=document.createElement("p");
+        releasedAt.textContent=
+          "Freigabe erteilt am: "+
+          formatGameTime(match.start_released_at)+" Uhr";
+        releaseBox.appendChild(releasedAt);
+      }
+
+      if(match.play_from){
+        const roundStart=document.createElement("p");
+        roundStart.textContent=
+          "Rundenbeginn: "+
+          formatGameTime(match.play_from)+" Uhr";
+        releaseBox.appendChild(roundStart);
+      }
+
+      if(match.deadline_at){
+        const deadline=document.createElement("p");
+        deadline.textContent=
+          "Rundenfrist: "+
+          formatGameTime(match.deadline_at)+" Uhr";
+        releaseBox.appendChild(deadline);
+      }
+
+      const releaseInfo=document.createElement("p");
+      releaseInfo.className="muted";
+
+      releaseInfo.textContent=
+        match.start_released===true
+          ?"Gespielt werden darf innerhalb der Rundenfrist zum beidseitig bestätigten Spieltermin."
+          :"Die offizielle Freigabe durch die Liga-Leitung steht noch aus. Die Resultatmeldung bleibt gesperrt.";
+
+      releaseBox.appendChild(releaseInfo);
+      item.appendChild(releaseBox);
+
 
       item.appendChild(
         renderCupDateProposal(match,proposals)
@@ -2283,18 +2340,10 @@ async function loadCupMatches(){
 
       }else{
 
-        const started=
-          match.scheduled_at&&
-          new Date(match.scheduled_at).getTime()
-          <=Date.now();
-
+        
         const canSubmit=
-          started&&
-          [
-            "confirmed",
-            "in_progress",
-            "result_pending"
-          ].includes(match.status);
+          match.result_submission_available===true;
+
 
         if(canSubmit){
 
@@ -2415,7 +2464,19 @@ async function submitCupResult(
   match,homeValue,awayValue,button
 ){
 
+  
   if(cupSubmitBusy||cupBusy||cupDateBusy)return;
+
+  if(
+    match.start_released!==true||
+    match.result_submission_available!==true
+  ){
+    cupMessage(
+      "Die Resultatmeldung ist noch nicht freigegeben."
+    );
+    return;
+  }
+
 
   if(
     homeValue.trim()===""||
