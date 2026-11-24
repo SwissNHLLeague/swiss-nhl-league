@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -150,6 +151,49 @@ a{color:#85b4ff}
   background:#253957;
   margin:10px 0;
 }
+.cup-date-box{
+  background:#142139;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:15px;
+  margin:15px 0;
+}
+.cup-date-box h4{
+  margin:0 0 12px;
+}
+.cup-date-box input[type=date],
+.cup-date-box input[type=time]{
+  display:block;
+  width:100%;
+}
+.cup-date-box label{
+  display:block;
+  margin-top:10px;
+}
+.cup-confirmed{
+  color:#5ee49a;
+  font-weight:bold;
+}
+.cup-pending{
+  color:#ffd166;
+  font-weight:bold;
+}
+.cup-rejected{
+  color:#ff8290;
+  font-weight:bold;
+}
+.cup-approve{
+  background:#237b49;
+}
+.cup-date-history{
+  margin-top:15px;
+  border-top:1px solid var(--line);
+  padding-top:12px;
+}
+.cup-date-history summary{
+  cursor:pointer;
+  color:var(--muted);
+}
 </style>
 </head>
 <body>
@@ -251,17 +295,52 @@ Spiele aktualisieren
 <div id="gamesList">Lade Spiele...</div>
 </section>
 
-<!-- CUP-SPIELE UND RESULTATBESTAETIGUNG -->
+<!-- CUP-SPIELE UND TERMINVEREINBARUNG -->
+
 <section class="panel hidden" data-section="cup">
 <h2>🏆 Meine Cup-Spiele</h2>
+
+<div class="notice">
+<h3>Cup-Terminvereinbarung</h3>
+<p>
+Clubinhaber und GMs vereinbaren die Spieltermine
+direkt mit dem gegnerischen Club.
+</p>
+<p>
+Spieltermine müssen innerhalb der von der
+Liga-Leitung festgelegten Rundenfrist liegen.
+</p>
+<p>
+Beide Clubs müssen spätestens 2 Stunden
+vor dem Anspiel zustimmen.
+</p>
+<p>
+Alle Datums- und Zeitangaben entsprechen
+der Schweizer Lokalzeit.
+</p>
+<p>
+Sonntag bis Donnerstag: 20:00–23:40 Uhr.<br>
+Freitag und Samstag: 20:00–03:30 Uhr
+des darauffolgenden Tages.
+</p>
+<p>
+Bereits begonnene Spiele können nicht
+mehr verschoben werden.
+</p>
+</div>
+
 <p class="muted">
 Clubinhaber und GMs können Cup-Resultate melden
 und bestätigen. Beide Clubs müssen übereinstimmen.
+Unentschieden sind nicht erlaubt.
 </p>
+
 <button id="refreshCupMatches" type="button">
 Cup-Spiele aktualisieren
 </button>
+
 <p id="cupMatchesMessage" role="status" class="muted"></p>
+
 <div id="cupMatchesList">
 Noch keine Cup-Spiele geladen.
 </div>
@@ -381,6 +460,7 @@ let archiveBusy=false;
 let proposalBusy=false;
 let cupBusy=false;
 let cupSubmitBusy=false;
+let cupDateBusy=false;
 
 function message(text){
   $("status").textContent=text;
@@ -782,9 +862,13 @@ const swissParts=value=>{
   }).formatToParts(new Date(value));
 
   const result={};
+
   for(const p of parts){
-    if(p.type!=="literal")result[p.type]=p.value;
+    if(p.type!=="literal"){
+      result[p.type]=p.value;
+    }
   }
+
   return result;
 };
 
@@ -802,6 +886,7 @@ function addSwissDays(dateKey,days){
 function swissOffsetFor(dateKey){
   const noon=new Date(dateKey+"T12:00:00Z");
   const p=swissParts(noon);
+
   const localAsUTC=Date.UTC(
     Number(p.year),
     Number(p.month)-1,
@@ -809,45 +894,100 @@ function swissOffsetFor(dateKey){
     Number(p.hour),
     Number(p.minute)
   );
-  const minutes=(localAsUTC-noon.getTime())/60000;
+
+  const minutes=
+    (localAsUTC-noon.getTime())/60000;
+
   const sign=minutes>=0?"+":"-";
   const abs=Math.abs(minutes);
+
   return sign+
     String(Math.floor(abs/60)).padStart(2,"0")+":"+
     String(abs%60).padStart(2,"0");
 }
 
 function swissLocalToISO(dateKey,time){
-  const offset=swissOffsetFor(dateKey);
-  const value=new Date(
-    dateKey+"T"+time+":00"+offset
-  );
 
-  if(Number.isNaN(value.getTime())){
+  if(
+    !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)||
+    !/^\d{2}:\d{2}$/.test(time)
+  ){
     throw new Error("Ungültiger Termin");
   }
 
-  const p=swissParts(value);
-  const actual=`${p.hour}:${p.minute}`;
+  const candidates=[];
 
-  if(swissDateKey(value)!==dateKey||actual!==time){
-    throw new Error("Diese Uhrzeit existiert lokal nicht.");
+  for(const offset of ["+01:00","+02:00"]){
+
+    const value=new Date(
+      dateKey+"T"+time+":00"+offset
+    );
+
+    if(Number.isNaN(value.getTime())){
+      continue;
+    }
+
+    const p=swissParts(value);
+    const actual=`${p.hour}:${p.minute}`;
+
+    if(
+      swissDateKey(value)===dateKey&&
+      actual===time
+    ){
+      candidates.push(value);
+    }
   }
 
-  return value.toISOString();
+  if(candidates.length===0){
+    throw new Error(
+      "Diese Uhrzeit existiert in der Schweizer Lokalzeit nicht."
+    );
+  }
+
+  if(candidates.length>1){
+    throw new Error(
+      "Diese Uhrzeit ist wegen der Zeitumstellung "+
+      "mehrdeutig. Bitte eine andere Uhrzeit wählen."
+    );
+  }
+
+  return candidates[0].toISOString();
 }
 
 function validStartTime(dateKey,time){
+
+  if(
+    !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)||
+    !/^\d{2}:\d{2}$/.test(time)
+  ){
+    return false;
+  }
+
   const date=new Date(dateKey+"T12:00:00Z");
+
+  if(Number.isNaN(date.getTime())){
+    return false;
+  }
+
   const day=date.getUTCDay();
 
   if(day===5||day===6){
-    if(time>="20:00")return true;
-  }else if(time>="20:00"&&time<="23:40"){
+
+    if(time>="20:00"&&time<="23:59"){
+      return true;
+    }
+
+  }else if(
+    time>="20:00"&&time<="23:40"
+  ){
     return true;
   }
 
-  if((day===6||day===0)&&time<="03:30"){
+  if(
+    (day===6||day===0)&&
+    time>="00:00"&&
+    time<="03:30"
+  ){
     return true;
   }
 
@@ -872,19 +1012,25 @@ function proposalStatusLabel(status){
 }
 
 async function getGameProposals(){
+
   const {data,error}=await client.rpc(
     "snhl_my_game_date_proposals"
   );
+
   if(error)throw error;
+
   return data||[];
 }
 
 async function createGameProposal(
   game,option,time,button
 ){
+
   if(proposalBusy||gamesBusy)return;
 
-  const baseDate=swissDateKey(game.scheduled_at);
+  const baseDate=swissDateKey(
+    game.scheduled_at
+  );
 
   const dateKey=addSwissDays(
     baseDate,
@@ -893,30 +1039,41 @@ async function createGameProposal(
   );
 
   if(!validStartTime(dateKey,time)){
+
     message(
       "Diese Anspielzeit ist nicht erlaubt. "+
       "So–Do 20:00–23:40, Fr/Sa ab 20:00 "+
       "bis 03:30 Uhr am Folgetag."
     );
+
     return;
   }
 
   let proposedISO;
+
   try{
-    proposedISO=swissLocalToISO(dateKey,time);
+
+    proposedISO=swissLocalToISO(
+      dateKey,time
+    );
+
   }catch(e){
+
     message(e.message);
     return;
+
   }
 
   if(
     new Date(proposedISO).getTime()-
     Date.now()<7200000
   ){
+
     message(
       "Der vorgeschlagene Termin muss "+
       "mindestens 2 Stunden in der Zukunft liegen."
     );
+
     return;
   }
 
@@ -929,9 +1086,11 @@ async function createGameProposal(
 
   proposalBusy=true;
   button.disabled=true;
+
   message("Terminvorschlag wird gesendet...");
 
   try{
+
     const {error}=await client.rpc(
       "snhl_create_game_date_proposal",
       {
@@ -948,17 +1107,27 @@ async function createGameProposal(
       "Terminvorschlag gespeichert. "+
       "Die Zustimmung des gegnerischen Clubs steht aus."
     );
+
   }catch(e){
-    message("Terminvorschlag fehlgeschlagen: "+e.message);
+
+    message(
+      "Terminvorschlag fehlgeschlagen: "+
+      e.message
+    );
+
   }finally{
+
     proposalBusy=false;
+    button.disabled=false;
     await loadGames();
+
   }
 }
 
 async function respondGameProposal(
   proposal,approve,button
 ){
+
   if(proposalBusy||gamesBusy)return;
 
   if(!confirm(
@@ -969,9 +1138,11 @@ async function respondGameProposal(
 
   proposalBusy=true;
   button.disabled=true;
+
   message("Entscheidung wird gespeichert...");
 
   try{
+
     const {data,error}=await client.rpc(
       "snhl_respond_game_date_proposal",
       {
@@ -991,30 +1162,43 @@ async function respondGameProposal(
         :"Zustimmung gespeichert. "+
          "Die zweite Zustimmung steht noch aus."
     );
+
   }catch(e){
-    message("Entscheidung fehlgeschlagen: "+e.message);
+
+    message(
+      "Entscheidung fehlgeschlagen: "+
+      e.message
+    );
+
   }finally{
+
     proposalBusy=false;
+    button.disabled=false;
     await loadGames();
+
   }
 }
 
 function renderGameProposal(
   game,proposal,isHome,inTime,allowed
 ){
+
   const box=document.createElement("div");
   box.className="game-proposal";
 
-  const title=document.createElement("h3");
-  title.textContent="Gameday-Terminvereinbarung";
-  box.appendChild(title);
+  const heading=document.createElement("h3");
+  heading.textContent="Terminvereinbarung";
+  box.appendChild(heading);
 
   if(proposal){
-    const details=document.createElement("div");
+
+    const details=document.createElement("p");
     details.className="proposal-status";
 
-    const proposedByMe=
-      proposal.proposed_by_club_id===currentClub.id;
+    details.textContent=
+      "Vorgeschlagener Termin: "+
+      formatGameTime(proposal.proposed_start_at)+
+      " Uhr (Schweiz)";
 
     const mine=isHome
       ?proposal.home_approved
@@ -1024,31 +1208,43 @@ function renderGameProposal(
       ?proposal.away_approved
       :proposal.home_approved;
 
-    details.textContent=
-      "Option: "+dateOptionLabel(proposal.date_option)+
-      "\nNeuer Termin: "+
-      formatGameTime(proposal.proposed_start_at)+
-      " Uhr\nStatus: "+
-      proposalStatusLabel(proposal.status)+
-      "\nDein Club: "+
-      (mine?"Zugestimmt":"Offen")+
-      "\nGegner: "+
-      (other?"Zugestimmt":"Offen");
+    const proposedByMe=
+      proposal.proposed_by_club_id===currentClub.id;
 
-    details.style.whiteSpace="pre-line";
-    box.appendChild(details);
+    const status=document.createElement("p");
+
+    status.textContent=
+      "Status: "+proposalStatusLabel(proposal.status)+
+      " · Dein Club: "+(mine?"Zugestimmt":"Offen")+
+      " · Gegner: "+(other?"Zugestimmt":"Offen");
+
+    box.append(details,status);
 
     if(proposal.status==="pending"){
-      if(!mine&&allowed&&inTime){
+
+      const proposalInTime=
+        new Date(proposal.proposed_start_at).getTime()
+        -Date.now()>=7200000;
+
+      if(
+        !mine&&
+        !proposedByMe&&
+        allowed&&
+        proposalInTime
+      ){
+
         const actions=document.createElement("div");
         actions.className="actions";
 
         for(const approve of [true,false]){
+
           const btn=document.createElement("button");
           btn.type="button";
+
           btn.textContent=approve
             ?"Termin zustimmen"
             :"Termin ablehnen";
+
           if(!approve)btn.className="danger";
 
           btn.onclick=()=>respondGameProposal(
@@ -1057,16 +1253,21 @@ function renderGameProposal(
 
           actions.appendChild(btn);
         }
+
         box.appendChild(actions);
+
       }else{
+
         const info=document.createElement("p");
         info.className="muted";
+
         info.textContent=mine
           ?"Deine Zustimmung ist gespeichert. "+
            "Warte auf den gegnerischen Club."
           :proposedByMe
           ?"Terminvorschlag wurde erstellt."
           :"Eine Entscheidung ist derzeit nicht möglich.";
+
         box.appendChild(info);
       }
     }
@@ -1075,12 +1276,16 @@ function renderGameProposal(
   }
 
   if(!allowed||!inTime){
+
     const info=document.createElement("p");
     info.className="muted";
+
     info.textContent=
       "Für dieses Spiel kann derzeit kein "+
       "neuer Terminvorschlag erstellt werden.";
+
     box.appendChild(info);
+
     return box;
   }
 
@@ -1094,16 +1299,22 @@ function renderGameProposal(
     ["day_before","Vortag"],
     ["day_after","Folgetag"]
   ]){
+
     const opt=document.createElement("option");
+
     opt.value=value;
     opt.textContent=label;
+
     optionSelect.appendChild(opt);
   }
 
   const timeLabel=document.createElement("label");
-  timeLabel.textContent="Gewünschte Anspielzeit (Schweiz)";
+
+  timeLabel.textContent=
+    "Gewünschte Anspielzeit (Schweiz)";
 
   const timeInput=document.createElement("input");
+
   timeInput.type="time";
   timeInput.value="20:00";
   timeInput.step=600;
@@ -1112,18 +1323,23 @@ function renderGameProposal(
   dateInfo.className="muted";
 
   function updateDateInfo(){
+
     const base=swissDateKey(game.scheduled_at);
+
     const shift=optionSelect.value==="day_before"?-1:
       optionSelect.value==="day_after"?1:0;
+
     dateInfo.textContent=
       "Vorgeschlagenes Datum: "+
       addSwissDays(base,shift);
   }
 
   optionSelect.onchange=updateDateInfo;
+
   updateDateInfo();
 
   const send=document.createElement("button");
+
   send.type="button";
   send.textContent="Terminvorschlag senden";
 
@@ -1146,17 +1362,20 @@ function renderGameProposal(
   return box;
 }
 
-/* MEINE SPIELE */
+/* MEINE LIGA-SPIELE */
 
 async function loadGames(){
+
   if(!currentClub||gamesBusy||proposalBusy)return;
 
   const list=$("gamesList");
+
   list.textContent="Lade Spiele...";
 
   gamesBusy=true;
 
   try{
+
     const {data,error}=await client.from("games")
       .select(
         "id,home_club_id,away_club_id,"+
@@ -1179,12 +1398,15 @@ async function loadGames(){
     ]))];
 
     let clubs=[];
+
     if(ids.length){
+
       const response=await client.from("clubs")
         .select("id,name,logo_url")
         .in("id",ids);
 
       if(response.error)throw response.error;
+
       clubs=response.data||[];
     }
 
@@ -1193,9 +1415,11 @@ async function loadGames(){
     );
 
     const proposals=await getGameProposals();
+
     const proposalMap=new Map();
 
     for(const proposal of proposals){
+
       if(proposal.status==="pending"){
         proposalMap.set(proposal.game_id,proposal);
       }
@@ -1204,12 +1428,15 @@ async function loadGames(){
     list.replaceChildren();
 
     if(!games.length){
+
       list.textContent=
         "Noch keine Spiele für deinen Club vorhanden.";
+
       return;
     }
 
     for(const game of games){
+
       const home=clubMap.get(game.home_club_id);
       const away=clubMap.get(game.away_club_id);
 
@@ -1239,32 +1466,42 @@ async function loadGames(){
         ["scheduled","confirmed"].includes(game.status);
 
       const item=document.createElement("div");
+
       item.className="item";
 
       const matchup=document.createElement("div");
+
       matchup.className="matchup";
 
       function clubDisplay(club,fallback){
+
         const box=document.createElement("div");
+
         box.className="match-club";
 
         if(club?.logo_url){
+
           const img=document.createElement("img");
+
           img.src=club.logo_url;
           img.alt="Clublogo";
           img.className="match-logo";
           img.loading="lazy";
+
           box.appendChild(img);
         }
 
         const name=document.createElement("strong");
+
         name.textContent=club?.name||fallback;
+
         box.appendChild(name);
 
         return box;
       }
 
       const vs=document.createElement("strong");
+
       vs.className="match-vs";
       vs.textContent="VS";
 
@@ -1275,6 +1512,7 @@ async function loadGames(){
       );
 
       const meta=document.createElement("p");
+
       meta.textContent=
         "Spielbeginn: "+
         (valid
@@ -1285,6 +1523,7 @@ async function loadGames(){
         " · Status: "+(game.status||"–");
 
       const state=document.createElement("p");
+
       state.textContent=
         "Dein Club: "+
         (mine?"Bestätigt":"Offen")+
@@ -1294,7 +1533,9 @@ async function loadGames(){
       item.append(matchup,meta,state);
 
       if(!mine&&allowed){
+
         const button=document.createElement("button");
+
         button.type="button";
 
         button.textContent=inTime
@@ -1304,14 +1545,17 @@ async function loadGames(){
         button.disabled=!inTime;
 
         button.onclick=async()=>{
+
           if(!confirm(
             "Diesen Spieltermin verbindlich bestätigen?"
           ))return;
 
           button.disabled=true;
+
           message("Bestätigung wird geprüft...");
 
           try{
+
             const {error:e}=await client.rpc(
               "club_confirm_game",
               {p_game_id:game.id}
@@ -1320,12 +1564,17 @@ async function loadGames(){
             if(e)throw e;
 
             message("Spielbestätigung gespeichert.");
+
           }catch(e){
+
             message(
               "Bestätigung fehlgeschlagen: "+e.message
             );
+
           }finally{
+
             await loadGames();
+
           }
         };
 
@@ -1342,29 +1591,548 @@ async function loadGames(){
 
       list.appendChild(item);
     }
+
   }catch(e){
+
     list.textContent=
       "Spiele konnten nicht geladen werden: "+
       e.message;
+
   }finally{
+
     gamesBusy=false;
+
   }
 }
 
-/* CUP-SPIELE UND RESULTATBESTAETIGUNG */
+/* CUP-TERMINVERWALTUNG */
+
+function cupMessage(text){
+
+  $("cupMatchesMessage").textContent=text;
+}
+
+function cupStatusLabel(status){
+
+  return {
+    scheduled:"Terminvereinbarung offen",
+    confirmed:"Spieltermin bestätigt",
+    in_progress:"Spiel läuft",
+    result_pending:"Resultatbestätigung offen",
+    disputed:"Prüfung durch Liga-Leitung",
+    completed:"Spiel abgeschlossen"
+  }[status]||status||"–";
+}
+
+function cupProposalStatusLabel(status){
+
+  return {
+    pending:"Zustimmung ausstehend",
+    approved:"Beidseitig bestätigt",
+    rejected:"Abgelehnt",
+    cancelled:"Zurückgezogen"
+  }[status]||status;
+}
+
+async function getCupDateProposals(){
+
+  const {data,error}=await client.rpc(
+    "snhl_cup_my_date_proposals"
+  );
+
+  if(error)throw error;
+
+  return data||[];
+}
+
+async function createCupDateProposal(
+  match,dateKey,time,button
+){
+
+  if(cupDateBusy||cupBusy)return;
+
+  if(!dateKey||!time){
+
+    cupMessage("Bitte Datum und Uhrzeit auswählen.");
+
+    return;
+  }
+
+  if(!validStartTime(dateKey,time)){
+
+    cupMessage(
+      "Unzulässige Anspielzeit. "+
+      "So–Do 20:00–23:40 Uhr. "+
+      "Fr/Sa 20:00–03:30 Uhr am Folgetag."
+    );
+
+    return;
+  }
+
+  let proposedISO;
+
+  try{
+
+    proposedISO=swissLocalToISO(dateKey,time);
+
+  }catch(e){
+
+    cupMessage(e.message);
+
+    return;
+  }
+
+  if(
+    new Date(proposedISO).getTime()-
+    Date.now()<7200000
+  ){
+
+    cupMessage(
+      "Der Spieltermin muss mindestens "+
+      "2 Stunden in der Zukunft liegen."
+    );
+
+    return;
+  }
+
+  if(!confirm(
+    "Cup-Terminvorschlag senden?\n\n"+
+    formatGameTime(proposedISO)+" Uhr (Schweiz)\n\n"+
+    "Der gegnerische Club muss zustimmen."
+  ))return;
+
+  cupDateBusy=true;
+  button.disabled=true;
+
+  cupMessage("Cup-Terminvorschlag wird übermittelt...");
+
+  try{
+
+    const {error}=await client.rpc(
+      "snhl_cup_create_date_proposal",
+      {
+        p_match_id:match.match_id,
+        p_club_id:currentClub.id,
+        p_proposed_start_at:proposedISO
+      }
+    );
+
+    if(error)throw error;
+
+    await loadCupMatches();
+
+    cupMessage(
+      "Terminvorschlag gespeichert. "+
+      "Die Zustimmung des gegnerischen Clubs steht aus."
+    );
+
+  }catch(e){
+
+    cupMessage("Fehler: "+e.message);
+
+  }finally{
+
+    cupDateBusy=false;
+    button.disabled=false;
+
+  }
+}
+
+async function respondCupDateProposal(
+  proposal,approve,button
+){
+
+  if(cupDateBusy||cupBusy)return;
+
+  if(!confirm(
+    approve
+      ?"Diesem Cup-Spieltermin verbindlich zustimmen?"
+      :"Diesen Cup-Terminvorschlag ablehnen?"
+  ))return;
+
+  cupDateBusy=true;
+  button.disabled=true;
+
+  cupMessage("Entscheidung wird gespeichert...");
+
+  try{
+
+    const {data,error}=await client.rpc(
+      "snhl_cup_respond_date_proposal",
+      {
+        p_proposal_id:proposal.proposal_id,
+        p_club_id:currentClub.id,
+        p_approve:approve
+      }
+    );
+
+    if(error)throw error;
+
+    await loadCupMatches();
+
+    cupMessage(
+      data==="CUP-TERMIN BEIDSEITIG BESTAETIGT"
+        ?"Beide Clubs haben zugestimmt. "+
+         "Der Cup-Spielplan wurde aktualisiert."
+        :data==="CUP-TERMIN ABGELEHNT"
+        ?"Terminvorschlag abgelehnt. "+
+         "Ein neuer Vorschlag ist möglich."
+        :"Entscheidung gespeichert."
+    );
+
+  }catch(e){
+
+    cupMessage("Fehler: "+e.message);
+
+  }finally{
+
+    cupDateBusy=false;
+    button.disabled=false;
+
+  }
+}
+
+async function cancelCupDateProposal(
+  proposal,button
+){
+
+  if(cupDateBusy||cupBusy)return;
+
+  if(!confirm(
+    "Diesen eigenen Cup-Terminvorschlag "+
+    "wirklich zurückziehen?"
+  ))return;
+
+  cupDateBusy=true;
+  button.disabled=true;
+
+  cupMessage("Terminvorschlag wird zurückgezogen...");
+
+  try{
+
+    const {error}=await client.rpc(
+      "snhl_cup_cancel_date_proposal",
+      {
+        p_proposal_id:proposal.proposal_id,
+        p_club_id:currentClub.id
+      }
+    );
+
+    if(error)throw error;
+
+    await loadCupMatches();
+
+    cupMessage(
+      "Terminvorschlag zurückgezogen. "+
+      "Ein neuer Vorschlag ist möglich."
+    );
+
+  }catch(e){
+
+    cupMessage("Fehler: "+e.message);
+
+  }finally{
+
+    cupDateBusy=false;
+    button.disabled=false;
+
+  }
+}
+
+/* CUP-TERMINVORSCHLAEGE ANZEIGEN */
+
+function renderCupDateProposal(match,proposals){
+
+  const box=document.createElement("div");
+  box.className="cup-date-box";
+
+  const heading=document.createElement("h4");
+  heading.textContent="Cup-Terminvereinbarung";
+
+  box.appendChild(heading);
+
+  const history=proposals.filter(
+    p=>p.match_id===match.match_id
+  );
+
+  const pending=history.find(
+    p=>p.status==="pending"
+  );
+
+  const isHome=
+    match.home_club_id===currentClub.id;
+
+  const scheduledTime=match.scheduled_at
+    ?new Date(match.scheduled_at).getTime()
+    :null;
+
+  const started=
+    scheduledTime!==null&&
+    scheduledTime<=Date.now();
+
+  const allowed=
+    ["scheduled","confirmed"].includes(match.status)
+    &&!started;
+
+  if(match.scheduled_at){
+
+    const confirmed=document.createElement("p");
+
+    confirmed.className=
+      match.status==="confirmed"
+        ?"cup-confirmed":"muted";
+
+    confirmed.textContent=
+      "Offizieller Spieltermin: "+
+      formatGameTime(match.scheduled_at)+
+      " Uhr (Schweiz)";
+
+    box.appendChild(confirmed);
+
+  }else{
+
+    const info=document.createElement("p");
+    info.className="cup-pending";
+
+    info.textContent=
+      "Noch kein bestätigter Spieltermin.";
+
+    box.appendChild(info);
+  }
+
+  if(pending){
+
+    const proposedByMe=
+      pending.proposed_by_club_id===currentClub.id;
+
+    const mine=isHome
+      ?pending.home_approved
+      :pending.away_approved;
+
+    const other=isHome
+      ?pending.away_approved
+      :pending.home_approved;
+
+    const inTime=
+      new Date(pending.proposed_start_at).getTime()
+      -Date.now()>=7200000;
+
+    const proposed=document.createElement("p");
+    proposed.className="cup-pending";
+
+    proposed.textContent=
+      "Terminvorschlag: "+
+      formatGameTime(pending.proposed_start_at)+
+      " Uhr (Schweiz)";
+
+    const sender=document.createElement("p");
+
+    sender.textContent=proposedByMe
+      ?"Vorgeschlagen durch deinen Club."
+      :"Vorgeschlagen durch den gegnerischen Club.";
+
+    const approvals=document.createElement("p");
+
+    approvals.textContent=
+      "Dein Club: "+
+      (mine?"Zugestimmt":"Offen")+
+      " · Gegner: "+
+      (other?"Zugestimmt":"Offen");
+
+    box.append(proposed,sender,approvals);
+
+    const actions=document.createElement("div");
+    actions.className="actions";
+
+    if(proposedByMe){
+
+      const cancel=document.createElement("button");
+
+      cancel.type="button";
+      cancel.className="danger";
+
+      cancel.textContent=
+        "Terminvorschlag zurückziehen";
+
+      cancel.onclick=()=>cancelCupDateProposal(
+        pending,cancel
+      );
+
+      actions.appendChild(cancel);
+
+    }else if(allowed){
+
+      const approve=document.createElement("button");
+
+      approve.type="button";
+      approve.className="cup-approve";
+      approve.textContent="Termin zustimmen";
+
+      approve.disabled=!inTime;
+
+      approve.onclick=()=>respondCupDateProposal(
+        pending,true,approve
+      );
+
+      const reject=document.createElement("button");
+
+      reject.type="button";
+      reject.className="danger";
+      reject.textContent="Termin ablehnen";
+
+      reject.onclick=()=>respondCupDateProposal(
+        pending,false,reject
+      );
+
+      actions.append(approve,reject);
+    }
+
+    if(actions.childElementCount){
+
+      box.appendChild(actions);
+    }
+
+    if(!inTime){
+
+      const expired=document.createElement("p");
+
+      expired.className="cup-rejected";
+
+      expired.textContent=
+        "Die Bestätigungsfrist ist abgelaufen. "+
+        "Der Vorschlag muss abgelehnt oder "+
+        "zurückgezogen werden.";
+
+      box.appendChild(expired);
+    }
+
+  }else if(allowed){
+
+    const dateLabel=document.createElement("label");
+
+    dateLabel.textContent=
+      "Gewünschtes Spieldatum (Schweiz)";
+
+    const dateInput=document.createElement("input");
+
+    dateInput.type="date";
+    dateInput.min=swissDateKey(new Date());
+
+    dateInput.value=match.scheduled_at
+      ?swissDateKey(match.scheduled_at)
+      :swissDateKey(new Date());
+
+    dateLabel.appendChild(dateInput);
+
+    const timeLabel=document.createElement("label");
+
+    timeLabel.textContent=
+      "Gewünschte Anspielzeit (Schweiz)";
+
+    const timeInput=document.createElement("input");
+
+    timeInput.type="time";
+    timeInput.value="20:00";
+    timeInput.step=60;
+
+    timeLabel.appendChild(timeInput);
+
+    const send=document.createElement("button");
+
+    send.type="button";
+
+    send.textContent=match.scheduled_at
+      ?"Terminverschiebung vorschlagen"
+      :"Terminvorschlag senden";
+
+    send.onclick=()=>createCupDateProposal(
+      match,
+      dateInput.value,
+      timeInput.value,
+      send
+    );
+
+    box.append(dateLabel,timeLabel,send);
+
+  }else{
+
+    const info=document.createElement("p");
+
+    info.className="muted";
+
+    info.textContent=started
+      ?"Der festgelegte Spielbeginn ist erreicht. "+
+       "Eine Terminverschiebung ist nicht mehr möglich."
+      :"Eine Terminvereinbarung ist derzeit nicht möglich.";
+
+    box.appendChild(info);
+  }
+
+  /* Bisherige Terminvorschlaege */
+
+  const previous=history.filter(
+    p=>p.status!=="pending"
+  );
+
+  if(previous.length){
+
+    const details=document.createElement("details");
+
+    details.className="cup-date-history";
+
+    const summary=document.createElement("summary");
+
+    summary.textContent=
+      "Bisherige Terminvorschläge ("+
+      previous.length+")";
+
+    details.appendChild(summary);
+
+    for(const proposal of previous){
+
+      const entry=document.createElement("p");
+
+      entry.textContent=
+        formatGameTime(proposal.proposed_start_at)+
+        " Uhr · "+
+        cupProposalStatusLabel(proposal.status)+
+        " · "+
+        (
+          proposal.proposed_by_club_id===currentClub.id
+            ?"Eigener Vorschlag"
+            :"Gegnerischer Vorschlag"
+        );
+
+      entry.className=
+        proposal.status==="approved"
+          ?"cup-confirmed"
+          :proposal.status==="rejected"
+          ?"cup-rejected"
+          :"muted";
+
+      details.appendChild(entry);
+    }
+
+    box.appendChild(details);
+  }
+
+  return box;
+}
+
+/* CUP-SPIELE LADEN */
 
 async function loadCupMatches(){
-  if(!currentClub?.id||cupBusy)return;
+
+  if(!currentClub||cupBusy)return;
 
   cupBusy=true;
 
   const list=$("cupMatchesList");
-  const info=$("cupMatchesMessage");
 
   list.textContent="Lade Cup-Spiele...";
-  info.textContent="";
 
   try{
+
     const {data,error}=await client.rpc(
       "snhl_cup_my_matches"
     );
@@ -1376,169 +2144,361 @@ async function loadCupMatches(){
       m.away_club_id===currentClub.id
     );
 
+    const proposals=await getCupDateProposals();
+
     list.replaceChildren();
 
     if(!matches.length){
+
       list.textContent=
-        "Noch keine Cup-Spiele für deinen Club vorhanden.";
+        "Für deinen Club sind derzeit "+
+        "keine Cup-Spiele vorhanden.";
+
       return;
     }
 
-    for(const m of matches){
-      const item=document.createElement("article");
-      item.className="game-proposal";
+    for(const match of matches){
+
+      const item=document.createElement("div");
+
+      item.className="item";
 
       const heading=document.createElement("h3");
+
       heading.textContent=
-        (m.round_name||"Cup")+": "+
-        (m.home_name||"Heimclub")+
-        " – "+
-        (m.away_name||"Gastclub");
+        match.round_name||"Cup-Spiel";
 
-      const details=document.createElement("p");
-      details.textContent=
-        "Spiel: "+
-        (m.scheduled_at
-          ?formatGameTime(m.scheduled_at)+" Uhr"
-          :"Termin offen")+
-        " · Status: "+(m.status||"–");
+      const pairing=document.createElement("h3");
 
-      const result=document.createElement("p");
-      result.textContent=
-        "Resultat: "+
-        (m.home_score==null||m.away_score==null
-          ?"Noch nicht gemeldet"
-          :m.home_score+":"+m.away_score)+
-        " · Dein Club: "+
-        (m.my_result_confirmed?"Bestätigt":"Offen")+
-        " · Gegner: "+
-        (m.opponent_result_confirmed?"Bestätigt":"Offen");
+      pairing.textContent=
+        (match.home_name||"Heimclub")+
+        " VS "+
+        (match.away_name||"Gastclub");
 
-      item.append(heading,details,result);
+      const side=document.createElement("p");
 
-      if(m.status==="disputed"){
-        const warning=document.createElement("p");
-        warning.className="notice";
-        warning.textContent=
-          "Abweichende Resultate – Prüfung durch "+
-          "die Liga-Leitung erforderlich.";
-        item.appendChild(warning);
+      side.className="muted";
+
+      side.textContent=
+        "Dein Club: "+
+        (
+          match.home_club_id===currentClub.id
+            ?"Heimclub":"Gastclub"
+        );
+
+      const status=document.createElement("p");
+
+      status.textContent=
+        "Status: "+cupStatusLabel(match.status);
+
+      item.append(heading,pairing,side,status);
+
+      item.appendChild(
+        renderCupDateProposal(match,proposals)
+      );
+
+      /* CUP-RESULTATE */
+
+      const resultHeading=document.createElement("h4");
+
+      resultHeading.textContent="Spielresultat";
+
+      item.appendChild(resultHeading);
+
+      if(
+        match.home_score!==null&&
+        match.home_score!==undefined&&
+        match.away_score!==null&&
+        match.away_score!==undefined
+      ){
+
+        const score=document.createElement("h2");
+
+        score.textContent=
+          match.home_score+" : "+match.away_score;
+
+        item.appendChild(score);
+
+      }else{
+
+        const score=document.createElement("p");
+
+        score.className="muted";
+        score.textContent="Noch kein Resultat gemeldet.";
+
+        item.appendChild(score);
       }
 
-      const canSubmit=[
-        "scheduled",
-        "confirmed",
-        "in_progress",
-        "result_pending"
-      ].includes(m.status)&&!m.my_result_confirmed;
+      const confirmations=document.createElement("p");
 
-      if(canSubmit){
-        const form=document.createElement("form");
+      confirmations.textContent=
+        "Dein Club: "+
+        (
+          match.my_result_confirmed
+            ?"Resultat bestätigt":"Offen"
+        )+
+        " · Gegner: "+
+        (
+          match.opponent_result_confirmed
+            ?"Resultat bestätigt":"Offen"
+        );
 
-        const label=document.createElement("p");
-        label.textContent=m.opponent_result_confirmed
-          ?"Gemeldetes Resultat bestätigen oder "+
-           "abweichendes Resultat melden:"
-          :"Resultat aus Sicht Heimclub : Gastclub eingeben:";
+      item.appendChild(confirmations);
 
-        const home=document.createElement("input");
-        home.type="number";
-        home.min="0";
-        home.step="1";
-        home.placeholder="Heimtore";
-        home.required=true;
+      if(match.status==="disputed"){
 
-        const away=document.createElement("input");
-        away.type="number";
-        away.min="0";
-        away.step="1";
-        away.placeholder="Gasttore";
-        away.required=true;
+        const warning=document.createElement("p");
 
-        if(m.home_score!=null){
-          home.value=m.home_score;
+        warning.className="cup-rejected";
+
+        warning.textContent=
+          "Die gemeldeten Resultate stimmen nicht "+
+          "überein. Die Liga-Leitung muss den "+
+          "Konflikt prüfen.";
+
+        item.appendChild(warning);
+
+      }else if(match.status==="completed"){
+
+        const completed=document.createElement("p");
+
+        completed.className="cup-confirmed";
+
+        completed.textContent=
+          "Das Spiel wurde offiziell abgeschlossen.";
+
+        item.appendChild(completed);
+
+      }else if(match.my_result_confirmed){
+
+        const waiting=document.createElement("p");
+
+        waiting.className="cup-pending";
+
+        waiting.textContent=
+          "Dein Resultat wurde gespeichert. "+
+          "Die Bestätigung des Gegners steht aus.";
+
+        item.appendChild(waiting);
+
+      }else{
+
+        const started=
+          match.scheduled_at&&
+          new Date(match.scheduled_at).getTime()
+          <=Date.now();
+
+        const canSubmit=
+          started&&
+          [
+            "confirmed",
+            "in_progress",
+            "result_pending"
+          ].includes(match.status);
+
+        if(canSubmit){
+
+          item.appendChild(
+            renderCupResultForm(match)
+          );
+
+        }else{
+
+          const info=document.createElement("p");
+
+          info.className="muted";
+
+          info.textContent=
+            "Die Resultatmeldung ist derzeit "+
+            "noch nicht verfügbar.";
+
+          item.appendChild(info);
         }
-
-        if(m.away_score!=null){
-          away.value=m.away_score;
-        }
-
-        const submit=document.createElement("button");
-        submit.type="submit";
-        submit.textContent=m.opponent_result_confirmed
-          ?"Resultat bestätigen / Abweichung melden"
-          :"Cup-Resultat melden";
-
-        form.append(label,home,away,submit);
-
-        form.onsubmit=async event=>{
-          event.preventDefault();
-
-          if(cupSubmitBusy)return;
-
-          const hs=Number(home.value);
-          const as=Number(away.value);
-
-          if(
-            !Number.isSafeInteger(hs)||
-            !Number.isSafeInteger(as)||
-            hs<0||
-            as<0||
-            hs===as
-          ){
-            info.textContent=
-              "Bitte gültige Tore eingeben. "+
-              "Unentschieden sind nicht erlaubt.";
-            return;
-          }
-
-          if(!confirm(
-            "Cup-Resultat "+hs+":"+as+
-            " verbindlich melden?"
-          ))return;
-
-          cupSubmitBusy=true;
-          submit.disabled=true;
-          info.textContent="Resultat wird übermittelt...";
-
-          try{
-            const {data:reply,error:e}=
-              await client.rpc(
-                "snhl_cup_submit_result",
-                {
-                  p_match_id:m.match_id,
-                  p_home_score:hs,
-                  p_away_score:as
-                }
-              );
-
-            if(e)throw e;
-
-            await loadCupMatches();
-
-            info.textContent=String(
-              reply||"Resultat gespeichert."
-            );
-          }catch(e){
-            info.textContent=
-              "Fehler: "+e.message;
-          }finally{
-            cupSubmitBusy=false;
-            submit.disabled=false;
-          }
-        };
-
-        item.appendChild(form);
       }
 
       list.appendChild(item);
     }
+
   }catch(e){
+
     list.textContent=
       "Cup-Spiele konnten nicht geladen werden: "+
       e.message;
+
   }finally{
+
     cupBusy=false;
+
+  }
+}
+
+/* CUP-RESULTAT EINGEBEN */
+
+function renderCupResultForm(match){
+
+  const box=document.createElement("div");
+
+  box.className="game-proposal";
+
+  const heading=document.createElement("h4");
+
+  heading.textContent=
+    "Cup-Resultat melden oder bestätigen";
+
+  const homeLabel=document.createElement("label");
+
+  homeLabel.textContent=
+    (match.home_name||"Heimclub")+" – Tore";
+
+  const homeInput=document.createElement("input");
+
+  homeInput.type="number";
+  homeInput.min="0";
+  homeInput.step="1";
+  homeInput.inputMode="numeric";
+
+  homeInput.value=match.home_score??"";
+
+  homeLabel.appendChild(homeInput);
+
+  const awayLabel=document.createElement("label");
+
+  awayLabel.textContent=
+    (match.away_name||"Gastclub")+" – Tore";
+
+  const awayInput=document.createElement("input");
+
+  awayInput.type="number";
+  awayInput.min="0";
+  awayInput.step="1";
+  awayInput.inputMode="numeric";
+
+  awayInput.value=match.away_score??"";
+
+  awayLabel.appendChild(awayInput);
+
+  const note=document.createElement("p");
+
+  note.className="muted";
+
+  note.textContent=
+    "Ein Cup-Spiel benötigt einen Sieger. "+
+    "Unentschieden sind nicht erlaubt.";
+
+  const send=document.createElement("button");
+
+  send.type="button";
+
+  send.textContent=match.opponent_result_confirmed
+    ?"Resultat verbindlich bestätigen"
+    :"Resultat verbindlich melden";
+
+  send.onclick=()=>submitCupResult(
+    match,
+    homeInput.value,
+    awayInput.value,
+    send
+  );
+
+  box.append(
+    heading,
+    homeLabel,
+    awayLabel,
+    note,
+    send
+  );
+
+  return box;
+}
+
+async function submitCupResult(
+  match,homeValue,awayValue,button
+){
+
+  if(cupSubmitBusy||cupBusy||cupDateBusy)return;
+
+  if(
+    homeValue.trim()===""||
+    awayValue.trim()===""
+  ){
+
+    cupMessage("Bitte beide Resultate eingeben.");
+
+    return;
+  }
+
+  const homeScore=Number(homeValue);
+  const awayScore=Number(awayValue);
+
+  if(
+    !Number.isInteger(homeScore)||
+    !Number.isInteger(awayScore)||
+    homeScore<0||
+    awayScore<0||
+    homeScore>2147483647||
+    awayScore>2147483647
+  ){
+
+    cupMessage("Bitte gültige Torzahlen eingeben.");
+
+    return;
+  }
+
+  if(homeScore===awayScore){
+
+    cupMessage(
+      "Unentschieden sind im Cup nicht erlaubt."
+    );
+
+    return;
+  }
+
+  if(!confirm(
+    "Dieses Cup-Resultat verbindlich melden?\n\n"+
+    match.home_name+" "+homeScore+
+    " : "+awayScore+" "+match.away_name+
+    "\n\nBitte das Resultat sorgfältig prüfen."
+  ))return;
+
+  cupSubmitBusy=true;
+
+  button.disabled=true;
+
+  cupMessage("Cup-Resultat wird gespeichert...");
+
+  try{
+
+    const {error}=await client.rpc(
+      "snhl_cup_submit_result",
+      {
+        p_match_id:match.match_id,
+        p_home_score:homeScore,
+        p_away_score:awayScore
+      }
+    );
+
+    if(error)throw error;
+
+    await loadCupMatches();
+
+    cupMessage(
+      "Cup-Resultat übermittelt. "+
+      "Der aktuelle Bestätigungsstatus "+
+      "wird beim Spiel angezeigt."
+    );
+
+  }catch(e){
+
+    cupMessage(
+      "Resultatmeldung fehlgeschlagen: "+
+      e.message
+    );
+
+  }finally{
+
+    cupSubmitBusy=false;
+    button.disabled=false;
+
   }
 }
 
@@ -2060,7 +3020,3 @@ init().catch(e=>deny(e.message));
 </script>
 </body>
 </html>
-
-
-
-
