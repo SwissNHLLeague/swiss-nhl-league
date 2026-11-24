@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -162,6 +163,43 @@ footer{
  padding:25px;
 }
 a{color:#80b2ff}
+
+/* CUP-STARTFREIGABE */
+
+.cup-release-box{
+ background:#192a45;
+ border:1px solid var(--line);
+ border-radius:10px;
+ padding:15px;
+ margin:15px 0;
+ overflow-wrap:anywhere;
+}
+.cup-release-box h4{
+ margin:0 0 12px;
+}
+.cup-release-box p{
+ line-height:1.5;
+}
+.cup-release-ready{
+ color:#76e0a2;
+ font-weight:bold;
+}
+.cup-release-waiting{
+ color:#ffda87;
+ font-weight:bold;
+}
+.cup-release-blocked{
+ color:#ffb1b1;
+ font-weight:bold;
+}
+.cup-release-button{
+ background:#237b49;
+ margin-top:10px;
+}
+.cup-release-button:disabled{
+ opacity:.5;
+ cursor:not-allowed;
+}
 
 /* SICHERHEITSFALLVERWALTUNG */
 .security-case{
@@ -609,6 +647,39 @@ Nur die offizielle Liga-Leitung.
 Alle Zeiten gelten für Europe/Zurich.
 </p>
 
+<div class="cup-release-box">
+<h4>Offizielle Cup-Startfreigabe</h4>
+
+<p>
+Nach Abschluss der Auslosung kann die
+Liga-Leitung die jeweilige Cup-Runde
+offiziell zum Spielen freigeben.
+</p>
+
+<p>
+Ab dem Halbfinale sind die Paarungen
+bereits festgelegt. Eine weitere
+Auslosung ist nicht erforderlich.
+</p>
+
+<p>
+Die Freigabe kann im Voraus erteilt werden.
+Gespielt werden darf erst innerhalb der
+festgelegten Rundenfrist und zum beidseitig
+bestätigten Spieltermin.
+</p>
+
+<p>
+Ohne offizielle Startfreigabe ist die
+Resultatmeldung gesperrt.
+</p>
+
+<p>
+Der Freigabezeitpunkt wird automatisch
+gespeichert.
+</p>
+</div>
+
 <form id="cupRoundForm">
 
 <label for="cupSeason">Cup-Saison</label>
@@ -695,9 +766,17 @@ Erste Auslosung terminieren
 <p id="firstCupDrawMessage" role="status"></p>
 </div>
 
+<!-- CUP-RUNDEN UND STARTFREIGABE -->
+
+<h3>Cup-Runden und Startfreigaben</h3>
+
+<p id="cupReleaseMessage"
+ role="status"
+ class="muted">
+</p>
+
 <div
  id="cupRoundsList"
- class="table-wrap"
  style="margin-top:16px"
 >
 Noch keine Runden geladen.
@@ -707,6 +786,12 @@ Noch keine Runden geladen.
 Die Erstellung einer Cup-Runde startet keine Auslosung.
 Die erste Auslosung wird erst am bestätigten Termin
 automatisch gestartet.
+</p>
+
+<p class="muted">
+Die Startfreigabe ersetzt weder die
+Terminvereinbarung der Clubs noch die
+festgelegte Rundenfrist.
 </p>
 </section>
 
@@ -778,6 +863,7 @@ let securityDecisionBusy=false;
 let isLeagueController=false;
 let gamingRequests=[];
 let securityCases=[];
+let cupReleaseBusy=false;
 
 function deny(reason){
  $("loading").classList.add("hidden");
@@ -981,7 +1067,15 @@ async function editClub(id,currentName){
  const reason=prompt(
   "Begründung für die Clubnamenänderung (mindestens 10 Zeichen):"
  );
+
  if(!reason?.trim())return;
+
+ if(reason.trim().length<10){
+  alert(
+   "Die Begründung muss mindestens 10 Zeichen enthalten."
+  );
+  return;
+ }
 
  const {error}=await client.rpc(
   "snhl_request_club_name_change",
@@ -1007,6 +1101,8 @@ async function deleteClub(id){
  );
 }
 
+// CLUBLOGO-VERWALTUNG
+
 async function uploadClubLogo(clubId){
  const input=document.createElement("input");
  input.type="file";
@@ -1017,6 +1113,7 @@ async function uploadClubLogo(clubId){
   if(!file)return;
 
   if(
+   file.size<8||
    file.size>2097152||
    !["image/png","image/jpeg"].includes(file.type)
   ){
@@ -1152,13 +1249,15 @@ function swissInputValues(value){
  };
 }
 
-// TRANSFERFENSTER
+/* TRANSFERFENSTER */
 
 async function getTransferStatus(){
  const {data,error}=await client.rpc(
   "snhl_transfer_window_status"
  );
+
  if(error)throw error;
+
  return data;
 }
 
@@ -1193,6 +1292,7 @@ async function loadTransferStatus(){
     :"Noch kein Zeitraum gespeichert.";
 
   if(data?.opens_at&&data?.closes_at){
+
    const a=swissInputValues(data.opens_at);
    const b=swissInputValues(data.closes_at);
 
@@ -1205,20 +1305,24 @@ async function loadTransferStatus(){
   return data;
 
  }catch(e){
+
   $("transferStatus").textContent=
    "Fehler: "+e.message;
+
   throw e;
  }
 }
 
 $("transferForm").onsubmit=async event=>{
  event.preventDefault();
+
  if(!isLeagueController)return;
 
  const button=$("saveTransfer");
  const result=$("transferMessage");
 
  try{
+
   const start=swissToISO(
    $("transferStartDate").value,
    $("transferStartTime").value
@@ -1265,8 +1369,11 @@ $("transferForm").onsubmit=async event=>{
   await loadTransferStatus();
 
  }catch(e){
+
   result.textContent="Fehler: "+e.message;
+
  }finally{
+
   button.disabled=false;
  }
 };
@@ -1277,22 +1384,25 @@ $("refreshTransfer").onclick=()=>
 /* TRANSFERFREIGABEN */
 
 async function loadApprovals(){
+
  const list=$("approvalList");
- const result=$("approvalMessage");
 
  list.textContent="Lade Transferanträge...";
- result.textContent="";
 
  if(!isLeagueController){
+
   list.textContent=
    "Nur die offizielle Liga-Leitung hat Zugriff.";
+
   return;
  }
 
  let windowOpen=false;
 
  try{
+
   const status=await getTransferStatus();
+
   windowOpen=status?.is_open===true;
 
   $("approvalWindowStatus").textContent=
@@ -1303,6 +1413,7 @@ async function loadApprovals(){
      :"GESCHLOSSEN";
 
  }catch(e){
+
   $("approvalWindowStatus").textContent=
    "Status nicht verfügbar: "+e.message;
  }
@@ -1312,36 +1423,46 @@ async function loadApprovals(){
  );
 
  if(error){
+
   list.textContent="Fehler: "+error.message;
+
   return;
  }
 
  list.replaceChildren();
 
  if(!data?.length){
+
   list.textContent="Keine Transferanträge vorhanden.";
+
   return;
  }
 
  for(const tr of data){
+
   const item=document.createElement("div");
+
   item.className="item";
 
   const heading=document.createElement("h3");
+
   heading.textContent=
    (tr.from_club_name||"Alter Club")+
    " → "+
    (tr.to_club_name||"Neuer Club");
 
   const player=document.createElement("p");
+
   player.textContent="Spieler-ID: "+tr.player_id;
 
   const state=document.createElement("p");
+
   state.textContent=
    "Status: "+(tr.transfer_status||"–")+
    (tr.completed?" · Abgeschlossen":"");
 
   const approvals=document.createElement("p");
+
   approvals.textContent=
    "Alter Club: "+
    (tr.old_club_approved?"Ja":"Offen")+
@@ -1350,27 +1471,47 @@ async function loadApprovals(){
    " | Liga: "+
    (tr.league_approved?"Ja":"Offen");
 
-  item.append(heading,player,state,approvals);
+  item.append(
+   heading,
+   player,
+   state,
+   approvals
+  );
 
   const eligible=
-   windowOpen&&!tr.completed&&
+   windowOpen&&
+   !tr.completed&&
    tr.transfer_status==="pending"&&
    tr.old_club_approved===true&&
    tr.new_club_approved===true&&
    tr.league_approved!==true;
 
   if(eligible){
+
    const button=document.createElement("button");
+
+   button.type="button";
+
    button.textContent="Liga-Freigabe erteilen";
-   button.onclick=()=>approveTransfer(tr.request_id);
+
+   button.disabled=approvalBusy;
+
+   button.onclick=()=>
+    approveTransfer(tr.request_id);
+
    item.appendChild(button);
   }
 
   if(tr.league_approved&&!tr.completed){
+
    const note=document.createElement("p");
+
    note.className="muted";
+
    note.textContent=
-    "Liga-Freigabe vorhanden. Spielerwechsel noch nicht abgeschlossen.";
+    "Liga-Freigabe vorhanden. "+
+    "Spielerwechsel noch nicht abgeschlossen.";
+
    item.appendChild(note);
   }
 
@@ -1379,6 +1520,7 @@ async function loadApprovals(){
 }
 
 async function approveTransfer(id){
+
  if(approvalBusy||!isLeagueController)return;
 
  if(!confirm(
@@ -1387,48 +1529,80 @@ async function approveTransfer(id){
  ))return;
 
  approvalBusy=true;
+
  $("approvalMessage").textContent=
   "Freigabe wird geprüft...";
 
+ document.querySelectorAll(
+  "#approvalList button"
+ ).forEach(button=>{
+  button.disabled=true;
+ });
+
  try{
+
   const {data,error}=await client.rpc(
    "snhl_league_approve_transfer",
-   {p_request_id:id}
+   {
+    p_request_id:id
+   }
   );
 
   if(error)throw error;
 
   if(!data?.success){
+
    throw Error("Freigabe nicht bestätigt.");
   }
 
   $("approvalMessage").textContent=
-   "Liga-Freigabe gespeichert. Spieler noch nicht verschoben.";
+   "Liga-Freigabe gespeichert. "+
+   "Spieler noch nicht verschoben.";
 
  }catch(e){
+
   $("approvalMessage").textContent=
    "Fehler: "+e.message;
+
  }finally{
+
   approvalBusy=false;
+
   await loadApprovals();
  }
 }
 
-$("refreshApprovals").onclick=loadApprovals;
+$("refreshApprovals").onclick=async()=>{
+
+ $("approvalMessage").textContent="";
+
+ await loadApprovals();
+};
 
 /* LIGA-LEITUNG EINLADEN */
 
 $("inviteForm").onsubmit=async event=>{
- event.preventDefault();
- if(adminRole!=="owner")return;
 
- const email=$("inviteEmail").value.trim().toLowerCase();
+ event.preventDefault();
+
+ if(
+  !isLeagueController||
+  adminRole!=="owner"
+ )return;
+
+ const email=$("inviteEmail")
+  .value.trim().toLowerCase();
+
  const role=$("inviteRole").value;
+
  const result=$("inviteResult");
+
  const button=$("inviteSubmit");
 
  if(!$("inviteEmail").checkValidity()){
+
   $("inviteEmail").reportValidity();
+
   return;
  }
 
@@ -1444,15 +1618,21 @@ $("inviteForm").onsubmit=async event=>{
  ))return;
 
  button.disabled=true;
+
  $("inviteSecret").classList.add("hidden");
+
  invitationToken=null;
+
  result.textContent="Einladung wird erstellt...";
 
  try{
+
   const {data,error}=await client.auth.getSession();
+
   const token=data?.session?.access_token;
 
   if(error||!token){
+
    throw Error("Bitte erneut anmelden.");
   }
 
@@ -1466,13 +1646,17 @@ $("inviteForm").onsubmit=async event=>{
      "Authorization":"Bearer "+token,
      "apikey":SUPABASE_KEY
     },
-    body:JSON.stringify({email,role})
+    body:JSON.stringify({
+     email,
+     role
+    })
    }
   );
 
   const payload=await response.json();
 
   if(!response.ok){
+
    throw Error(
     payload.error||"Einladung fehlgeschlagen."
    );
@@ -1482,39 +1666,50 @@ $("inviteForm").onsubmit=async event=>{
    payload.status!=="created"||
    !payload.invitation_token
   ){
+
    throw Error("Unerwartete Serverantwort.");
   }
 
   invitationToken=payload.invitation_token;
+
   $("inviteSecret").classList.remove("hidden");
+
   $("inviteForm").reset();
 
   result.textContent=
    "Einladung erfolgreich erstellt.";
 
  }catch(e){
+
   result.textContent="Fehler: "+e.message;
+
  }finally{
+
   button.disabled=false;
  }
 };
 
 $("copyToken").onclick=async()=>{
- if(!invitationToken)return;
+
+ if(!invitationToken||!isLeagueController)return;
 
  try{
+
   await navigator.clipboard.writeText(
    invitationToken
   );
+
   $("inviteResult").textContent=
    "Einladungstoken kopiert.";
+
  }catch{
+
   $("inviteResult").textContent=
    "Kopieren nicht möglich.";
  }
 };
 
-/* GAMING-ID-ANTRAEGE */
+/* GAMING-ID-VERWALTUNG */
 
 function gamingDate(value){
  if(!value)return "Noch offen";
@@ -1548,14 +1743,17 @@ function gamingSearchText(request){
 function gamingAddLine(parent,label,value){
  const p=document.createElement("p");
  const strong=document.createElement("strong");
+
  strong.textContent=label+": ";
 
  p.appendChild(strong);
+
  p.appendChild(
   document.createTextNode(String(value??"–"))
  );
 
  parent.appendChild(p);
+
  return p;
 }
 
@@ -1564,6 +1762,7 @@ function gamingRequestCard(request){
  item.className="gaming-request";
 
  const heading=document.createElement("h4");
+
  heading.textContent=
   request.platform==="PS5"
    ?"PSN-ID-Änderung"
@@ -1644,24 +1843,33 @@ function gamingRequestCard(request){
   request.status||"unknown"
  );
 
- if(request.status==="pending"){
+ if(
+  isLeagueController&&
+  request.status==="pending"
+ ){
+
   const actions=document.createElement("div");
   actions.className="actions";
 
   const approve=document.createElement("button");
+  approve.type="button";
   approve.textContent="Genehmigen";
   approve.disabled=gamingDecisionBusy;
+
   approve.onclick=()=>
    reviewGamingRequest(request,true);
 
   const reject=document.createElement("button");
+  reject.type="button";
   reject.textContent="Ablehnen";
   reject.className="danger";
   reject.disabled=gamingDecisionBusy;
+
   reject.onclick=()=>
    reviewGamingRequest(request,false);
 
   actions.append(approve,reject);
+
   item.appendChild(actions);
  }
 
@@ -1669,6 +1877,7 @@ function gamingRequestCard(request){
 }
 
 function renderGamingRequests(){
+
  const openList=$("gamingOpenList");
  const historyList=$("gamingHistoryList");
 
@@ -1697,29 +1906,43 @@ function renderGamingRequests(){
   );
 
  $("gamingOpenLabel").textContent=open.length;
- $("gamingHistoryLabel").textContent=processed.length;
+
+ $("gamingHistoryLabel").textContent=
+  processed.length;
 
  if(!open.length){
+
   const empty=document.createElement("p");
+
   empty.className="empty-message";
+
   empty.textContent=search
    ?"Keine passenden offenen Anträge."
    :"Keine offenen Gaming-ID-Anträge.";
+
   openList.appendChild(empty);
+
  }else{
+
   open.forEach(r=>
    openList.appendChild(gamingRequestCard(r))
   );
  }
 
  if(!processed.length){
+
   const empty=document.createElement("p");
+
   empty.className="empty-message";
+
   empty.textContent=search
    ?"Keine passenden bearbeiteten Anträge."
    :"Noch keine bearbeiteten Anträge.";
+
   historyList.appendChild(empty);
+
  }else{
+
   processed.forEach(r=>
    historyList.appendChild(gamingRequestCard(r))
   );
@@ -1727,12 +1950,16 @@ function renderGamingRequests(){
 }
 
 async function loadAdminGamingRequests(){
+
  const result=$("gamingAdminMessage");
 
  if(!isLeagueController){
+
   $("gamingOpenList").textContent=
    "Nur die Liga-Leitung hat Zugriff.";
+
   $("gamingHistoryList").textContent="";
+
   return false;
  }
 
@@ -1747,10 +1974,15 @@ async function loadAdminGamingRequests(){
  );
 
  if(error){
+
   const message="Fehler: "+error.message;
+
   $("gamingOpenList").textContent=message;
+
   $("gamingHistoryList").textContent="";
+
   result.textContent=message;
+
   return false;
  }
 
@@ -1761,10 +1993,12 @@ async function loadAdminGamingRequests(){
  ).length;
 
  $("gamingPendingCount").textContent=pending;
+
  $("gamingProcessedCount").textContent=
   gamingRequests.length-pending;
 
  renderGamingRequests();
+
  return true;
 }
 
@@ -1775,7 +2009,10 @@ $("gamingSearch").addEventListener(
 
 /* GAMING-ID GENEHMIGEN ODER ABLEHNEN */
 
-async function reviewGamingRequest(request,approve){
+async function reviewGamingRequest(
+ request,approve
+){
+
  if(
   !isLeagueController||
   gamingDecisionBusy||
@@ -1793,7 +2030,8 @@ async function reviewGamingRequest(request,approve){
   "Bisherige ID: "+
   (request.old_gaming_id||"Keine")+"\n"+
   "Neue ID: "+request.new_gaming_id+"\n\n"+
-  "Diese Entscheidung wird sofort in der Datenbank gespeichert.";
+  "Diese Entscheidung wird sofort "+
+  "in der Datenbank gespeichert.";
 
  if(!confirm(question))return;
 
@@ -1809,6 +2047,7 @@ async function reviewGamingRequest(request,approve){
  });
 
  try{
+
   const {error}=await client.rpc(
    "snhl_review_gaming_id_change",
    {
@@ -1819,7 +2058,8 @@ async function reviewGamingRequest(request,approve){
 
   if(error)throw error;
 
-  const refreshed=await loadAdminGamingRequests();
+  const refreshed=
+   await loadAdminGamingRequests();
 
   $("gamingAdminMessage").textContent=
    refreshed
@@ -1829,6 +2069,7 @@ async function reviewGamingRequest(request,approve){
     :"Entscheidung gespeichert. Bitte Antragsliste erneut aktualisieren.";
 
  }catch(e){
+
   $("gamingAdminMessage").textContent=
    "Fehler: "+e.message;
 
@@ -1838,68 +2079,100 @@ async function reviewGamingRequest(request,approve){
    "Fehler: "+e.message;
 
  }finally{
+
   gamingDecisionBusy=false;
+
   renderGamingRequests();
  }
 }
 
 $("refreshGaming").onclick=async()=>{
+
  $("gamingAdminMessage").textContent="";
+
  await loadAdminGamingRequests();
 };
 
 /* SICHERHEITSFALLVERWALTUNG */
 
 function securityStatusLabel(status){
+
  const labels={
   pending:"Wartet auf Prüfung",
   investigating:"In Untersuchung",
   cleared:"Verdacht ausgeräumt",
   confirmed:"Verstoss bestätigt"
  };
+
  return labels[status]||status||"Unbekannt";
 }
 
 function securityCaseCard(sc){
+
  const item=document.createElement("article");
+
  item.className="security-case";
 
  const heading=document.createElement("h3");
- heading.textContent=securityStatusLabel(sc.status);
+
+ heading.textContent=
+  securityStatusLabel(sc.status);
+
  item.appendChild(heading);
 
- gamingAddLine(item,"Fall-ID",sc.id);
- gamingAddLine(item,"Benutzer-ID",sc.user_id);
- gamingAddLine(item,"Spielerantrag",sc.request_id||"–");
- gamingAddLine(item,"Grund",sc.reason||"–");
- gamingAddLine(item,"Erkennung",sc.detection_type||"–");
  gamingAddLine(
-  item,"Testfall",
-  sc.is_test_case?"Ja":"Nein"
+  item,"Fall-ID",sc.id
  );
 
  gamingAddLine(
-  item,"Erstellt",
+  item,"Benutzer-ID",sc.user_id
+ );
+
+ gamingAddLine(
+  item,"Spielerantrag",sc.request_id||"–"
+ );
+
+ gamingAddLine(
+  item,"Grund",sc.reason||"–"
+ );
+
+ gamingAddLine(
+  item,"Erkennung",sc.detection_type||"–"
+ );
+
+ gamingAddLine(
+  item,"Testfall",sc.is_test_case?"Ja":"Nein"
+ );
+
+ gamingAddLine(
+  item,
+  "Erstellt",
   sc.created_at?gamingDate(sc.created_at):"–"
  );
 
  if(sc.reviewed_at){
+
   gamingAddLine(
-   item,"Geprüft",
+   item,
+   "Geprüft",
    gamingDate(sc.reviewed_at)
   );
  }
 
  if(sc.reviewed_by){
+
   gamingAddLine(
-   item,"Geprüft durch",
+   item,
+   "Geprüft durch",
    sc.reviewed_by
   );
  }
 
  if(sc.resolution_note){
+
   gamingAddLine(
-   item,"Prüfnotiz",
+   item,
+   "Prüfnotiz",
    sc.resolution_note
   );
  }
@@ -1908,19 +2181,27 @@ function securityCaseCard(sc){
   !isLeagueController||
   !["pending","investigating"].includes(sc.status)
  ){
+
   return item;
  }
 
  const label=document.createElement("label");
- label.textContent="Begründung (mindestens 10 Zeichen)";
+
+ label.textContent=
+  "Begründung (mindestens 10 Zeichen)";
 
  const note=document.createElement("textarea");
+
  note.maxLength=3000;
+
  note.placeholder="Begründung eingeben...";
+
  label.appendChild(note);
+
  item.appendChild(label);
 
  const actions=document.createElement("div");
+
  actions.className="actions";
 
  const choices=[
@@ -1930,16 +2211,20 @@ function securityCaseCard(sc){
  ];
 
  choices.forEach(([status,text])=>{
+
   if(
    sc.status==="investigating"&&
    status==="investigating"
   )return;
 
   const button=document.createElement("button");
+
   button.type="button";
+
   button.textContent=text;
 
   if(status==="confirmed"){
+
    button.className="danger";
   }
 
@@ -1953,14 +2238,18 @@ function securityCaseCard(sc){
  });
 
  item.appendChild(actions);
+
  return item;
 }
 
 function renderSecurityCases(){
+
  const openList=$("securityOpenList");
+
  const closedList=$("securityClosedList");
 
  openList.replaceChildren();
+
  closedList.replaceChildren();
 
  const open=securityCases.filter(sc=>
@@ -1972,20 +2261,28 @@ function renderSecurityCases(){
  );
 
  $("securityOpenCount").textContent=open.length;
+
  $("securityClosedCount").textContent=closed.length;
 
  if(!open.length){
-  openList.textContent="Keine offenen Sicherheitsfälle.";
+
+  openList.textContent=
+   "Keine offenen Sicherheitsfälle.";
+
  }else{
+
   open.forEach(sc=>
    openList.appendChild(securityCaseCard(sc))
   );
  }
 
  if(!closed.length){
+
   closedList.textContent=
    "Keine abgeschlossenen Sicherheitsfälle.";
+
  }else{
+
   closed.forEach(sc=>
    closedList.appendChild(securityCaseCard(sc))
   );
@@ -1993,12 +2290,16 @@ function renderSecurityCases(){
 }
 
 async function loadSecurityCases(){
+
  const result=$("securityMessage");
 
  if(!isLeagueController){
+
   $("securityOpenList").textContent=
    "Nur die offizielle Liga-Leitung hat Zugriff.";
+
   $("securityClosedList").textContent="";
+
   return false;
  }
 
@@ -2012,29 +2313,45 @@ async function loadSecurityCases(){
  );
 
  if(error){
+
   result.textContent="Fehler: "+error.message;
+
   $("securityOpenList").textContent=
    "Sicherheitsfälle konnten nicht geladen werden.";
+
   return false;
  }
 
  securityCases=data||[];
+
  renderSecurityCases();
+
  return true;
 }
 
-async function reviewSecurityCase(sc,status,reason){
+async function reviewSecurityCase(
+ sc,status,reason
+){
+
  if(
   !isLeagueController||
   securityDecisionBusy||
   !["pending","investigating"].includes(sc.status)
  )return;
 
+ if(
+  !["investigating","cleared","confirmed"]
+   .includes(status)
+ )return;
+
  const note=String(reason||"").trim();
 
  if(note.length<10){
+
   $("securityMessage").textContent=
-   "Bitte eine Begründung mit mindestens 10 Zeichen eingeben.";
+   "Bitte eine Begründung mit mindestens "+
+   "10 Zeichen eingeben.";
+
   return;
  }
 
@@ -2059,6 +2376,7 @@ async function reviewSecurityCase(sc,status,reason){
  });
 
  try{
+
   const {data,error}=await client.rpc(
    "snhl_review_security_case",
    {
@@ -2074,21 +2392,28 @@ async function reviewSecurityCase(sc,status,reason){
 
   $("securityMessage").textContent=
    refreshed
-    ?data||"Sicherheitsfall aktualisiert."
+    ?typeof data==="string"
+      ?data
+      :"Sicherheitsfall aktualisiert."
     :"Entscheidung gespeichert. Bitte Liste aktualisieren.";
 
  }catch(e){
+
   $("securityMessage").textContent=
    "Fehler: "+e.message;
 
  }finally{
+
   securityDecisionBusy=false;
+
   renderSecurityCases();
  }
 }
 
 $("refreshSecurity").onclick=async()=>{
+
  $("securityMessage").textContent="";
+
  await loadSecurityCases();
 };
 
@@ -2097,12 +2422,16 @@ $("refreshSecurity").onclick=async()=>{
 let nameReviewBusy=false;
 
 async function loadNameRequests(){
+
  const list=$("nameRequestsList");
+
  const message=$("nameRequestsMessage");
 
  if(!isLeagueController){
+
   list.textContent=
    "Nur die offizielle Liga-Leitung hat Zugriff.";
+
   return;
  }
 
@@ -2113,23 +2442,30 @@ async function loadNameRequests(){
  );
 
  if(error){
+
   list.textContent="Fehler: "+error.message;
+
   return;
  }
 
  list.replaceChildren();
 
  if(!data?.length){
+
   list.textContent=
    "Keine Clubnamen-Anträge vorhanden.";
+
   return;
  }
 
  for(const r of data){
+
   const card=document.createElement("article");
+
   card.className="gaming-request";
 
   const title=document.createElement("h3");
+
   title.textContent=
    (r.old_name||"–")+
    " → "+
@@ -2153,23 +2489,29 @@ async function loadNameRequests(){
    card,
    "Erstellt",
    r.created_at
-    ?swissDisplay(r.created_at)
+    ?swissDisplay(r.created_at)+" Uhr"
     :"–"
   );
 
   if(r.status==="pending"){
+
    const actions=document.createElement("div");
+
    actions.className="actions";
 
    for(const [approve,label] of [
     [true,"Genehmigen"],
     [false,"Ablehnen"]
    ]){
+
     const button=document.createElement("button");
+
     button.type="button";
+
     button.textContent=label;
 
     if(!approve){
+
      button.className="danger";
     }
 
@@ -2192,7 +2534,10 @@ async function loadNameRequests(){
 
 /* CLUBNAMEN GENEHMIGEN ODER ABLEHNEN */
 
-async function reviewNameRequest(request,approve){
+async function reviewNameRequest(
+ request,approve
+){
+
  if(
   !isLeagueController||
   nameReviewBusy||
@@ -2204,11 +2549,11 @@ async function reviewNameRequest(request,approve){
   :"ablehnen";
 
  if(!confirm(
-  "Clubnamenänderung "+verb+"?\n"+
+  "Clubnamenänderung "+verb+"?\n\n"+
   request.old_name+
   " → "+
   request.new_name+
-  "\nDiese Entscheidung wird gespeichert."
+  "\n\nDiese Entscheidung wird gespeichert."
  ))return;
 
  nameReviewBusy=true;
@@ -2223,6 +2568,7 @@ async function reviewNameRequest(request,approve){
  });
 
  try{
+
   const {error}=await client.rpc(
    "snhl_review_club_name_change",
    {
@@ -2241,10 +2587,12 @@ async function reviewNameRequest(request,approve){
     :"Antrag abgelehnt.";
 
  }catch(e){
+
   $("nameRequestsMessage").textContent=
    "Fehler: "+e.message;
 
  }finally{
+
   nameReviewBusy=false;
 
   $("refreshNameRequests").disabled=false;
@@ -2264,90 +2612,392 @@ $("refreshNameRequests").onclick=
 
 let cupAdminBusy=false;
 
+let cupRoundsLoadVersion=0;
+
+function cupRoundStatusLabel(status){
+
+ return {
+  pending:"In Vorbereitung",
+  draw_scheduled:"Auslosung geplant",
+  draw_live:"Auslosung läuft",
+  scheduled:"Paarungen festgelegt",
+  in_progress:"Runde läuft",
+  completed:"Abgeschlossen"
+ }[status]||status||"–";
+}
+
+/* CUP-STARTFREIGABE ANZEIGEN */
+
+function renderCupRelease(round,season){
+
+ const box=document.createElement("div");
+
+ box.className="cup-release-box";
+
+ const heading=document.createElement("h4");
+
+ heading.textContent=
+  "Offizielle Startfreigabe";
+
+ box.appendChild(heading);
+
+ const status=document.createElement("p");
+
+ if(round.start_released===true){
+
+  status.className="cup-release-ready";
+
+  status.textContent=
+   "✓ Cup-Runde offiziell freigegeben";
+
+  box.appendChild(status);
+
+  gamingAddLine(
+   box,
+   "Freigabe erteilt am",
+   round.start_released_at
+    ?swissDisplay(round.start_released_at)+" Uhr"
+    :"–"
+  );
+
+  const note=document.createElement("p");
+
+  note.className="muted";
+
+  note.textContent=
+   round.status==="completed"
+    ?"Diese Cup-Runde ist abgeschlossen."
+    :"Die Clubs dürfen innerhalb der Rundenfrist "+
+     "zum beidseitig bestätigten Spieltermin spielen.";
+
+  box.appendChild(note);
+
+  return box;
+ }
+
+ if(round.start_release_available===true){
+
+  status.className="cup-release-waiting";
+
+  status.textContent=
+   "Startfreigabe noch nicht erteilt.";
+
+  box.appendChild(status);
+
+  const note=document.createElement("p");
+
+  note.textContent=
+   "Die Voraussetzungen für die offizielle "+
+   "Startfreigabe sind erfüllt.";
+
+  box.appendChild(note);
+
+  const button=document.createElement("button");
+
+  button.type="button";
+
+  button.className="cup-release-button";
+
+  button.textContent=
+   "Cup-Runde offiziell freigeben";
+
+  button.disabled=cupReleaseBusy;
+
+  button.onclick=()=>
+   releaseCupRound(round,season,button);
+
+  box.appendChild(button);
+
+ }else{
+
+  status.className="cup-release-blocked";
+
+  status.textContent=
+   "Startfreigabe derzeit nicht möglich.";
+
+  box.appendChild(status);
+
+  const note=document.createElement("p");
+
+  note.className="muted";
+
+  note.textContent=
+   "Die Saison muss aktiv sein, die Paarungen "+
+   "müssen feststehen und die Rundenfrist "+
+   "muss gültig sein.";
+
+  box.appendChild(note);
+ }
+
+ return box;
+}
+
+/* CUP-RUNDEN LADEN */
+
 async function loadCupRounds(){
- if(!isLeagueController)return;
+
+ if(!isLeagueController)return false;
+
+ const version=++cupRoundsLoadVersion;
 
  const host=$("cupRoundsList");
+
  host.textContent="Lade Cup-Runden...";
 
  const season=$("cupSeason").value.trim();
 
  if(!season){
+
   host.textContent="Bitte Saison angeben.";
-  return;
+
+  return false;
  }
 
- const {data,error}=await client.rpc(
-  "snhl_admin_list_cup_rounds",
-  {p_season:season}
- );
+ try{
 
- if(error){
-  host.textContent="Fehler: "+error.message;
-  return;
+  const {data,error}=await client.rpc(
+   "snhl_admin_list_cup_rounds_v2",
+   {
+    p_season:season
+   }
+  );
+
+  if(version!==cupRoundsLoadVersion){
+
+   return false;
+  }
+
+  if(error)throw error;
+
+  host.replaceChildren();
+
+  if(!data?.length){
+
+   host.textContent=
+    "Noch keine Cup-Runden vorhanden.";
+
+   return true;
+  }
+
+  for(const round of data){
+
+   const item=document.createElement("article");
+
+   item.className="gaming-request";
+
+   const heading=document.createElement("h3");
+
+   heading.textContent=
+    "Runde "+round.round_number+
+    " · "+round.round_name;
+
+   item.appendChild(heading);
+
+   gamingAddLine(
+    item,
+    "Status",
+    cupRoundStatusLabel(round.status)
+   );
+
+   gamingAddLine(
+    item,
+    "Rundenbeginn",
+    round.play_from
+     ?swissDisplay(round.play_from)+" Uhr"
+     :"Nicht festgelegt"
+   );
+
+   gamingAddLine(
+    item,
+    "Rundenfrist",
+    round.deadline_at
+     ?swissDisplay(round.deadline_at)+" Uhr"
+     :"Nicht festgelegt"
+   );
+
+   gamingAddLine(
+    item,
+    "Auslosung",
+    round.draw_at
+     ?swissDisplay(round.draw_at)+" Uhr"
+     :"Keine Auslosung terminiert"
+   );
+
+   gamingAddLine(
+    item,
+    "Anzahl Spiele",
+    round.matches??0
+   );
+
+   gamingAddLine(
+    item,
+    "Abgeschlossene Spiele",
+    (round.completed_matches??0)+
+    " von "+(round.matches??0)
+   );
+
+   item.appendChild(
+    renderCupRelease(round,season)
+   );
+
+   host.appendChild(item);
+  }
+
+  return true;
+
+ }catch(e){
+
+  if(version===cupRoundsLoadVersion){
+
+   host.textContent=
+    "Cup-Runden konnten nicht geladen werden: "+
+    e.message;
+  }
+
+  return false;
  }
-
- if(!data?.length){
-  host.textContent="Noch keine Cup-Runden vorhanden.";
-  return;
- }
-
- const table=document.createElement("table");
- const head=table.createTHead().insertRow();
-
- [
-  "Nr.",
-  "Runde",
-  "Status",
-  "Spielbeginn",
-  "Frist",
-  "Auslosung",
-  "Spiele",
-  "Abgeschlossen"
- ].forEach(label=>{
-  const th=document.createElement("th");
-  th.textContent=label;
-  head.appendChild(th);
- });
-
- const body=table.createTBody();
-
- data.forEach(r=>{
-  const row=body.insertRow();
-
-  [
-   r.round_number,
-   r.round_name,
-   r.status,
-   swissDisplay(r.play_from),
-   swissDisplay(r.deadline_at),
-   swissDisplay(r.draw_at),
-   r.matches,
-   r.completed_matches
-  ].forEach(v=>{
-   row.insertCell().textContent=String(v??"–");
-  });
- });
-
- host.replaceChildren(table);
 }
 
-$("cupRefreshButton").onclick=()=>loadCupRounds();
+$("cupRefreshButton").onclick=()=>{
+
+ $("cupReleaseMessage").textContent="";
+
+ loadCupRounds();
+};
+
+/* CUP-RUNDE OFFIZIELL FREIGEBEN */
+
+async function releaseCupRound(
+ round,season,button
+){
+
+ if(
+  !isLeagueController||
+  cupReleaseBusy||
+  round.start_released===true||
+  round.start_release_available!==true
+ )return;
+
+ if($("cupSeason").value.trim()!==season){
+
+  $("cupReleaseMessage").textContent=
+   "Die Saison wurde geändert. "+
+   "Bitte Runden zuerst aktualisieren.";
+
+  return;
+ }
+
+ if(!confirm(
+  "CUP-STARTFREIGABE\n\n"+
+  "Saison: "+season+"\n"+
+  "Runde: "+round.round_name+"\n\n"+
+  "Rundenbeginn: "+
+  swissDisplay(round.play_from)+" Uhr\n"+
+  "Rundenfrist: "+
+  swissDisplay(round.deadline_at)+" Uhr\n\n"+
+  "Möchtest du diese Cup-Runde "+
+  "offiziell freigeben?"
+ ))return;
+
+ cupReleaseBusy=true;
+
+ button.disabled=true;
+
+ document.querySelectorAll(
+  ".cup-release-button"
+ ).forEach(b=>{
+  b.disabled=true;
+ });
+
+ const message=$("cupReleaseMessage");
+
+ message.textContent=
+  "Offizielle Startfreigabe wird geprüft...";
+
+ let saved=false;
+
+ let feedback="";
+
+ try{
+
+  const {data,error}=await client.rpc(
+   "snhl_admin_release_cup_round",
+   {
+    p_round_id:round.round_id
+   }
+  );
+
+  if(error)throw error;
+
+  if(data==="CUP-RUNDE OFFIZIELL FREIGEGEBEN"){
+
+   saved=true;
+
+   feedback=
+    "✓ "+round.round_name+
+    " wurde offiziell freigegeben.";
+
+  }else if(
+   data==="CUP-RUNDE BEREITS FREIGEGEBEN"
+  ){
+
+   saved=true;
+
+   feedback=
+    "Diese Cup-Runde wurde bereits freigegeben.";
+
+  }else{
+
+   throw Error(
+    "Unerwartete Serverantwort. "+
+    "Bitte Freigabestatus kontrollieren."
+   );
+  }
+
+ }catch(e){
+
+  feedback=
+   "Startfreigabe fehlgeschlagen: "+
+   e.message;
+
+ }finally{
+
+  cupReleaseBusy=false;
+
+  const refreshed=await loadCupRounds();
+
+  message.textContent=
+   feedback+
+   (
+    saved&&!refreshed
+     ?" Bitte Runden erneut aktualisieren."
+     :""
+   );
+ }
+}
 
 /* CUP-RUNDE ERSTELLEN */
 
 $("cupRoundForm").onsubmit=async event=>{
+
  event.preventDefault();
 
  if(!isLeagueController||cupAdminBusy)return;
 
  const message=$("cupAdminMessage");
+
  const button=$("cupCreateButton");
 
  try{
+
   const season=$("cupSeason").value.trim();
-  const roundNumber=Number($("cupRoundNumber").value);
-  const roundName=$("cupRoundName").value.trim();
+
+  const roundNumber=Number(
+   $("cupRoundNumber").value
+  );
+
+  const roundName=
+   $("cupRoundName").value.trim();
 
   const start=swissToISO(
    $("cupStartDate").value,
@@ -2365,27 +3015,32 @@ $("cupRoundForm").onsubmit=async event=>{
    !Number.isSafeInteger(roundNumber)||
    roundNumber<1
   ){
+
    throw Error(
     "Bitte gültige Rundendaten eingeben."
    );
   }
 
   if(new Date(end)<=new Date(start)){
+
    throw Error(
     "Rundenende muss nach dem Spielbeginn liegen."
    );
   }
 
   if(!confirm(
-   "Cup-Runde verbindlich erstellen?\n"+
+   "Cup-Runde verbindlich erstellen?\n\n"+
    season+" · "+roundName+
    "\nStart: "+swissDisplay(start)+" Uhr"+
    "\nEnde: "+swissDisplay(end)+" Uhr"
   ))return;
 
   cupAdminBusy=true;
+
   button.disabled=true;
-  message.textContent="Erstelle Cup-Runde...";
+
+  message.textContent=
+   "Erstelle Cup-Runde...";
 
   const {data,error}=await client.rpc(
    "snhl_admin_create_cup_round",
@@ -2401,6 +3056,7 @@ $("cupRoundForm").onsubmit=async event=>{
   if(error)throw error;
 
   if(!data){
+
    throw Error(
     "Keine Bestätigung von Supabase."
    );
@@ -2412,11 +3068,14 @@ $("cupRoundForm").onsubmit=async event=>{
   await loadCupRounds();
 
  }catch(e){
+
   message.textContent=
    "Fehler: "+e.message;
 
  }finally{
+
   cupAdminBusy=false;
+
   button.disabled=false;
  }
 };
@@ -2426,16 +3085,19 @@ $("cupRoundForm").onsubmit=async event=>{
 let firstCupDrawBusy=false;
 
 $("scheduleFirstCupDraw").onclick=async()=>{
+
  if(!isLeagueController||firstCupDrawBusy)return;
 
  const message=$("firstCupDrawMessage");
  const button=$("scheduleFirstCupDraw");
 
  try{
+
   const season=$("cupSeason").value.trim();
   const date=$("firstCupDrawDate").value;
 
   if(!season||!date){
+
    throw Error(
     "Bitte Saison und Auslosungsdatum eingeben."
    );
@@ -2444,6 +3106,7 @@ $("scheduleFirstCupDraw").onclick=async()=>{
   const drawAt=swissToISO(date,"18:00");
 
   if(new Date(drawAt)<=new Date()){
+
    throw Error(
     "Das Auslosungsdatum muss in der Zukunft liegen."
    );
@@ -2453,11 +3116,12 @@ $("scheduleFirstCupDraw").onclick=async()=>{
    "Erste Cup-Auslosung terminieren?\n\n"+
    "Saison: "+season+"\n"+
    "Datum: "+swissDisplay(drawAt)+" Uhr\n\n"+
-   "Die Auslosung startet am festgelegten Termin "+
-   "automatisch."
+   "Die Auslosung startet am festgelegten "+
+   "Termin automatisch."
   ))return;
 
   firstCupDrawBusy=true;
+
   button.disabled=true;
 
   message.textContent=
@@ -2474,6 +3138,7 @@ $("scheduleFirstCupDraw").onclick=async()=>{
   if(error)throw error;
 
   if(!data){
+
    throw Error(
     "Keine Bestätigung von Supabase."
    );
@@ -2486,11 +3151,14 @@ $("scheduleFirstCupDraw").onclick=async()=>{
   await loadCupRounds();
 
  }catch(e){
+
   message.textContent=
    "Fehler: "+e.message;
 
  }finally{
+
   firstCupDrawBusy=false;
+
   button.disabled=false;
  }
 };
@@ -2498,8 +3166,13 @@ $("scheduleFirstCupDraw").onclick=async()=>{
 /* INITIALISIERUNG */
 
 async function init(){
+
  if(!window.supabase){
-  deny("Supabase konnte nicht geladen werden.");
+
+  deny(
+   "Supabase konnte nicht geladen werden."
+  );
+
   return;
  }
 
@@ -2512,7 +3185,9 @@ async function init(){
   await client.auth.getUser();
 
  if(error||!user){
+
   deny("Bitte zuerst einloggen.");
+
   return;
  }
 
@@ -2524,13 +3199,16 @@ async function init(){
    .maybeSingle();
 
  if(adminError||!admin){
+
   deny(
    "Dein Konto hat keine Admin-Berechtigung."
   );
+
   return;
  }
 
  currentUser=user;
+
  adminRole=admin.admin_role;
 
  $("who").textContent=
@@ -2545,6 +3223,7 @@ async function init(){
   ["owner","league_admin"].includes(adminRole);
 
  if(!isLeagueController){
+
   document.querySelector(
    '[data-tab="transfers"]'
   ).classList.add("hidden");
@@ -2556,28 +3235,37 @@ async function init(){
   $("transferForm").classList.add("hidden");
  }
 
- if(adminRole==="owner"){
+ if(isLeagueController&&adminRole==="owner"){
+
   $("inviteNav").classList.remove("hidden");
  }
 
  if(isLeagueController){
+
   $("gamingNav").classList.remove("hidden");
+
   $("securityNav").classList.remove("hidden");
+
   $("nameRequestsNav").classList.remove("hidden");
+
   $("cupNav").classList.remove("hidden");
  }
 
  $("logout").onclick=async()=>{
+
   await client.auth.signOut();
+
   location.href="login.html";
  };
 
  $("addClub").onclick=addClub;
 
  $("loading").classList.add("hidden");
+
  $("dashboard").classList.remove("hidden");
 
- await Promise.allSettled([
+ const initialTasks=[
+
   loadTable(
    "clubs",
    "clubsTable",
@@ -2596,28 +3284,39 @@ async function init(){
    "gamesCount"
   ),
 
-  loadClubRequests(),
+  loadClubRequests()
 
-  loadTransferStatus()
- ]);
+ ];
+
+ if(isLeagueController){
+
+  initialTasks.push(
+   loadTransferStatus()
+  );
+
+ }else{
+
+  $("overviewTransferStatus").textContent=
+   "Nur für die Liga-Leitung verfügbar.";
+ }
+
+ await Promise.allSettled(initialTasks);
 
  $("usersCount").textContent="–";
 
  $("usersTable").textContent=
-  "Mitgliederverwaltung wird mit einer gesicherten Admin-Funktion ergänzt.";
+  "Mitgliederverwaltung wird mit einer "+
+  "gesicherten Admin-Funktion ergänzt.";
 }
 
 init().catch(e=>{
- deny("Fehler beim Laden: "+e.message);
+
+ deny(
+  "Fehler beim Laden: "+e.message
+ );
 });
 
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
+<!-- ENDE ADMIN.HTML - VERSION 1.12.830T -->
