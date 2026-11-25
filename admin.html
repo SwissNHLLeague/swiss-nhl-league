@@ -680,6 +680,49 @@ gespeichert.
 </p>
 </div>
 
+<!-- CUP-RESULTATKONFLIKTE -->
+
+<div class="cup-release-box">
+
+<h3>⚖️ Cup-Resultatkonflikte</h3>
+
+<p>
+Offene Resultatkonflikte:
+<strong id="cupConflictCount"
+ style="color:#ff8290;font-size:24px">
+–
+</strong>
+</p>
+
+<p class="muted">
+Ausschliesslich die Liga-Leitung darf
+Resultatkonflikte offiziell entscheiden.
+</p>
+
+<button
+ id="refreshCupConflicts"
+ type="button"
+ class="info"
+ onclick="loadCupConflicts()"
+>
+Konflikte aktualisieren
+</button>
+
+<p
+ id="cupConflictMessage"
+ role="status"
+ class="muted"
+></p>
+
+<div id="cupConflictList">
+Noch nicht geladen.
+</div>
+
+</div>
+
+<!-- ENDE CUP-RESULTATKONFLIKTE -->
+
+
 <form id="cupRoundForm">
 
 <label for="cupSeason">Cup-Saison</label>
@@ -907,8 +950,10 @@ function showTab(tab){
   loadNameRequests();
  }
 
- if(tab==="cupAdmin"){
+ 
+if(tab==="cupAdmin"){
   loadCupRounds();
+  loadCupConflicts();
  }
 }
 
@@ -3315,6 +3360,299 @@ init().catch(e=>{
   "Fehler beim Laden: "+e.message
  );
 });
+
+/* CUP-RESULTATKONFLIKTE */
+
+let cupConflictBusy=false;
+
+async function loadCupConflicts(){
+
+ if(!isLeagueController||cupConflictBusy)return;
+
+ const list=$("cupConflictList");
+ const message=$("cupConflictMessage");
+ const refresh=$("refreshCupConflicts");
+
+ cupConflictBusy=true;
+ refresh.disabled=true;
+
+ list.replaceChildren();
+ message.textContent="Konflikte werden geladen...";
+
+ try{
+
+  const {data,error}=await client.rpc(
+   "snhl_admin_list_cup_conflicts"
+  );
+
+  if(error)throw error;
+
+  const conflicts=data||[];
+
+  const open=conflicts.filter(
+   c=>c.status!=="resolved"
+  );
+
+  $("cupConflictCount").textContent=open.length;
+
+  $("cupConflictCount").style.color=
+   open.length>0?"#ff8290":"#76e0a2";
+
+  if(!conflicts.length){
+   message.textContent="Keine Resultatkonflikte vorhanden.";
+   return;
+  }
+
+  for(const conflict of conflicts){
+   list.appendChild(renderCupConflict(conflict));
+  }
+
+  message.textContent="Konfliktübersicht aktualisiert.";
+
+ }catch(e){
+
+  $("cupConflictCount").textContent="–";
+  message.textContent="Fehler: "+e.message;
+
+ }finally{
+
+  cupConflictBusy=false;
+  refresh.disabled=false;
+
+ }
+}
+
+function renderCupConflict(c){
+
+ const box=document.createElement("div");
+ box.className="gaming-request";
+
+ const heading=document.createElement("h4");
+
+ heading.textContent=
+  c.home_name+" – "+c.away_name;
+
+ box.appendChild(heading);
+
+ const status=document.createElement("p");
+
+ status.style.fontWeight="bold";
+
+ status.style.color=
+  c.status==="resolved"
+   ?"#76e0a2"
+   :"#ff8290";
+
+ status.textContent={
+  pending:"🔴 Offener Resultatkonflikt",
+  investigating:"🟠 In Untersuchung",
+  resolved:"✓ Offiziell geklärt"
+ }[c.status]||c.status;
+
+ box.appendChild(status);
+
+ gamingAddLine(box,"Saison",c.season);
+ gamingAddLine(box,"Runde",c.round_name);
+ gamingAddLine(box,"Spielnummer",c.match_number);
+
+ gamingAddLine(
+  box,
+  "Erste Meldung von",
+  c.first_reported_by_name
+ );
+
+ gamingAddLine(
+  box,
+  "Gemeldetes Resultat",
+  c.first_home_score+" : "+c.first_away_score
+ );
+
+ gamingAddLine(
+  box,
+  "Gemeldet am",
+  swissDisplay(c.first_reported_at)+" Uhr"
+ );
+
+ gamingAddLine(
+  box,
+  "Zweite Meldung von",
+  c.second_reported_by_name
+ );
+
+ gamingAddLine(
+  box,
+  "Gemeldetes Resultat",
+  c.second_home_score+" : "+c.second_away_score
+ );
+
+ gamingAddLine(
+  box,
+  "Gemeldet am",
+  swissDisplay(c.second_reported_at)+" Uhr"
+ );
+
+ if(c.status==="resolved"){
+
+  gamingAddLine(
+   box,
+   "Offizielles Resultat",
+   c.official_home_score+" : "+c.official_away_score
+  );
+
+  gamingAddLine(
+   box,
+   "Begründung",
+   c.resolution_reason
+  );
+
+  gamingAddLine(
+   box,
+   "Entschieden am",
+   swissDisplay(c.resolved_at)+" Uhr"
+  );
+
+  return box;
+ }
+
+ const form=document.createElement("form");
+
+ const title=document.createElement("h4");
+ title.textContent="Offizielles Resultat festlegen";
+ form.appendChild(title);
+
+ function scoreInput(name){
+
+  const label=document.createElement("label");
+  label.textContent=name;
+
+  const input=document.createElement("input");
+
+  input.type="number";
+  input.min="0";
+  input.max="2147483647";
+  input.step="1";
+  input.required=true;
+  input.placeholder="Tore";
+
+  label.appendChild(input);
+  form.appendChild(label);
+
+  return input;
+ }
+
+ const home=scoreInput(c.home_name);
+ const away=scoreInput(c.away_name);
+
+ const label=document.createElement("label");
+
+ label.textContent="Begründung der Entscheidung";
+
+ const reason=document.createElement("textarea");
+
+ reason.required=true;
+ reason.minLength=10;
+ reason.maxLength=3000;
+ reason.rows=4;
+
+ reason.placeholder=
+  "Begründung eingeben (mindestens 10 Zeichen)";
+
+ label.appendChild(reason);
+ form.appendChild(label);
+
+ const button=document.createElement("button");
+
+ button.type="submit";
+ button.className="danger";
+ button.textContent="Resultat offiziell bestätigen";
+
+ form.appendChild(button);
+
+ form.onsubmit=async(event)=>{
+
+  event.preventDefault();
+
+  if(!isLeagueController||cupConflictBusy)return;
+
+  const h=Number(home.value);
+  const a=Number(away.value);
+  const why=reason.value.trim();
+
+  const message=$("cupConflictMessage");
+
+  if(
+   home.value===""||
+   away.value===""||
+   !Number.isInteger(h)||
+   !Number.isInteger(a)||
+   h<0||a<0||
+   h>2147483647||
+   a>2147483647||
+   h===a||
+   why.length<10||
+   why.length>3000
+  ){
+   message.textContent=
+    "Bitte gültiges Resultat und Begründung eingeben.";
+   return;
+  }
+
+  if(!confirm(
+   "Resultat verbindlich festlegen?\n\n"+
+   c.home_name+" "+h+" : "+a+" "+c.away_name+
+   "\n\nDiese Entscheidung ist offiziell."
+  ))return;
+
+  cupConflictBusy=true;
+  button.disabled=true;
+  $("refreshCupConflicts").disabled=true;
+
+  message.textContent="Entscheidung wird gespeichert...";
+
+  try{
+
+   const {data,error}=await client.rpc(
+    "snhl_admin_resolve_cup_conflict",
+    {
+     p_conflict_id:c.conflict_id,
+     p_home_score:h,
+     p_away_score:a,
+     p_reason:why
+    }
+   );
+
+   if(error)throw error;
+
+   if(data!=="CUP-RESULTATKONFLIKT OFFIZIELL GEKLAERT"){
+    throw Error("Unerwartete Serverantwort.");
+   }
+
+   cupConflictBusy=false;
+
+   await loadCupConflicts();
+
+   message.textContent=
+    "Resultatkonflikt offiziell geklärt. "+
+    "Bitte Übersicht kontrollieren.";
+
+  }catch(e){
+
+   message.textContent="Fehler: "+e.message;
+
+  }finally{
+
+   cupConflictBusy=false;
+   button.disabled=false;
+   $("refreshCupConflicts").disabled=false;
+
+  }
+
+ };
+
+ box.appendChild(form);
+
+ return box;
+}
 
 </script>
 </body>
