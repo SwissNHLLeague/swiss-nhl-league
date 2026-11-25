@@ -2134,7 +2134,7 @@ async function loadCupMatches(){
   try{
 
     const {data,error}=await client.rpc(
-            "snhl_cup_my_matches_v2"
+            "snhl_cup_my_matches_v3"
     );
 
     if(error)throw error;
@@ -2302,7 +2302,35 @@ async function loadCupMatches(){
 
       item.appendChild(confirmations);
 
-      if(match.status==="disputed"){
+      if(match.resolved_by_league===true){
+
+  const decision=document.createElement("div");
+  decision.className="cup-date-box";
+
+  const title=document.createElement("h4");
+  title.className="cup-confirmed";
+  title.textContent="✓ Offizielle Ligaentscheidung";
+
+  const result=document.createElement("h2");
+  result.className="cup-confirmed";
+
+  result.textContent=
+    match.home_score+" : "+match.away_score;
+
+  const info=document.createElement("p");
+  info.textContent=
+    "Das Resultat wurde durch die Liga-Leitung "+
+    "offiziell entschieden.";
+
+  const locked=document.createElement("p");
+  locked.className="muted";
+  locked.textContent=
+    "Weitere Resultatmeldungen sind gesperrt.";
+
+  decision.append(title,result,info,locked);
+  item.appendChild(decision);
+
+}else if(match.status==="disputed"){
 
         const warning=document.createElement("p");
 
@@ -2468,8 +2496,9 @@ async function submitCupResult(
   if(cupSubmitBusy||cupBusy||cupDateBusy)return;
 
   if(
-    match.start_released!==true||
-    match.result_submission_available!==true
+    match.resolved_by_league===true||
+match.start_released!==true||
+match.result_submission_available!==true
   ){
     cupMessage(
       "Die Resultatmeldung ist noch nicht freigegeben."
