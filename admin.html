@@ -3653,7 +3653,265 @@ function renderCupConflict(c){
 
  return box;
 }
+/* CUP-SAISONVERWALTUNG
+   VERSION 1.12.832T */
 
+let cupSeasonLoadBusy=false;
+
+function cupSeasonStatusLabel(status){
+
+ return {
+  active:"Aktiv",
+  preparation:"In Vorbereitung",
+  completed:"Abgeschlossen"
+ }[status]||status||"Unbekannt";
+
+}
+
+async function loadCupSeasonSelection(){
+
+ if(!isLeagueController||
+    cupSeasonLoadBusy)return false;
+
+ cupSeasonLoadBusy=true;
+
+ const select=$("cupSeasonSelection");
+ const message=$("cupSeasonSelectionMessage");
+ const refresh=$("refreshCupSeasons");
+
+ select.disabled=true;
+ refresh.disabled=true;
+
+ message.textContent="Lade Cup-Saisons...";
+
+ try{
+
+  const {data,error}=await client.rpc(
+   "snhl_admin_list_cup_seasons"
+  );
+
+  if(error)throw error;
+
+  const seasons=data||[];
+  const previous=$("cupSeason").value.trim();
+
+  select.replaceChildren();
+
+  const placeholder=document.createElement("option");
+
+  placeholder.value="";
+  placeholder.textContent="Bitte Saison auswählen";
+
+  select.appendChild(placeholder);
+
+  for(const season of seasons){
+
+   const option=document.createElement("option");
+
+   option.value=season.season;
+
+   option.textContent=
+    season.season+
+    " · "+
+    cupSeasonStatusLabel(season.season_status)+
+    " · "+
+    season.completed_rounds+
+    "/"+
+    season.total_rounds+
+    " Runden abgeschlossen";
+
+   select.appendChild(option);
+
+  }
+
+  $("cupSeasonTotal").textContent=
+   seasons.length;
+
+  $("cupSeasonActive").textContent=
+   seasons.filter(
+    s=>s.season_status==="active"
+   ).length;
+
+  const selected=
+   seasons.find(s=>s.season===previous)||
+   seasons.find(s=>s.season_status==="active")||
+   seasons[0];
+
+  if(selected){
+
+   select.value=selected.season;
+
+   $("cupSeason").value=selected.season;
+
+   await loadCupRounds();
+
+  }else{
+
+   $("cupSeason").value="";
+
+   $("cupRoundsList").textContent=
+    "Noch keine Cup-Saisons vorhanden.";
+
+  }
+
+  message.textContent=
+   seasons.length+
+   " Cup-Saison(s) geladen.";
+
+  return true;
+
+ }catch(e){
+
+  select.replaceChildren();
+
+  message.textContent=
+   "Fehler: "+e.message;
+
+  return false;
+
+ }finally{
+
+  cupSeasonLoadBusy=false;
+
+  select.disabled=false;
+  refresh.disabled=false;
+
+ }
+
+}
+
+function installCupSeasonSelection(){
+
+ if($("cupSeasonSelection"))return;
+
+ const panel=document.createElement("div");
+
+ panel.className="cup-release-box";
+
+ panel.innerHTML=`
+  <h3>🏆 Cup-Saison auswählen</h3>
+
+  <div class="grid">
+
+   <div class="metric">
+    <strong id="cupSeasonTotal">–</strong>
+    Cup-Saisons
+   </div>
+
+   <div class="metric">
+    <strong id="cupSeasonActive">–</strong>
+    Aktive Cup-Saisons
+   </div>
+
+  </div>
+
+  <label for="cupSeasonSelection">
+   Gewünschte Cup-Saison
+  </label>
+
+  <select id="cupSeasonSelection">
+   <option value="">
+    Noch nicht geladen
+   </option>
+  </select>
+
+  <button
+   id="refreshCupSeasons"
+   type="button"
+   class="info"
+  >
+   Saisons aktualisieren
+  </button>
+
+  <p
+   id="cupSeasonSelectionMessage"
+   class="muted"
+   role="status"
+  ></p>
+ `;
+
+ $("cupRoundForm").before(panel);
+
+ $("cupSeasonSelection").onchange=async()=>{
+
+  if(!isLeagueController)return;
+
+  if(cupAdminBusy||
+     cupReleaseBusy||
+     firstCupDrawBusy){
+
+   $("cupSeasonSelection").value=
+    $("cupSeason").value;
+
+   $("cupSeasonSelectionMessage").textContent=
+    "Bitte laufenden Vorgang abwarten.";
+
+   return;
+
+  }
+
+  $("cupSeason").value=
+   $("cupSeasonSelection").value;
+
+  $("cupAdminMessage").textContent="";
+
+  $("cupReleaseMessage").textContent="";
+
+  $("firstCupDrawMessage").textContent="";
+
+  $("firstCupDrawDate").value="";
+
+  await loadCupRounds();
+
+ };
+
+ $("refreshCupSeasons").onclick=()=>{
+
+  if(cupAdminBusy||
+     cupReleaseBusy||
+     firstCupDrawBusy)return;
+
+  loadCupSeasonSelection();
+
+ };
+
+ $("cupSeason").addEventListener(
+  "input",
+  ()=>{
+
+   const select=$("cupSeasonSelection");
+
+   const exists=Array.from(select.options)
+    .some(
+     option=>option.value===
+      $("cupSeason").value.trim()
+    );
+
+   select.value=exists
+    ?$("cupSeason").value.trim()
+    :"";
+
+  }
+ );
+
+ $("cupNav").addEventListener(
+  "click",
+  ()=>{
+
+   if(isLeagueController){
+
+    loadCupSeasonSelection();
+
+   }
+
+  }
+ );
+
+}
+
+installCupSeasonSelection();
+
+/* ENDE CUP-SAISONVERWALTUNG */
 </script>
 </body>
 </html>
