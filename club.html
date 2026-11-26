@@ -3106,7 +3106,202 @@ $("logout").onclick=async()=>{
 };
 
 init().catch(e=>deny(e.message));
+/* CUP-TERMINVEREINBARUNG
+   RUNDENFRISTPRUEFUNG
+   VERSION 1.12.834C */
 
+const originalCreateCupDateProposal =
+ createCupDateProposal;
+
+createCupDateProposal = async function(
+ match,dateKey,time,button
+){
+
+ if(
+  !currentClub||
+  cupDateBusy||
+  cupBusy||
+  cupSubmitBusy
+ )return;
+
+ try{
+
+  if(!dateKey||!time){
+
+   throw Error(
+    "Bitte Datum und Uhrzeit auswählen."
+   );
+
+  }
+
+  if(!match.play_from||!match.deadline_at){
+
+   throw Error(
+    "Die Liga-Leitung hat noch keine "+
+    "vollständige Rundenfrist festgelegt."
+   );
+
+  }
+
+  const proposedISO=
+   swissLocalToISO(dateKey,time);
+
+  const proposed=
+   new Date(proposedISO).getTime();
+
+  const roundStart=
+   new Date(match.play_from).getTime();
+
+  const roundEnd=
+   new Date(match.deadline_at).getTime();
+
+  if(
+   !Number.isFinite(roundStart)||
+   !Number.isFinite(roundEnd)||
+   roundEnd<=roundStart
+  ){
+
+   throw Error(
+    "Ungültige Cup-Rundenfrist."
+   );
+
+  }
+
+  if(proposed<roundStart){
+
+   throw Error(
+    "Der Spieltermin liegt vor "+
+    "dem offiziellen Rundenbeginn."
+   );
+
+  }
+
+  if(proposed>=roundEnd){
+
+   throw Error(
+    "Der Spieltermin liegt ausserhalb "+
+    "der erlaubten Rundenfrist."
+   );
+
+  }
+
+  await originalCreateCupDateProposal(
+   match,dateKey,time,button
+  );
+
+ }catch(e){
+
+  cupMessage("Fehler: "+e.message);
+
+ }
+
+};
+
+
+/* RUNDENFRIST IM TERMINFORMULAR */
+
+const originalCupDateProposalRenderer =
+ renderCupDateProposal;
+
+renderCupDateProposal=function(
+ match,proposals
+){
+
+ const box=originalCupDateProposalRenderer(
+  match,proposals
+ );
+
+ if(match.play_from&&match.deadline_at){
+
+  const info=document.createElement("div");
+
+  info.className="notice";
+
+  const title=document.createElement("strong");
+
+  title.textContent="Erlaubter Spielzeitraum";
+
+  const start=document.createElement("p");
+
+  start.textContent=
+   "Beginn: "+
+   formatGameTime(match.play_from)+
+   " Uhr";
+
+  const end=document.createElement("p");
+
+  end.textContent=
+   "Deadline: "+
+   formatGameTime(match.deadline_at)+
+   " Uhr";
+
+  const note=document.createElement("p");
+
+  note.className="muted";
+
+  note.textContent=
+   "Das Spiel muss bis zur Deadline "+
+   "beendet und das Resultat eingetragen sein.";
+
+  info.append(title,start,end,note);
+
+  const heading=box.querySelector("h4");
+
+  if(heading){
+
+   heading.after(info);
+
+  }else{
+
+   box.prepend(info);
+
+  }
+
+  const dateInput=
+   box.querySelector('input[type="date"]');
+
+  if(dateInput){
+
+   const today=swissDateKey(new Date());
+
+   const firstDay=
+    swissDateKey(match.play_from);
+
+   const lastDay=
+    swissDateKey(match.deadline_at);
+
+   dateInput.min=
+    firstDay>today?firstDay:today;
+
+   dateInput.max=lastDay;
+
+   if(dateInput.min>dateInput.max){
+
+    dateInput.disabled=true;
+
+    box.querySelectorAll("button")
+     .forEach(button=>{
+      button.disabled=true;
+     });
+
+   }else if(
+    dateInput.value<dateInput.min||
+    dateInput.value>dateInput.max
+   ){
+
+    dateInput.value=dateInput.min;
+
+   }
+
+  }
+
+ }
+
+ return box;
+
+};
+
+/* ENDE CUP-RUNDENFRISTPRUEFUNG */
 </script>
 </body>
 </html>
