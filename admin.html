@@ -4150,7 +4150,410 @@ renderCupRelease=function(round,season){
  return container;
 
 };
+/* MANUELLE CUP-AUSLOSUNGSVERWALTUNG
+   VERSION 1.12.832Y */
 
+let delayedCupDrawBusy=false;
+let delayedCupDrawVersion=0;
+
+function installDelayedCupDrawPanel(){
+
+ if($("delayedCupDrawPanel"))return;
+
+ const panel=document.createElement("div");
+
+ panel.id="delayedCupDrawPanel";
+ panel.className="cup-release-box";
+
+ panel.innerHTML=`
+  <h3>🏆 Manuelle Auslosungsverwaltung</h3>
+
+  <p class="muted">
+   Wird ein Resultatkonflikt erst nach
+   dem vorgesehenen Auslosungstermin
+   offiziell geklärt, bestimmt die
+   Liga-Leitung einen neuen Termin.
+  </p>
+
+  <p class="muted">
+   Es erfolgt keine automatische
+   Ersatz-Auslosung.
+  </p>
+
+  <div class="metric">
+   <strong id="delayedCupDrawCount">–</strong>
+   Ausstehende manuelle Auslosungen
+  </div>
+
+  <p></p>
+
+  <button
+   id="refreshDelayedCupDraws"
+   type="button"
+   class="info"
+  >
+   Auslosungen aktualisieren
+  </button>
+
+  <p
+   id="delayedCupDrawMessage"
+   role="status"
+   class="muted"
+  ></p>
+
+  <div id="delayedCupDrawList">
+   Noch nicht geladen.
+  </div>
+ `;
+
+ $("firstCupDrawPanel").after(panel);
+
+ $("refreshDelayedCupDraws").onclick=
+  loadDelayedCupDraws;
+
+ $("cupNav").addEventListener(
+  "click",
+  ()=>{
+
+   if(isLeagueController){
+
+    loadDelayedCupDraws();
+
+   }
+
+  }
+ );
+
+}
+
+async function loadDelayedCupDraws(){
+
+ if(!isLeagueController||
+    delayedCupDrawBusy)return false;
+
+ const version=++delayedCupDrawVersion;
+
+ const list=$("delayedCupDrawList");
+ const message=$("delayedCupDrawMessage");
+ const refresh=$("refreshDelayedCupDraws");
+
+ refresh.disabled=true;
+
+ list.textContent="Lade offene Auslosungen...";
+
+ message.textContent="";
+
+ try{
+
+  const {data,error}=await client.rpc(
+   "snhl_admin_pending_delayed_cup_draws"
+  );
+
+  if(version!==delayedCupDrawVersion){
+
+   return false;
+
+  }
+
+  if(error)throw error;
+
+  const draws=data||[];
+
+  $("delayedCupDrawCount").textContent=
+   draws.length;
+
+  list.replaceChildren();
+
+  if(!draws.length){
+
+   list.textContent=
+    "Keine manuellen Auslosungen erforderlich.";
+
+   message.textContent=
+    "Auslosungsübersicht aktualisiert.";
+
+   return true;
+
+  }
+
+  for(const draw of draws){
+
+   list.appendChild(
+    renderDelayedCupDraw(draw)
+   );
+
+  }
+
+  message.textContent=
+   "Auslosungsübersicht aktualisiert.";
+
+  return true;
+
+ }catch(e){
+
+  $("delayedCupDrawCount").textContent="–";
+
+  list.textContent=
+   "Auslosungen konnten nicht geladen werden.";
+
+  message.textContent="Fehler: "+e.message;
+
+  return false;
+
+ }finally{
+
+  if(version===delayedCupDrawVersion){
+
+   refresh.disabled=false;
+
+  }
+
+ }
+
+}
+
+function renderDelayedCupDraw(draw){
+
+ const box=document.createElement("article");
+
+ box.className="gaming-request";
+
+ const heading=document.createElement("h4");
+
+ heading.textContent=
+  draw.completed_round+
+  " → "+
+  draw.next_round;
+
+ box.appendChild(heading);
+
+ gamingAddLine(
+  box,"Saison",draw.season
+ );
+
+ gamingAddLine(
+  box,"Abgeschlossene Runde",
+  draw.completed_round
+ );
+
+ gamingAddLine(
+  box,"Nächste Runde",
+  draw.next_round
+ );
+
+ gamingAddLine(
+  box,"Ursprünglicher Auslosungstermin",
+  swissDisplay(draw.original_draw_at)
+ );
+
+ gamingAddLine(
+  box,"Nächster Rundenbeginn",
+  swissDisplay(draw.next_play_from)
+ );
+
+ gamingAddLine(
+  box,"Nächste Rundenfrist",
+  swissDisplay(draw.next_deadline_at)
+ );
+
+ gamingAddLine(
+  box,"Spätester Auslosungsbeginn",
+  swissDisplay(draw.latest_draw_at)
+ );
+
+ gamingAddLine(
+  box,"Status",
+  draw.admin_status
+ );
+
+ if(
+  draw.admin_status!==
+   "MANUELLER AUSLOSUNGSTERMIN ERFORDERLICH"||
+  !draw.latest_draw_at||
+  new Date(draw.latest_draw_at)<=new Date()
+ ){
+
+  const note=document.createElement("p");
+
+  note.className="cup-release-blocked";
+
+  note.textContent=
+   "Bitte zuerst den Rundenbeginn prüfen "+
+   "und gegebenenfalls anpassen.";
+
+  box.appendChild(note);
+
+  return box;
+
+ }
+
+ const form=document.createElement("form");
+
+ const dateLabel=document.createElement("label");
+
+ dateLabel.textContent=
+  "Neues Auslosungsdatum";
+
+ const date=document.createElement("input");
+
+ date.type="date";
+ date.required=true;
+
+ dateLabel.appendChild(date);
+
+ const timeLabel=document.createElement("label");
+
+ timeLabel.textContent=
+  "Neue Auslosungszeit (Schweizer Zeit)";
+
+ const time=document.createElement("input");
+
+ time.type="time";
+ time.value="18:00";
+ time.required=true;
+
+ timeLabel.appendChild(time);
+
+ const button=document.createElement("button");
+
+ button.type="submit";
+
+ button.textContent=
+  "Manuelle Auslosung terminieren";
+
+ const message=document.createElement("p");
+
+ message.setAttribute("role","status");
+
+ form.append(
+  dateLabel,
+  timeLabel,
+  button,
+  message
+ );
+
+ form.onsubmit=async event=>{
+
+  event.preventDefault();
+
+  if(
+   !isLeagueController||
+   delayedCupDrawBusy||
+   cupDateEditBusy||
+   cupAdminBusy||
+   cupReleaseBusy||
+   firstCupDrawBusy
+  )return;
+
+  try{
+
+   const drawAt=swissToISO(
+    date.value,
+    time.value
+   );
+
+   if(new Date(drawAt)<=new Date()){
+
+    throw Error(
+     "Der Auslosungstermin muss "+
+     "in der Zukunft liegen."
+    );
+
+   }
+
+   if(
+    new Date(drawAt)>
+    new Date(draw.latest_draw_at)
+   ){
+
+    throw Error(
+     "Die Auslosung muss mindestens "+
+     "12 Minuten vor Rundenbeginn starten."
+    );
+
+   }
+
+   if(!confirm(
+    "MANUELLE CUP-AUSLOSUNG\n\n"+
+    "Saison: "+draw.season+"\n"+
+    "Nächste Runde: "+draw.next_round+"\n"+
+    "Auslosung: "+swissDisplay(drawAt)+
+    " Uhr\n\n"+
+    "Termin verbindlich speichern?"
+   ))return;
+
+   delayedCupDrawBusy=true;
+
+   button.disabled=true;
+
+   $("refreshDelayedCupDraws").disabled=true;
+
+   message.textContent=
+    "Auslosung wird terminiert...";
+
+   const {data,error}=await client.rpc(
+    "snhl_admin_schedule_delayed_cup_draw",
+    {
+     p_completed_round_id:
+      draw.completed_round_id,
+
+     p_draw_at:drawAt
+    }
+   );
+
+   if(error)throw error;
+
+   if(
+    typeof data!=="string"||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data)
+   ){
+
+    throw Error(
+     "Unerwartete Serverantwort."
+    );
+
+   }
+
+   delayedCupDrawBusy=false;
+
+   const refreshed=
+    await loadDelayedCupDraws();
+
+   await loadCupRounds();
+
+   $("delayedCupDrawMessage").textContent=
+    "✓ Manuelle Auslosung erfolgreich "+
+    "terminiert: "+
+    swissDisplay(drawAt)+" Uhr."+
+    (refreshed
+     ?""
+     :" Bitte Übersicht aktualisieren.");
+
+  }catch(e){
+
+   message.textContent="Fehler: "+e.message;
+
+  }finally{
+
+   delayedCupDrawBusy=false;
+
+   button.disabled=false;
+
+   $("refreshDelayedCupDraws").disabled=false;
+
+  }
+
+ };
+
+ box.appendChild(form);
+
+ return box;
+
+}
+
+installDelayedCupDrawPanel();
+
+/* ENDE MANUELLE CUP-AUSLOSUNGSVERWALTUNG */
 /* ENDE CUP-RUNDENFRISTEN */
 /* ENDE CUP-SAISONVERWALTUNG */
 </script>
