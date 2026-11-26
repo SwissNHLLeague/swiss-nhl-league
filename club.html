@@ -3300,7 +3300,23 @@ renderCupDateProposal=function(
  return box;
 
 };
+/* CUP-FEHLERMELDUNG DIREKT ANZEIGEN */
 
+const originalCupMessage834 = cupMessage;
+
+cupMessage = function(text){
+
+ originalCupMessage834(text);
+
+ if(text.startsWith("Fehler:")){
+
+  alert(text);
+
+ }
+
+};
+
+/* ENDE CUP-FEHLERMELDUNG */
 /* ENDE CUP-RUNDENFRISTPRUEFUNG */
 </script>
 </body>
