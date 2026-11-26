@@ -3910,7 +3910,248 @@ function installCupSeasonSelection(){
 }
 
 installCupSeasonSelection();
+/* CUP-RUNDENFRISTEN BEARBEITEN
+   VERSION 1.12.832V */
 
+let cupDateEditBusy=false;
+
+function renderCupDateEditor(round,season){
+
+ const box=document.createElement("div");
+ box.className="cup-release-box";
+
+ const heading=document.createElement("h4");
+ heading.textContent="Rundenfristen bearbeiten";
+ box.appendChild(heading);
+
+ if(
+  round.status!=="pending"||
+  round.start_released===true||
+  round.start_released_at||
+  round.draw_at||
+  Number(round.matches??0)>0
+ ){
+
+  const note=document.createElement("p");
+
+  note.className="muted";
+
+  note.textContent=
+   "🔒 Die Rundenfristen sind für "+
+   "diese Cup-Runde gesperrt.";
+
+  box.appendChild(note);
+
+  return box;
+
+ }
+
+ const form=document.createElement("form");
+
+ function field(label,type,value){
+
+  const wrapper=document.createElement("label");
+  wrapper.textContent=label;
+
+  const input=document.createElement("input");
+
+  input.type=type;
+  input.required=true;
+  input.value=value||"";
+
+  wrapper.appendChild(input);
+  form.appendChild(wrapper);
+
+  return input;
+
+ }
+
+ const start=round.play_from
+  ?swissInputValues(round.play_from)
+  :{date:"",time:"20:00"};
+
+ const end=round.deadline_at
+  ?swissInputValues(round.deadline_at)
+  :{date:"",time:"23:59"};
+
+ const startDate=field(
+  "Neuer Rundenbeginn – Datum",
+  "date",
+  start.date
+ );
+
+ const startTime=field(
+  "Neuer Rundenbeginn – Uhrzeit",
+  "time",
+  start.time
+ );
+
+ const endDate=field(
+  "Neue Rundenfrist – Datum",
+  "date",
+  end.date
+ );
+
+ const endTime=field(
+  "Rundenfrist – Schweizer Zeit",
+  "time",
+  "23:59"
+ );
+
+ endTime.readOnly=true;
+
+ const button=document.createElement("button");
+
+ button.type="submit";
+ button.textContent="Rundenfristen speichern";
+
+ form.appendChild(button);
+
+ const message=document.createElement("p");
+
+ message.setAttribute("role","status");
+
+ form.appendChild(message);
+
+ form.onsubmit=async event=>{
+
+  event.preventDefault();
+
+  if(
+   !isLeagueController||
+   cupDateEditBusy||
+   cupAdminBusy||
+   cupReleaseBusy||
+   firstCupDrawBusy
+  )return;
+
+  try{
+
+   if($("cupSeason").value.trim()!==season){
+
+    throw Error(
+     "Saison wurde geändert. "+
+     "Bitte Runden aktualisieren."
+    );
+
+   }
+
+   const newStart=swissToISO(
+    startDate.value,
+    startTime.value
+   );
+
+   const newEnd=swissToISO(
+    endDate.value,
+    "23:59"
+   );
+
+   if(new Date(newStart)<=new Date()){
+
+    throw Error(
+     "Der Rundenbeginn muss "+
+     "in der Zukunft liegen."
+    );
+
+   }
+
+   if(new Date(newEnd)<=new Date(newStart)){
+
+    throw Error(
+     "Rundenende muss nach "+
+     "Rundenbeginn liegen."
+    );
+
+   }
+
+   if(!confirm(
+    "RUNDENFRISTEN ÄNDERN?\n\n"+
+    "Saison: "+season+"\n"+
+    "Runde: "+round.round_name+"\n\n"+
+    "Neuer Beginn: "+
+    swissDisplay(newStart)+" Uhr\n"+
+    "Neue Frist: "+
+    swissDisplay(newEnd)+" Uhr\n\n"+
+    "Änderungen verbindlich speichern?"
+   ))return;
+
+   cupDateEditBusy=true;
+   button.disabled=true;
+
+   message.textContent=
+    "Rundenfristen werden geprüft...";
+
+   const {data,error}=await client.rpc(
+    "snhl_admin_update_cup_round_dates",
+    {
+     p_round_id:round.round_id,
+     p_play_from:newStart,
+     p_deadline_at:newEnd
+    }
+   );
+
+   if(error)throw error;
+
+   if(data!=="CUP-RUNDENFRIST AKTUALISIERT"){
+
+    throw Error(
+     "Unerwartete Serverantwort."
+    );
+
+   }
+
+   const refreshed=await loadCupRounds();
+
+   $("cupAdminMessage").textContent=
+    "✓ Rundenfristen erfolgreich gespeichert."+
+    (refreshed
+     ?""
+     :" Bitte Runden erneut aktualisieren.");
+
+  }catch(e){
+
+   message.textContent="Fehler: "+e.message;
+
+  }finally{
+
+   cupDateEditBusy=false;
+   button.disabled=false;
+
+  }
+
+ };
+
+ box.appendChild(form);
+
+ return box;
+
+}
+
+/* BESTEHENDE STARTFREIGABE ERWEITERN */
+
+const originalCupReleaseRenderer=renderCupRelease;
+
+renderCupRelease=function(round,season){
+
+ const container=document.createElement("div");
+
+ container.appendChild(
+  originalCupReleaseRenderer(round,season)
+ );
+
+ if(isLeagueController){
+
+  container.appendChild(
+   renderCupDateEditor(round,season)
+  );
+
+ }
+
+ return container;
+
+};
+
+/* ENDE CUP-RUNDENFRISTEN */
 /* ENDE CUP-SAISONVERWALTUNG */
 </script>
 </body>
