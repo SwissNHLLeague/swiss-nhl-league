@@ -2664,10 +2664,9 @@ document.addEventListener(
 
 );
 /* OEFFENTLICHE CLUBBESTAETIGUNG
-   VERSION 1.12.835D.77 */
+   VERSION 1.12.835D.86 */
 
-const officialPublicSeason="2027/28";
-
+let officialPublicSeason="–";
 let officialPublicStatus=new Map();
 let officialPublicLoaded=false;
 let officialPublicBusy=false;
@@ -2694,22 +2693,41 @@ async function loadPublicClubConfirmations(){
 
  try{
 
+  const season=await rpc(
+   "snhl_public_current_season"
+  );
+
+  if(
+   typeof season!=="string"||
+   !season.trim()
+  ){
+
+   throw Error(
+    "Keine öffentliche Saison verfügbar."
+   );
+
+  }
+
   const result=await rpc(
    "snhl_public_club_confirmations",
    {
-    p_season:officialPublicSeason
+    p_season:season
    }
   );
 
   if(!Array.isArray(result)){
 
-   throw Error("Ungültige Serverantwort.");
+   throw Error(
+    "Ungültige Serverantwort."
+   );
 
   }
 
+  officialPublicSeason=season;
+
   officialPublicStatus=new Map(
    result.filter(
-    row=>row.season===officialPublicSeason
+    row=>row.season===season
    ).map(row=>[
     row.club_id,
     row.officially_confirmed
@@ -2720,12 +2738,14 @@ async function loadPublicClubConfirmations(){
 
  }catch(error){
 
+  officialPublicSeason="–";
+
   officialPublicStatus.clear();
 
   officialPublicLoaded=false;
 
   console.warn(
-   "Clubbestätigung:",
+   "Öffentliche Clubbestätigung:",
    error
   );
 
@@ -2900,6 +2920,7 @@ document.addEventListener(
 );
 
 /* ENDE OEFFENTLICHE CLUBBESTAETIGUNG */
+
 </script>
 </body>
 </html>
