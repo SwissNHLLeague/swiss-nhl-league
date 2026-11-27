@@ -4552,7 +4552,618 @@ function renderDelayedCupDraw(draw){
 }
 
 installDelayedCupDrawPanel();
+/* OFFIZIELLE CLUBBESTAETIGUNG
+   VERSION 1.12.835D.67 */
 
+let officialClubBusy=false;
+
+function installOfficialClubPanel(){
+
+ if($("officialClubNav"))return;
+
+ const nav=document.createElement("button");
+
+ nav.id="officialClubNav";
+ nav.type="button";
+ nav.dataset.tab="officialClubs";
+ nav.className="hidden";
+ nav.textContent="Offizielle Clubbestätigung";
+
+ $("nameRequestsNav").after(nav);
+
+ const panel=document.createElement("section");
+
+ panel.className="panel hidden";
+ panel.dataset.section="officialClubs";
+
+ panel.innerHTML=`
+  <h2>Offizielle Clubbestätigung</h2>
+
+  <div class="notice">
+   <strong>Voraussetzungen</strong>
+   <p>Mindestens 7 und maximal 15 aktive Spieler.</p>
+   <p>Genehmigte Saisonanmeldung.</p>
+   <p>Eigener Twitch-Kanal für die Swiss NHL League.</p>
+   <p>Offizielles Saison-Profilbild auf Twitch.</p>
+   <p>Die Kontrolle erfolgt durch die Liga-Leitung.</p>
+  </div>
+
+  <div class="grid">
+
+   <div class="metric">
+    <strong id="officialClubPending">–</strong>
+    Ausstehende Bestätigungen
+   </div>
+
+   <div class="metric">
+    <strong id="officialClubConfirmed">–</strong>
+    Offiziell bestätigt
+   </div>
+
+  </div>
+
+  <label for="officialClubSeason">
+   Saison auswählen
+  </label>
+
+  <select id="officialClubSeason">
+   <option value="">Alle Saisons</option>
+  </select>
+
+  <button
+   id="refreshOfficialClubs"
+   type="button"
+   class="info"
+  >
+   Clubs aktualisieren
+  </button>
+
+  <p id="officialClubMessage" role="status"></p>
+
+  <h3>Ausstehende Bestätigungen</h3>
+
+  <div id="officialClubPendingList">
+   Noch nicht geladen.
+  </div>
+
+  <h3>Offiziell bestätigte Clubs</h3>
+
+  <div id="officialClubConfirmedList">
+   Noch nicht geladen.
+  </div>
+ `;
+
+ document.querySelector(
+  '[data-section="nameRequests"]'
+ ).after(panel);
+
+ nav.onclick=()=>{
+
+  if(!isLeagueController)return;
+
+  showTab("officialClubs");
+
+  loadOfficialClubs();
+
+ };
+
+ $("refreshOfficialClubs").onclick=
+  loadOfficialClubs;
+
+ $("officialClubSeason").onchange=
+  renderOfficialClubs;
+
+ function updateVisibility(){
+
+  nav.classList.toggle(
+   "hidden",
+   !isLeagueController
+  );
+
+ }
+
+ const observer=new MutationObserver(
+  updateVisibility
+ );
+
+ observer.observe(
+  $("dashboard"),
+  {
+   attributes:true,
+   attributeFilter:["class"]
+  }
+ );
+
+ updateVisibility();
+
+}
+
+let officialClubRows=[];
+let officialClubLoading=false;
+
+async function loadOfficialClubs(){
+
+ if(
+  !isLeagueController||
+  officialClubLoading||
+  officialClubBusy
+ )return false;
+
+ officialClubLoading=true;
+
+ const message=$("officialClubMessage");
+ const refresh=$("refreshOfficialClubs");
+ const select=$("officialClubSeason");
+
+ refresh.disabled=true;
+ select.disabled=true;
+
+ $("officialClubPendingList").textContent=
+  "Clubs werden geladen...";
+
+ $("officialClubConfirmedList").textContent="";
+
+ message.textContent="";
+
+ try{
+
+  const {data,error}=await client.rpc(
+   "snhl_admin_list_club_confirmations"
+  );
+
+  if(error)throw error;
+
+  officialClubRows=data||[];
+
+  const previous=select.value;
+
+  const seasons=[
+   ...new Set(
+    officialClubRows.map(r=>r.season)
+   )
+  ].sort().reverse();
+
+  select.replaceChildren();
+
+  const all=document.createElement("option");
+
+  all.value="";
+  all.textContent="Alle Saisons";
+
+  select.appendChild(all);
+
+  for(const season of seasons){
+
+   const option=document.createElement("option");
+
+   option.value=season;
+   option.textContent=season;
+
+   select.appendChild(option);
+
+  }
+
+  select.value=seasons.includes(previous)
+   ?previous
+   :"";
+
+  renderOfficialClubs();
+
+  message.textContent=
+   "Clubübersicht erfolgreich aktualisiert.";
+
+  return true;
+
+ }catch(e){
+
+  officialClubRows=[];
+
+  $("officialClubPending").textContent="–";
+
+  $("officialClubConfirmed").textContent="–";
+
+  $("officialClubPendingList").textContent=
+   "Clubübersicht konnte nicht geladen werden.";
+
+  message.textContent="Fehler: "+e.message;
+
+  return false;
+
+ }finally{
+
+  officialClubLoading=false;
+  refresh.disabled=false;
+  select.disabled=false;
+
+ }
+
+}
+
+function renderOfficialClubs(){
+
+ if(!isLeagueController)return;
+
+ const season=$("officialClubSeason").value;
+
+ const rows=officialClubRows.filter(
+  r=>!season||r.season===season
+ );
+
+ const pending=rows.filter(
+  r=>r.officially_confirmed!==true
+ );
+
+ const confirmed=rows.filter(
+  r=>r.officially_confirmed===true
+ );
+
+ $("officialClubPending").textContent=
+  pending.length;
+
+ $("officialClubConfirmed").textContent=
+  confirmed.length;
+
+ const pendingList=$("officialClubPendingList");
+
+ const confirmedList=$("officialClubConfirmedList");
+
+ pendingList.replaceChildren();
+ confirmedList.replaceChildren();
+
+ if(!pending.length){
+
+  pendingList.textContent=
+   "Keine ausstehenden Clubbestätigungen.";
+
+ }
+
+ if(!confirmed.length){
+
+  confirmedList.textContent=
+   "Noch keine offiziell bestätigten Clubs.";
+
+ }
+
+ for(const row of pending){
+
+  pendingList.appendChild(
+   renderOfficialClubCard(row)
+  );
+
+ }
+
+ for(const row of confirmed){
+
+  confirmedList.appendChild(
+   renderOfficialClubCard(row)
+  );
+
+ }
+
+}
+
+function renderOfficialClubCard(row){
+
+ const card=document.createElement("article");
+
+ card.className="gaming-request";
+
+ const title=document.createElement("h3");
+
+ title.textContent=row.club_name;
+
+ card.appendChild(title);
+
+ gamingAddLine(
+  card,"Saison",row.season
+ );
+
+ gamingAddLine(
+  card,"Spielformen",row.game_modes
+ );
+
+ const players=Number(row.player_count);
+
+ const count=gamingAddLine(
+  card,"Aktive Spieler",players
+ );
+
+ count.style.color=
+  players>=7&&players<=15
+   ?"#76e0a2"
+   :"#ff8290";
+
+ const status=document.createElement("p");
+
+ status.style.fontWeight="bold";
+
+ status.style.color=
+  row.officially_confirmed
+   ?"#76e0a2"
+   :"#ffda87";
+
+ status.textContent=
+  row.officially_confirmed
+   ?"✓ OFFIZIELL BESTÄTIGT"
+   :"OFFIZIELLE BESTÄTIGUNG AUSSTEHEND";
+
+ card.appendChild(status);
+
+ if(row.officially_confirmed===true){
+
+  gamingAddLine(
+   card,"Twitch-Kanal",row.twitch_channel
+  );
+
+  gamingAddLine(
+   card,"Bestätigt am",
+   swissDisplay(row.confirmed_at)+" Uhr"
+  );
+
+  return card;
+
+ }
+
+ if(
+  !Number.isInteger(players)||
+  players<7||
+  players>15
+ ){
+
+  const note=document.createElement("p");
+
+  note.className="cup-release-blocked";
+
+  note.textContent=
+   "Clubbestätigung wegen Kadergrösse gesperrt.";
+
+  card.appendChild(note);
+
+  return card;
+
+ }
+
+ const form=document.createElement("form");
+
+ const channelLabel=document.createElement("label");
+
+ channelLabel.textContent="Twitch-Benutzername";
+
+ const channel=document.createElement("input");
+
+ channel.type="text";
+ channel.required=true;
+ channel.maxLength=25;
+ channel.minLength=4;
+ channel.autocomplete="off";
+ channel.autocapitalize="none";
+ channel.spellcheck=false;
+ channel.placeholder="twitch_benutzername";
+ channel.value=row.twitch_channel||"";
+
+ channelLabel.appendChild(channel);
+
+ form.appendChild(channelLabel);
+
+ const twitchLink=document.createElement("a");
+
+ twitchLink.textContent="Twitch-Kanal öffnen";
+ twitchLink.target="_blank";
+ twitchLink.rel="noopener noreferrer";
+ twitchLink.hidden=true;
+
+ form.appendChild(twitchLink);
+
+ function updateTwitchLink(){
+
+  const value=channel.value.trim().toLowerCase();
+
+  const valid=/^[a-z0-9_]{4,25}$/.test(value);
+
+  twitchLink.hidden=!valid;
+
+  if(valid){
+
+   twitchLink.href="https://www.twitch.tv/"+value;
+
+  }else{
+
+   twitchLink.removeAttribute("href");
+
+  }
+
+ }
+
+ channel.addEventListener(
+  "input",updateTwitchLink
+ );
+
+ updateTwitchLink();
+
+ function addCheck(text){
+
+  const label=document.createElement("label");
+
+  label.style.display="flex";
+  label.style.alignItems="center";
+  label.style.gap="10px";
+  label.style.margin="16px 0";
+
+  const input=document.createElement("input");
+
+  input.type="checkbox";
+  input.required=true;
+  input.style.width="22px";
+  input.style.height="22px";
+  input.style.margin="0";
+  input.style.flexShrink="0";
+
+  label.append(
+   input,
+   document.createTextNode(text)
+  );
+
+  form.appendChild(label);
+
+  return input;
+
+ }
+
+ const dedicated=addCheck(
+  "Eigener Liga-Twitch-Kanal wurde geprüft."
+ );
+
+ const profile=addCheck(
+  "Offizielles Saison-Profilbild wurde geprüft."
+ );
+
+ const button=document.createElement("button");
+
+ button.type="submit";
+ button.className="cup-release-button";
+
+ button.textContent=
+  "Club offiziell bestätigen";
+
+ button.disabled=true;
+
+ function updateButton(){
+
+  button.disabled=
+   officialClubBusy||
+   officialClubLoading||
+   !dedicated.checked||
+   !profile.checked||
+   !/^[a-z0-9_]{4,25}$/.test(
+    channel.value.trim().toLowerCase()
+   );
+
+ }
+
+ channel.addEventListener(
+  "input",updateButton
+ );
+
+ dedicated.onchange=updateButton;
+ profile.onchange=updateButton;
+
+ form.appendChild(button);
+
+ const message=document.createElement("p");
+
+ message.setAttribute("role","status");
+
+ form.appendChild(message);
+
+ form.onsubmit=async event=>{
+
+  event.preventDefault();
+
+  if(
+   !isLeagueController||
+   officialClubBusy||
+   officialClubLoading
+  )return;
+
+  const twitch=channel.value.trim().toLowerCase();
+
+  if(
+   !/^[a-z0-9_]{4,25}$/.test(twitch)||
+   !profile.checked||
+   !dedicated.checked
+  ){
+
+   message.textContent=
+    "Bitte beide Twitch-Kontrollen durchführen.";
+
+   return;
+
+  }
+
+  if(!confirm(
+   "OFFIZIELLE CLUBBESTÄTIGUNG\n\n"+
+   "Club: "+row.club_name+"\n"+
+   "Saison: "+row.season+"\n"+
+   "Twitch: "+twitch+"\n\n"+
+   "Die Bestätigung wird dauerhaft gespeichert.\n"+
+   "Die Cup-Aufnahme erfolgt automatisch, "+
+   "sofern die Cup-Saison in Vorbereitung ist.\n\n"+
+   "Club verbindlich bestätigen?"
+  ))return;
+
+  officialClubBusy=true;
+
+  button.disabled=true;
+
+  $("refreshOfficialClubs").disabled=true;
+
+  $("officialClubSeason").disabled=true;
+
+  message.textContent=
+   "Clubbestätigung wird geprüft...";
+
+  try{
+
+   const {data,error}=await client.rpc(
+    "snhl_admin_confirm_club",
+    {
+     p_club_id:row.club_id,
+     p_season:row.season,
+     p_twitch_channel:twitch,
+     p_profile_verified:profile.checked,
+     p_dedicated_verified:dedicated.checked
+    }
+   );
+
+   if(error)throw error;
+
+   if(data!=="CLUB OFFIZIELL BESTAETIGT"){
+
+    throw Error(
+     "Unerwartete Serverantwort. "+
+     "Bitte Bestätigungsstatus prüfen."
+    );
+
+   }
+
+   officialClubBusy=false;
+
+   const refreshed=await loadOfficialClubs();
+
+   $("officialClubMessage").textContent=
+    "✓ "+row.club_name+
+    " wurde offiziell bestätigt."+
+    (refreshed
+     ?""
+     :" Bitte Übersicht erneut aktualisieren.");
+
+  }catch(e){
+
+   message.textContent="Fehler: "+e.message;
+
+  }finally{
+
+   officialClubBusy=false;
+
+   $("refreshOfficialClubs").disabled=false;
+
+   $("officialClubSeason").disabled=false;
+
+   updateButton();
+
+  }
+
+ };
+
+ card.appendChild(form);
+
+ return card;
+
+}
+
+installOfficialClubPanel();
+
+/* ENDE OFFIZIELLE CLUBBESTAETIGUNG */
 /* ENDE MANUELLE CUP-AUSLOSUNGSVERWALTUNG */
 /* ENDE CUP-RUNDENFRISTEN */
 /* ENDE CUP-SAISONVERWALTUNG */
