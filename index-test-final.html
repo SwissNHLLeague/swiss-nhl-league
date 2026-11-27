@@ -2663,7 +2663,243 @@ document.addEventListener(
  }
 
 );
+/* OEFFENTLICHE CLUBBESTAETIGUNG
+   VERSION 1.12.835D.77 */
 
+const officialPublicSeason="2027/28";
+
+let officialPublicStatus=new Map();
+let officialPublicLoaded=false;
+let officialPublicBusy=false;
+
+Object.assign(TRANSLATIONS.de,{
+ officialConfirmed:"✓ Offiziell bestätigt",
+ officialPending:"Offizielle Bestätigung ausstehend",
+ officialUnavailable:"Bestätigungsstatus nicht verfügbar",
+ officialSeason:"Saison"
+});
+
+Object.assign(TRANSLATIONS.en,{
+ officialConfirmed:"✓ Officially confirmed",
+ officialPending:"Official confirmation pending",
+ officialUnavailable:"Confirmation status unavailable",
+ officialSeason:"Season"
+});
+
+async function loadPublicClubConfirmations(){
+
+ if(officialPublicBusy)return;
+
+ officialPublicBusy=true;
+
+ try{
+
+  const result=await rpc(
+   "snhl_public_club_confirmations",
+   {
+    p_season:officialPublicSeason
+   }
+  );
+
+  if(!Array.isArray(result)){
+
+   throw Error("Ungültige Serverantwort.");
+
+  }
+
+  officialPublicStatus=new Map(
+   result.filter(
+    row=>row.season===officialPublicSeason
+   ).map(row=>[
+    row.club_id,
+    row.officially_confirmed
+   ])
+  );
+
+  officialPublicLoaded=true;
+
+ }catch(error){
+
+  officialPublicStatus.clear();
+
+  officialPublicLoaded=false;
+
+  console.warn(
+   "Clubbestätigung:",
+   error
+  );
+
+ }finally{
+
+  officialPublicBusy=false;
+
+  renderClubs();
+
+ }
+
+}
+
+renderClubs=function(){
+
+ const box=$("clubList");
+
+ box.replaceChildren();
+
+ if(!DATA.clubs.length){
+
+  box.appendChild(empty(
+   DATA.errors.clubs
+    ?t("error")
+    :t("noClubs")
+  ));
+
+  return;
+
+ }
+
+ DATA.clubs.forEach(c=>{
+
+  const card=make(
+   "article",
+   undefined,
+   "club"
+  );
+
+  const logo=make(
+   "div",
+   undefined,
+   "club-logo"
+  );
+
+  if(
+   c.logo_url&&
+   /^https:\/\//i.test(c.logo_url)
+  ){
+
+   const img=make("img");
+
+   img.src=c.logo_url;
+
+   img.alt="Clublogo "+c.name;
+
+   img.loading="lazy";
+
+   img.onerror=()=>
+    logo.replaceChildren(
+     make("span","🛡️")
+    );
+
+   logo.appendChild(img);
+
+  }else{
+
+   logo.textContent="🛡️";
+
+  }
+
+  const info=make(
+   "div",
+   undefined,
+   "club-info"
+  );
+
+  const players=num(c.player_count);
+
+  info.append(
+
+   make(
+    "small",
+    flag(c.country_code)+" "+
+    countryName(c.country_code)
+   ),
+
+   make(
+    "strong",
+    c.name||"–"
+   ),
+
+   make(
+    "small",
+    players+" "+t("active"),
+    players>=7&&players<=15
+     ?"good"
+     :"bad"
+   ),
+
+   make(
+    "small",
+    t("officialSeason")+" "+
+    officialPublicSeason
+   )
+
+  );
+
+  const confirmation=
+   officialPublicStatus.get(c.club_id);
+
+  const status=make("small");
+
+  status.style.fontWeight="bold";
+
+  status.style.lineHeight="1.5";
+
+  if(
+   !officialPublicLoaded||
+   typeof confirmation!=="boolean"
+  ){
+
+   status.textContent=
+    t("officialUnavailable");
+
+   status.style.color="#a2b8d1";
+
+  }else if(confirmation===true){
+
+   status.textContent=
+    t("officialConfirmed");
+
+   status.className="good";
+
+  }else{
+
+   status.textContent=
+    t("officialPending");
+
+   status.style.color="#ffda87";
+
+  }
+
+  info.appendChild(status);
+
+  card.append(logo,info);
+
+  box.appendChild(card);
+
+ });
+
+};
+
+loadPublicClubConfirmations();
+
+setInterval(
+ loadPublicClubConfirmations,
+ 60000
+);
+
+document.addEventListener(
+ "visibilitychange",
+ ()=>{
+
+  if(!document.hidden){
+
+   loadPublicClubConfirmations();
+
+  }
+
+ }
+);
+
+/* ENDE OEFFENTLICHE CLUBBESTAETIGUNG */
 </script>
 </body>
 </html>
