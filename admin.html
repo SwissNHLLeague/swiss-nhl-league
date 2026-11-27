@@ -5162,7 +5162,392 @@ function renderOfficialClubCard(row){
 }
 
 installOfficialClubPanel();
+/* GESCHUETZTE ADMIN-TESTDATEN
+   VERSION 1.12.835E.31 */
 
+let adminTestDataBusy=false;
+
+const adminTestDataGroups=[
+ ["testspiele","Testspiele"],
+ ["torhueter","Torhüterstatistiken"],
+ ["live_anzeige","Live-Testanzeige"],
+ ["live_simulation","Live-Simulation"],
+ ["spieler","Spielerstatistiken"],
+ ["rangliste","Testtabellenrangliste"]
+];
+
+function installAdminTestDataPanel(){
+
+ if($("adminTestDataNav"))return;
+
+ const nav=document.createElement("button");
+
+ nav.id="adminTestDataNav";
+ nav.type="button";
+ nav.dataset.tab="adminTestData";
+ nav.className="hidden";
+ nav.textContent="🔒 Testdaten";
+
+ $("officialClubNav").after(nav);
+
+ const panel=document.createElement("section");
+
+ panel.className="panel hidden";
+ panel.dataset.section="adminTestData";
+
+ panel.innerHTML=`
+  <h2>🔒 Geschützte Testdaten</h2>
+
+  <div class="notice">
+   <strong>Interner Testbereich</strong>
+   <p>Nur die offizielle Liga-Leitung hat Zugriff.</p>
+   <p>Testdaten werden getrennt von offiziellen
+   Ligadaten verwaltet.</p>
+   <p>Dieser Bereich dient ausschliesslich
+   der Datenkontrolle.</p>
+  </div>
+
+  <div class="grid">
+
+   <div class="metric">
+    <strong id="adminTestDataTotal">–</strong>
+    Testdatensätze
+   </div>
+
+   <div class="metric">
+    <strong id="adminTestDataSources">–</strong>
+    Datenquellen
+   </div>
+
+  </div>
+
+  <p></p>
+
+  <button
+   id="refreshAdminTestData"
+   type="button"
+   class="info"
+  >
+   Testdaten aktualisieren
+  </button>
+
+  <p
+   id="adminTestDataMessage"
+   role="status"
+  ></p>
+
+  <div id="adminTestDataList">
+   Noch nicht geladen.
+  </div>
+ `;
+
+ document.querySelector(
+  '[data-section="officialClubs"]'
+ ).after(panel);
+
+ nav.onclick=()=>{
+
+  if(!isLeagueController)return;
+
+  showTab("adminTestData");
+
+  loadAdminTestData();
+
+ };
+
+ $("refreshAdminTestData").onclick=
+  loadAdminTestData;
+
+ function updateVisibility(){
+
+  const allowed=
+   isLeagueController&&
+   !$("dashboard").classList.contains("hidden");
+
+  nav.classList.toggle("hidden",!allowed);
+
+  if(!allowed){
+
+   panel.classList.add("hidden");
+
+   $("adminTestDataList").replaceChildren();
+
+   $("adminTestDataTotal").textContent="–";
+
+   $("adminTestDataSources").textContent="–";
+
+   $("adminTestDataMessage").textContent="";
+
+  }
+
+ }
+
+ const observer=new MutationObserver(
+  updateVisibility
+ );
+
+ observer.observe(
+  $("dashboard"),
+  {
+   attributes:true,
+   attributeFilter:["class"]
+  }
+ );
+
+ updateVisibility();
+
+}
+
+function renderAdminTestDataGroup(
+ title,rows
+){
+
+ const card=document.createElement("article");
+
+ card.className="gaming-request";
+
+ const heading=document.createElement("h3");
+
+ heading.textContent=title;
+
+ card.appendChild(heading);
+
+ const count=document.createElement("p");
+
+ count.textContent=
+  rows.length+" Datensätze";
+
+ count.style.color="#76e0a2";
+ count.style.fontWeight="bold";
+
+ card.appendChild(count);
+
+ if(!rows.length){
+
+  const empty=document.createElement("p");
+
+  empty.className="muted";
+
+  empty.textContent=
+   "Keine Testdatensätze vorhanden.";
+
+  card.appendChild(empty);
+
+  return card;
+
+ }
+
+ const details=document.createElement("details");
+
+ const summary=document.createElement("summary");
+
+ summary.textContent="Datensätze anzeigen";
+
+ summary.style.cursor="pointer";
+ summary.style.padding="12px 0";
+
+ details.appendChild(summary);
+
+ const wrapper=document.createElement("div");
+
+ wrapper.className="table-wrap";
+
+ const table=document.createElement("table");
+
+ const columns=[
+  ...new Set(
+   rows.flatMap(row=>Object.keys(row))
+  )
+ ];
+
+ const header=table.createTHead().insertRow();
+
+ columns.forEach(column=>{
+
+  const th=document.createElement("th");
+
+  th.textContent=column;
+
+  header.appendChild(th);
+
+ });
+
+ const tbody=table.createTBody();
+
+ rows.forEach(item=>{
+
+  const row=tbody.insertRow();
+
+  columns.forEach(column=>{
+
+   const cell=row.insertCell();
+
+   const value=item[column];
+
+   cell.textContent=
+    value===null||value===undefined
+     ?"–"
+     :typeof value==="object"
+      ?JSON.stringify(value)
+      :String(value);
+
+  });
+
+ });
+
+ wrapper.appendChild(table);
+
+ details.appendChild(wrapper);
+
+ card.appendChild(details);
+
+ return card;
+
+}
+
+async function loadAdminTestData(){
+
+ if(
+  !isLeagueController||
+  adminTestDataBusy||
+  $("dashboard").classList.contains("hidden")
+ )return false;
+
+ adminTestDataBusy=true;
+
+ const message=$("adminTestDataMessage");
+
+ const list=$("adminTestDataList");
+
+ const refresh=$("refreshAdminTestData");
+
+ refresh.disabled=true;
+
+ list.replaceChildren();
+
+ $("adminTestDataTotal").textContent="–";
+
+ $("adminTestDataSources").textContent="–";
+
+ message.style.color="";
+
+ message.textContent=
+  "Geschützte Testdaten werden geladen...";
+
+ try{
+
+  const {data:{user},error:authError}=
+   await client.auth.getUser();
+
+  if(
+   authError||
+   !user||
+   user.id!==currentUser?.id||
+   !isLeagueController
+  ){
+
+   throw Error("Admin-Anmeldung ungültig.");
+
+  }
+
+  const {data,error}=await client.rpc(
+   "snhl_admin_test_data"
+  );
+
+  if(error)throw error;
+
+  if(
+   !isLeagueController||
+   $("dashboard").classList.contains("hidden")
+  )return false;
+
+  if(
+   !data||
+   typeof data!=="object"||
+   Array.isArray(data)
+  ){
+
+   throw Error("Ungültige Serverantwort.");
+
+  }
+
+  for(const [key] of adminTestDataGroups){
+
+   if(
+    !Array.isArray(data[key])||
+    !data[key].every(
+     row=>row&&
+     typeof row==="object"&&
+     !Array.isArray(row)
+    )
+   ){
+
+    throw Error(
+     "Ungültige Datenquelle: "+key
+    );
+
+   }
+
+  }
+
+  let total=0;
+
+  const fragment=
+   document.createDocumentFragment();
+
+  for(const [key,title] of adminTestDataGroups){
+
+   const rows=data[key];
+
+   total+=rows.length;
+
+   fragment.appendChild(
+    renderAdminTestDataGroup(title,rows)
+   );
+
+  }
+
+  list.replaceChildren(fragment);
+
+  $("adminTestDataTotal").textContent=total;
+
+  $("adminTestDataSources").textContent=
+   adminTestDataGroups.length;
+
+  message.style.color="#76e0a2";
+
+  message.textContent=
+   "✓ Geschützte Testdaten erfolgreich geladen.";
+
+  return true;
+
+ }catch(e){
+
+  list.replaceChildren();
+
+  $("adminTestDataTotal").textContent="–";
+
+  $("adminTestDataSources").textContent="–";
+
+  message.style.color="#ff8290";
+
+  message.textContent="Fehler: "+e.message;
+
+  return false;
+
+ }finally{
+
+  adminTestDataBusy=false;
+
+  refresh.disabled=false;
+
+ }
+
+}
+
+installAdminTestDataPanel();
+
+/* ENDE GESCHUETZTE ADMIN-TESTDATEN */
 /* ENDE OFFIZIELLE CLUBBESTAETIGUNG */
 /* ENDE MANUELLE CUP-AUSLOSUNGSVERWALTUNG */
 /* ENDE CUP-RUNDENFRISTEN */
